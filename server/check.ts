@@ -6,7 +6,7 @@ import { generateText, Output, type LanguageModel } from 'ai';
 import { z } from 'zod';
 import { VERDICTS, type CheckResult, type ItemResult, type Pack, type Verdict, type Version } from '../shared/types.js';
 import { CheckError } from './errors.js';
-import { CALL_TIMEOUT_MS, MAX_RETRIES, getModel } from './llm.js';
+import { CALL_TIMEOUT_MS, MAX_RETRIES, getModel, resolveModel } from './llm.js';
 import { getPack } from './packs.js';
 import { maskPii } from './pii.js';
 import { promptV0, promptV1, promptV2 } from './prompts.js';
@@ -47,7 +47,7 @@ export async function check(input: CheckInput, deps: { model?: LanguageModel } =
   if (!valid.ok) throw new CheckError(400, valid.message);
   const masked = maskPii(input.text).masked;
   const pack = getPack(input.pack);
-  const model = deps.model ?? getModel().model;
+  const model = deps.model ?? (await resolveModel()).model;
   const started = Date.now();
   const common = { model, temperature: 0, maxRetries: MAX_RETRIES, abortSignal: AbortSignal.timeout(CALL_TIMEOUT_MS) };
 
