@@ -1,5 +1,5 @@
 /** HTTP 처리기. Vercel 함수(api/*.ts)와 개발 서버(vite.config.ts)가 같은 처리기를 쓴다. */
-import { PACKS } from './packs.ts';
+import { PACKS, openKnowledge } from './packs.ts';
 import { maskPii } from './pii.ts';
 import { validateInput } from './validate.ts';
 import { check } from './check.ts';
@@ -10,7 +10,15 @@ const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });
 
 export function handlePacks(): Response {
-  return json(200, { packs: PACKS.map((p) => ({ id: p.id, name: p.name, kinds: p.kinds, itemCount: p.items.length })) });
+  return json(200, {
+    packs: PACKS.map((p) => ({
+      id: p.id,
+      name: p.name,
+      kinds: p.kinds,
+      itemCount: p.items.length,
+      items: p.items.map((i) => ({ id: i.id, title: i.title, knowledge: i.knowledge, knowledgeText: openKnowledge(i.knowledge)?.text ?? '' })),
+    })),
+  });
 }
 
 export async function handleCheck(request: Request): Promise<Response> {
