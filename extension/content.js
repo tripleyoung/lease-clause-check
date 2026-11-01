@@ -203,9 +203,9 @@
         if (idx !== -1) {
           const span = document.createElement('span');
           span.className = 'clause-guard-highlight-risk';
-          span.dataset.title = risk.title;
+          span.dataset.title = risk.title || risk.itemId || '불리한 특약';
           span.dataset.knowledge = risk.knowledge || '';
-          span.dataset.fix = risk.fix || '';
+          span.dataset.fix = risk.fix || risk.fixText || '';
           span.dataset.law = risk.knowledgeText || '';
 
           const matchRange = document.createRange();
@@ -228,19 +228,22 @@
   function showTooltip(targetSpan, risk) {
     const tooltip = ensureTooltip();
     const rect = targetSpan.getBoundingClientRect();
+    const title = risk.title || targetSpan.dataset.title || risk.itemId || '불리한 특약';
+    const fix = risk.fix || risk.fixText || targetSpan.dataset.fix || '';
+    const knowledge = risk.knowledge || targetSpan.dataset.knowledge || '';
 
     tooltip.innerHTML = `
       <div class="cg-tooltip-header">
         <span class="cg-badge-risk">🚨 주의 필요</span>
-        <span style="font-size:11px; color:#64748b;">${risk.knowledge?.split('#')[0] || '관련 법령'}</span>
+        <span style="font-size:11px; color:#64748b;">${knowledge.split('#')[0] || '관련 법령'}</span>
       </div>
-      <div class="cg-tooltip-title">${risk.title}</div>
+      <div class="cg-tooltip-title">${title}</div>
       <div style="font-size:12px; color:#334155; margin-bottom:6px;">"${risk.quote}"</div>
-      ${risk.knowledge ? `<div class="cg-tooltip-law"><b>근거:</b> ${risk.knowledge.split('#')[1] || risk.knowledge}</div>` : ''}
-      ${risk.fix ? `
+      ${knowledge ? `<div class="cg-tooltip-law"><b>근거:</b> ${knowledge.split('#')[1] || knowledge}</div>` : ''}
+      ${fix ? `
         <div class="cg-tooltip-fix">
           <div class="cg-fix-label">💡 이렇게 바꿔달라고 요구하세요:</div>
-          <div class="cg-fix-text" id="cg-fix-content">${risk.fix}</div>
+          <div class="cg-fix-text" id="cg-fix-content">${fix}</div>
           <button class="cg-copy-btn" id="cg-copy-action">대안 문구 복사</button>
         </div>
       ` : ''}
