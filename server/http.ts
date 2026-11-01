@@ -1,10 +1,10 @@
 /** HTTP 처리기. Vercel 함수(api/*.ts)와 개발 서버(vite.config.ts)가 같은 처리기를 쓴다. */
-import { PACKS, openKnowledge } from './packs.ts';
-import { maskPii } from './pii.ts';
-import { validateInput } from './validate.ts';
-import { check } from './check.ts';
-import { CheckError } from './errors.ts';
-import type { Version } from '../shared/types.ts';
+import { PACKS, openKnowledge } from './packs.js';
+import { maskPii } from './pii.js';
+import { validateInput } from './validate.js';
+import { check } from './check.js';
+import { CheckError } from './errors.js';
+import type { Version } from '../shared/types.js';
 
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });

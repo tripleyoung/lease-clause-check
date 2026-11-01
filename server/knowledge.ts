@@ -7,7 +7,15 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const ROOT = fileURLToPath(new URL('../knowledge/', import.meta.url));
+function resolveKnowledgeRoot(): string {
+  const fromCwd = join(process.cwd(), 'knowledge');
+  if (existsSync(fromCwd)) return fromCwd;
+  const fromMeta = fileURLToPath(new URL('../knowledge/', import.meta.url));
+  if (existsSync(fromMeta)) return fromMeta;
+  return fromCwd;
+}
+
+const ROOT = resolveKnowledgeRoot();
 
 export type Section = { source: string; heading: string; text: string };
 

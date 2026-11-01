@@ -4,14 +4,14 @@
  */
 import { generateText, Output, type LanguageModel } from 'ai';
 import { z } from 'zod';
-import { VERDICTS, type CheckResult, type ItemResult, type Pack, type Verdict, type Version } from '../shared/types.ts';
-import { CheckError } from './errors.ts';
-import { CALL_TIMEOUT_MS, MAX_RETRIES, getModel } from './llm.ts';
-import { getPack } from './packs.ts';
-import { maskPii } from './pii.ts';
-import { promptV0, promptV1, promptV2 } from './prompts.ts';
-import { ruleScan } from './rules.ts';
-import { validateInput } from './validate.ts';
+import { VERDICTS, type CheckResult, type ItemResult, type Pack, type Verdict, type Version } from '../shared/types.js';
+import { CheckError } from './errors.js';
+import { CALL_TIMEOUT_MS, MAX_RETRIES, getModel } from './llm.js';
+import { getPack } from './packs.js';
+import { maskPii } from './pii.js';
+import { promptV0, promptV1, promptV2 } from './prompts.js';
+import { ruleScan } from './rules.js';
+import { validateInput } from './validate.js';
 
 export type CheckInput = { text: string; pack: string; version?: Version };
 

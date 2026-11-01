@@ -1,6 +1,6 @@
 /** 채점. 단위는 '항목'이다(케이스 수 × 그 팩의 점검 항목 수). 빠진 항목은 틀린 것으로 센다. */
-import type { CheckResult } from '../shared/types.ts';
-import type { Case } from './cases.ts';
+import type { CheckResult } from '../shared/types.js';
+import type { Case } from './cases.js';
 
 export type Score = {
   cases: number;

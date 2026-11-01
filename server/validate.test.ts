@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { validateInput, MAX_CHARS } from './validate.ts';
-import { maskPii } from './pii.ts';
+import { validateInput, MAX_CHARS } from './validate.js';
+import { maskPii } from './pii.js';
 
 test('empty is rejected', () => {
   const r = validateInput('   ');

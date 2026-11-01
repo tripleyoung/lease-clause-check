@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { loadCases } from './cases.ts';
-import { getPack } from './packs.ts';
+import { loadCases } from './cases.js';
+import { getPack } from './packs.js';
 
 const dev = loadCases('dev');
 const tst = loadCases('test');

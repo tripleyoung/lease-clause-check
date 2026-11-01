@@ -1,10 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { MockLanguageModelV4 } from 'ai/test';
-import { check } from './check.ts';
-import { getModel } from './llm.ts';
-import { getPack } from './packs.ts';
-import { CheckError } from './errors.ts';
+import { check } from './check.js';
+import { getModel } from './llm.js';
+import { getPack } from './packs.js';
+import { CheckError } from './errors.js';
 
 const usage = { inputTokens: { total: 1, noCache: 1, cacheRead: 0, cacheWrite: 0 }, outputTokens: { total: 1, text: 1, reasoning: 0 } };
 function mock(text: string, seen: string[] = []) {

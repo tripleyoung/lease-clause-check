@@ -4,8 +4,8 @@
  */
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import type { Verdict } from '../shared/types.ts';
-import { getPack } from './packs.ts';
+import type { Verdict } from '../shared/types.js';
+import { getPack } from './packs.js';
 
 export type Case = { id: string; pack: string; kind: string; text: string; labels: Record<string, Verdict> };
 

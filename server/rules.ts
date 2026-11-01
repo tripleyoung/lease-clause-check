@@ -2,7 +2,7 @@
  * 규칙 검사(v2 재료). 문장 단위로 팩의 위험·보호 힌트를 찾고, 숫자 기준(증액 5%, 위약금 10%)은 직접 계산한다.
  * 판단하지 못하면 null — AI가 정한다. 규칙은 dev 세트만 보고 고친다.
  */
-import type { Pack, Verdict } from '../shared/types.ts';
+import type { Pack, Verdict } from '../shared/types.js';
 
 export type RuleHit = { verdict: Verdict | null; quote: string };
 

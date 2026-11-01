@@ -5,7 +5,7 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { createOpenAI } from '@ai-sdk/openai';
 import type { LanguageModel } from 'ai';
-import { CheckError } from './errors.ts';
+import { CheckError } from './errors.js';
 
 export const CALL_TIMEOUT_MS = 25_000;
 export const MAX_RETRIES = 1;

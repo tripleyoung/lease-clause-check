@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { PACKS, getPack, openKnowledge, searchKnowledge } from './packs.ts';
+import { PACKS, getPack, openKnowledge, searchKnowledge } from './packs.js';
 
 test('every item points at an existing knowledge section', () => {
   for (const pack of PACKS) {

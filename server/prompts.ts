@@ -2,9 +2,9 @@
  * 프롬프트 v0 → v1 → v2. 바꾼 이유와 dev 점수는 프롬프트.md 에 적는다.
  * 세 버전 모두 같은 출력 모양(항목별 판정)을 받는다 — 같은 자로 재기 위해서.
  */
-import type { Pack } from '../shared/types.ts';
-import type { RuleHit } from './rules.ts';
-import { openKnowledge } from './knowledge.ts';
+import type { Pack } from '../shared/types.js';
+import type { RuleHit } from './rules.js';
+import { openKnowledge } from './knowledge.js';
 
 const VERDICT_RULE = '판정은 보호됨(나를 지키는 조항이 있음), 위험(나에게 불리한 조항이 있음), 언급 없음(관련 조항이 없음) 셋 중 하나다.';
 

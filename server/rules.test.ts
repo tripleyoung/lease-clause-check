@@ -1,9 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { ruleScan } from './rules.ts';
-import { getPack } from './packs.ts';
-import { loadCases } from './cases.ts';
-import { maskPii } from './pii.ts';
+import { ruleScan } from './rules.js';
+import { getPack } from './packs.js';
+import { loadCases } from './cases.js';
+import { maskPii } from './pii.js';
 
 const lease = getPack('lease')!;
 const gym = getPack('gym')!;

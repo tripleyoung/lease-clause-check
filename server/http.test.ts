@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { handleCheck, handlePacks } from './http.ts';
+import { handleCheck, handlePacks } from './http.js';
 
 const post = (body: unknown) => new Request('http://x/api/check', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 

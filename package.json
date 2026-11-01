@@ -3,11 +3,14 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -p . && vite build",
     "typecheck": "tsc -p .",
-    "test": "node --experimental-strip-types --test server/*.test.ts",
+    "test": "node --import ./scripts/test-loader.mjs --experimental-strip-types --test server/*.test.ts",
     "eval": "node scripts/eval.mjs"
   },
   "dependencies": {

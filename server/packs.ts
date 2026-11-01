@@ -2,8 +2,8 @@
  * 점검팩. 엔진은 계약 종류를 모르고 이 목록만 받아서 돈다.
  * 근거(knowledge)는 knowledge/ 아래 실제로 읽고 옮긴 원문 절만 가리킨다.
  */
-import type { CheckItem, Pack } from '../shared/types.ts';
-export { openKnowledge, searchKnowledge } from './knowledge.ts';
+import type { CheckItem, Pack } from '../shared/types.js';
+export { openKnowledge, searchKnowledge } from './knowledge.js';
 
 const L = 'knowledge/lease/주택임대차보호법.md#';
 const M = 'knowledge/lease/민법.md#';

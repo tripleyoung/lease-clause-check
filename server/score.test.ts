@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { score } from './score.ts';
-import type { CheckResult, Verdict } from '../shared/types.ts';
-import type { Case } from './cases.ts';
+import { score } from './score.js';
+import type { CheckResult, Verdict } from '../shared/types.js';
+import type { Case } from './cases.js';
 
 const kase = (labels: Record<string, Verdict>): Case => ({ id: 'c1', pack: 'lease', kind: '월세', text: '', labels });
 const result = (verdicts: Record<string, Verdict>, missing: string[] = []): CheckResult => ({
