@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>계약서 특약 자동 점검기</title>
+  <style>
+    body {
+      width: 280px;
+      margin: 0;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif;
+      color: #1e293b;
+      background: #f8fafc;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .header h1 {
+      font-size: 15px;
+      margin: 0;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .desc {
+      font-size: 12px;
+      color: #64748b;
+      line-height: 1.4;
+      margin-bottom: 14px;
+    }
+    .form-group {
+      margin-bottom: 12px;
+    }
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: #475569;
+      margin-bottom: 4px;
+    }
+    select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 13px;
+      background: #ffffff;
+      outline: none;
+    }
+    .btn-scan {
+      width: 100%;
+      padding: 10px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-scan:hover {
+      background: #1d4ed8;
+    }
+    .footer {
+      margin-top: 14px;
+      text-align: center;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 10px;
+    }
+    .footer a {
+      font-size: 11px;
+      color: #3b82f6;
+      text-decoration: none;
+    }
+    .footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <span style="font-size: 18px;">🛡️</span>
+    <h1>특약 자동 점검기</h1>
+  </div>
+  <div class="desc">
+    보고 계신 전자계약서나 약관 페이지에서 위험한 특약을 찾아 자동으로 빨간 밑줄을 그어 줍니다.
+  </div>
+  <div class="form-group">
+    <label for="pack-select">점검 기준 선택</label>
+    <select id="pack-select">
+      <option value="lease" selected>전월세 임대차 특약 (11개 항목)</option>
+      <option value="gym">헬스장·PT 이용약관 (7개 항목)</option>
+    </select>
+  </div>
+  <button class="btn-scan" id="btn-scan">🔍 현재 페이지 점검</button>
+  <div class="footer">
+    <a href="https://lease-clause-check.vercel.app" target="_blank">🌐 웹 앱 전체 화면으로 열기 ↗</a>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

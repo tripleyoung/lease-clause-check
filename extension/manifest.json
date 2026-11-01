@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "계약서 특약 자동 점검기 (ClauseGuard)",
+  "version": "1.0.0",
+  "description": "전자계약서나 약관 웹페이지에서 위험한 조항을 자동으로 찾아 빨간 밑줄과 법령 근거, 대안 문구를 띄워 줍니다.",
+  "permissions": ["activeTab", "storage"],
+  "host_permissions": [
+    "https://lease-clause-check.vercel.app/*",
+    "http://localhost:*/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "계약서 특약 자동 점검"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}
