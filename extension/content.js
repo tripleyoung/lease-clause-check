@@ -38,17 +38,26 @@
     });
   }
 
-  // 3. 페이지 텍스트 추출
+  // 3. 페이지 텍스트 추출 (드래그한 선택 영역 우선, 없으면 계약서 컨테이너 또는 본문 전체)
   function extractContractText() {
-    // 특약사항, 본문, 약관 영역 우선 탐색
-    const selectors = ['article', 'main', '.contract', '.agreement', '.terms', '#contract', '#agreement', 'table'];
-    for (const sel of selectors) {
-      const el = document.querySelector(sel);
-      if (el && el.innerText.length > 50) {
-        return el.innerText;
+    const selected = window.getSelection()?.toString()?.trim();
+    if (selected && selected.length >= 10) return selected;
+
+    const candidates = Array.from(
+      document.querySelectorAll(
+        'article, main, .contract, .agreement, .terms, #postViewArea, .se-main-container, .entry-content, form, table, body'
+      )
+    );
+    for (const el of candidates) {
+      const text = el.innerText || '';
+      if (
+        text.length > 50 &&
+        (text.includes('특약') || text.includes('임대') || text.includes('보증금') || text.includes('위약금') || text.includes('환불'))
+      ) {
+        return text;
       }
     }
-    return document.body.innerText;
+    return document.body ? document.body.innerText : '';
   }
 
   // 4. 점검 실행
@@ -168,11 +177,11 @@
   }
 
   // 7. 페이지 초기 로드 시 계약서 키워드 자동 감지
-  const pageKeywords = ['특약', '임대차', '임대인', '임차인', '보증금', '차임', '위약금', '환불규정', '수선 의무'];
+  const pageKeywords = ['특약', '임대차', '임대인', '임차인', '보증금', '차임', '위약금', '환불규정', '수선 의무', '계약서', '약관'];
   const fullText = document.body ? document.body.innerText : '';
   const matchCount = pageKeywords.filter((k) => fullText.includes(k)).length;
 
-  if (matchCount >= 2) {
+  if (matchCount >= 1) {
     createFloatingPill();
   }
 
