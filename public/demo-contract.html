@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>부동산 임대차 표준계약서 (ClauseGuard 실전 테스트 견본)</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif;
+      background: #f1f5f9;
+      margin: 0;
+      padding: 40px 20px;
+      color: #0f172a;
+      line-height: 1.6;
+    }
+    .contract-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 48px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      border: 1px solid #e2e8f0;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+      border-bottom: 2px solid #0f172a;
+      padding-bottom: 16px;
+    }
+    h1 {
+      font-size: 24px;
+      margin: 0 0 8px 0;
+      letter-spacing: -0.5px;
+    }
+    .subtitle {
+      font-size: 13px;
+      color: #64748b;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 24px;
+      font-size: 13px;
+    }
+    th, td {
+      border: 1px solid #cbd5e1;
+      padding: 10px 12px;
+    }
+    th {
+      background: #f8fafc;
+      width: 25%;
+      text-align: left;
+      font-weight: 600;
+    }
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin: 28px 0 12px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #1e293b;
+    }
+    .clause-box {
+      background: #fafafa;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 24px;
+      font-size: 14px;
+      line-height: 1.8;
+    }
+    .clause-box ol {
+      margin: 0;
+      padding-left: 20px;
+    }
+    .clause-box li {
+      margin-bottom: 12px;
+    }
+    .badge-test {
+      display: inline-block;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="contract-container">
+    <div style="text-align: center;">
+      <span class="badge-test">🛡️ 크롬 확장 프로그램(ClauseGuard) 실전 테스트 페이지</span>
+    </div>
+
+    <div class="header">
+      <h1>주택 임대차 계약서 (전월세)</h1>
+      <div class="subtitle">국토교통부·법무부 표준임대차계약서 준용 견본</div>
+    </div>
+
+    <div class="section-title">1. 부동산의 표시</div>
+    <table>
+      <tr>
+        <th>소재지</th>
+        <td colspan="3">서울특별시 마포구 독막로 123 (상수동) 아파트 101동 502호</td>
+      </tr>
+      <tr>
+        <th>구조 및 용도</th>
+        <td>철근콘크리트조 / 공동주택</td>
+        <th>전용면적</th>
+        <td>84.95 ㎡</td>
+      </tr>
+    </table>
+
+    <div class="section-title">2. 계약 내용</div>
+    <table>
+      <tr>
+        <th>보증금</th>
+        <td>금 100,000,000 원 (일억 원)</td>
+        <th>월차임</th>
+        <td>금 500,000 원 (매월 25일 지급)</td>
+      </tr>
+      <tr>
+        <th>계약기간</th>
+        <td colspan="3">2026년 11월 15일부터 2028년 11월 14일까지 (24개월)</td>
+      </tr>
+    </table>
+
+    <div class="section-title">3. 특약사항 (Special Agreements)</div>
+    <div class="clause-box">
+      <ol>
+        <li>현 시설물 상태에서의 임대차 계약이며, 입주 후 보일러 고장, 배관 누수 등 일체의 수선 및 수리 비용은 임차인이 전액 부담하기로 한다.</li>
+        <li>임대인은 잔금 당일 금융기관에서 담보 대출을 실행하고 근저당권을 설정할 수 있으며, 임차인은 이에 일체 동의한다.</li>
+        <li>임차인은 임대차기간 만료 시 어떠한 경우에도 계약갱신요구권을 청구하지 않고 포기하며 기한 내 퇴거한다.</li>
+        <li>임대료 및 보증금은 물가상승률을 감안하여 매년 10%씩 인상하기로 쌍방 합의한다.</li>
+        <li>임차보증금은 계약 종료 당일이 아닌, 새로운 임차인이 들어오면 반환하는 것으로 한다.</li>
+        <li>임차인은 입주 당일 전입신고 및 확정일자를 받도록 한다.</li>
+      </ol>
+    </div>
+
+    <div style="margin-top: 40px; text-align: center; color: #94a3b8; font-size: 12px;">
+      본 서식은 ClauseGuard 크롬 확장 프로그램의 실시간 인라인 위험 탐지 기능을 검증하기 위한 데모 페이지입니다.
+    </div>
+  </div>
+</body>
+</html>
