@@ -1,0 +1,13 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "functions": {
+    "api/check.ts": {
+      "maxDuration": 60,
+      "includeFiles": "knowledge/**"
+    },
+    "api/packs.ts": {
+      "maxDuration": 10
+    }
+  }
+}
