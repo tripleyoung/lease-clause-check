@@ -466,7 +466,7 @@ export function SamplePreviewCard({
   const [viewMode, setViewMode] = useState<'scan' | 'structured'>('scan');
   const [showMasked, setShowMasked] = useState(true);
   const [showPinsOnScan, setShowPinsOnScan] = useState(true);
-  const [selectedClauseNum, setSelectedClauseNum] = useState<number>(3); // 기본 위험 3번 조항 선택
+  const [selectedClauseNum, setSelectedClauseNum] = useState<number>(1); // 기본 1번(안심) 조항 선택 상태에서 시작하여 3번/4번(위험) 클릭 시 명확한 변화 확인
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const activeClause = doc.clauses.find((c) => c.num === selectedClauseNum) ?? doc.clauses[0];
