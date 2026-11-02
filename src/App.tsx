@@ -110,8 +110,11 @@ export function App() {
     try {
       const dataUrl = await resizeImage(file);
       setImagePreview(dataUrl);
-      const res = await post<OcrResult>({ action: 'ocr', image: dataUrl, pack: packId });
+      const res = await post<OcrResult & MaskResult>({ action: 'ocr', image: dataUrl, pack: packId });
       setText(res.text);
+      if (res.masked) {
+        setPreview({ masked: res.masked, found: res.found ?? [] });
+      }
     } catch (e) {
       setError((e as Error).message);
     } finally {
