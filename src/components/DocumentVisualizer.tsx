@@ -17,6 +17,7 @@ export interface SampleDocSpec {
   subtitle: string;
   docHeader: string;
   scannedImageUrl?: string;
+  aspectRatio: string; // e.g. '824 / 1089'
   metaLines: Array<{ label: string; value: string; maskedValue: string; isPii?: boolean }>;
   clauses: Array<{
     num: number;
@@ -39,6 +40,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
     subtitle: '법무부 고시 제2023-1호 공식 서식 · 대항력 확보 조항 및 보증금 반환 지연·원상복구 독소 특약 점검',
     docHeader: '법무부·국토교통부 서식 주택임대차표준계약서 (제2023-1호)',
     scannedImageUrl: '/samples/scanned_lease_contract.png',
+    aspectRatio: '824 / 1089',
     metaLines: [
       {
         label: '소재지',
@@ -70,7 +72,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'safe',
         tag: '보호 · 최우선 권리 확보 (법무부 권고)',
         shortPoint: '전입신고 대항력이 생길 때까지 내 보증금 순위를 지켜주는 필수 보호 조항이에요.',
-        annotationBox: { left: 6.8, top: 54.0, width: 86.4, height: 3.2 },
+        annotationBox: { left: 8.34, top: 55.83, width: 83.38, height: 2.1 },
       },
       {
         num: 2,
@@ -78,7 +80,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'safe',
         tag: '보호 · 통상 마모 면책 (대법원 2005다51389)',
         shortPoint: '대법원 판례 기준에 따라 일상적인 생활 마모 책임을 면책해 주는 표준 조항이에요.',
-        annotationBox: { left: 6.8, top: 57.8, width: 86.4, height: 3.4 },
+        annotationBox: { left: 8.34, top: 58.28, width: 83.38, height: 4.0 },
       },
       {
         num: 3,
@@ -86,7 +88,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'risk',
         tag: '위험 · 보증금 반환 지연 (주임법 위반)',
         shortPoint: '새 세입자가 안 구해지면 보증금을 제때 못 돌려받는 대표적 불법 독소 조항이에요.',
-        annotationBox: { left: 6.8, top: 62.4, width: 86.4, height: 2.8 },
+        annotationBox: { left: 8.36, top: 62.63, width: 83.38, height: 2.1 },
       },
       {
         num: 4,
@@ -94,7 +96,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'risk',
         tag: '위험 · 원상복구 과다 전가 (약관규제법 위반)',
         shortPoint: '자연 노후화까지 세입자에게 물려 보증금을 부당 차감하는 불리한 특약이에요.',
-        annotationBox: { left: 6.8, top: 65.6, width: 86.4, height: 2.8 },
+        annotationBox: { left: 8.37, top: 65.08, width: 83.38, height: 2.1 },
       },
       {
         num: 5,
@@ -102,7 +104,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'risk',
         tag: '위험 · 법정 5% 상한 초과 (주임법 제7조)',
         shortPoint: '주택임대차보호법상 법정 증액 상한(5%)을 초과하여 법적 효력이 없는 무효 조항이에요.',
-        annotationBox: { left: 6.8, top: 68.8, width: 86.4, height: 2.8 },
+        annotationBox: { left: 8.38, top: 67.53, width: 83.38, height: 2.1 },
       },
     ],
     rawText:
@@ -117,6 +119,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
     subtitle: '공정거래위원회 표준약관 제10037호 준용 · 중도 해지 환불 거부 및 정상가 과다 공제 독소 약관 점검',
     docHeader: '체력단련장(피트니스·PT) 이용 표준계약서 (공정위 제10037호)',
     scannedImageUrl: '/samples/scanned_gym_contract.png',
+    aspectRatio: '822 / 891',
     metaLines: [
       {
         label: '사업자',
@@ -142,7 +145,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'safe',
         tag: '보호 · 법정 환불 기준 (공정위 표준약관)',
         shortPoint: '실제 결제 금액 기준으로 10% 위약금만 공제하고 남은 금액을 돌려받는 표준 권리예요.',
-        annotationBox: { left: 6.8, top: 48.2, width: 86.4, height: 4.2 },
+        annotationBox: { left: 8.2, top: 58.2, width: 83.6, height: 3.4 },
       },
       {
         num: 2,
@@ -150,7 +153,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'risk',
         tag: '위험 · 정상가 꼼수 차감 및 위약금 10% 초과',
         shortPoint: '실제 결제한 할인가가 아닌 부풀린 정상가로 계산해 환불금을 0원으로 만드는 대표적 꼼수예요.',
-        annotationBox: { left: 6.8, top: 54.6, width: 86.4, height: 3.5 },
+        annotationBox: { left: 8.2, top: 61.9, width: 83.6, height: 5.3 },
       },
       {
         num: 3,
@@ -158,7 +161,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'risk',
         tag: '위험 · 환불 일체 불가 및 사업자 귀책 면책',
         shortPoint: '센터 사정으로 운동을 못 하게 되었는데도 환불을 전면 거부하는 원천 무효 조항이에요.',
-        annotationBox: { left: 6.8, top: 58.8, width: 86.4, height: 3.2 },
+        annotationBox: { left: 8.2, top: 67.6, width: 83.6, height: 3.2 },
       },
       {
         num: 4,
@@ -166,7 +169,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'risk',
         tag: '위험 · 사은품 과다 위약금 전가',
         shortPoint: '공짜 사은품 명목으로 정가의 몇 배를 청구해 환불금을 대폭 깎는 부당 조항이에요.',
-        annotationBox: { left: 6.8, top: 62.8, width: 86.4, height: 3.2 },
+        annotationBox: { left: 8.2, top: 71.1, width: 83.6, height: 3.2 },
       },
     ],
     rawText:
@@ -181,6 +184,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
     subtitle: '국세청 홈택스 연말정산 서식 기준 · 총급여 5,800만 원 직장인의 월세 세액공제 요건 및 환급액 정밀 진단',
     docHeader: '국세청 연말정산 주택임차료(월세) 세액공제 명세서',
     scannedImageUrl: '/samples/scanned_tax_receipt.png',
+    aspectRatio: '822 / 751',
     metaLines: [
       {
         label: '신청인',
@@ -212,7 +216,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'safe',
         tag: '공제 요건 충족 · 연 1,000만 원 한도',
         shortPoint: '총급여 8,000만 원 이하 무주택 세대주 요건을 충족해 조세특례제한법상 월세 세액공제 대상이에요.',
-        annotationBox: { left: 6.8, top: 46.5, width: 86.4, height: 4.0 },
+        annotationBox: { left: 8.25, top: 57.9, width: 83.54, height: 3.8 },
       },
       {
         num: 2,
@@ -220,7 +224,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'safe',
         tag: '환급 예상액 · 연 135만 원 (지방세 포함 148.5만 원)',
         shortPoint: '연 900만 원 × 15% = 지방소득세 포함 총 148.5만 원을 연말정산에서 돌려받아요.',
-        annotationBox: { left: 6.8, top: 51.8, width: 86.4, height: 4.0 },
+        annotationBox: { left: 8.26, top: 62.0, width: 83.53, height: 2.6 },
       },
       {
         num: 3,
@@ -228,7 +232,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'caution',
         tag: '주의 · 전입신고 필수 (집주인 동의 불필요)',
         shortPoint: '임대인의 동의나 서명 없이도 국세청 홈택스 또는 회사 연말정산 간소화에서 직접 신청할 수 있어요.',
-        annotationBox: { left: 6.8, top: 57.2, width: 86.4, height: 4.4 },
+        annotationBox: { left: 8.27, top: 64.8, width: 83.54, height: 3.8 },
       },
     ],
     rawText:
@@ -312,9 +316,18 @@ export function SamplePreviewCard({
       </div>
 
       {viewMode === 'scan' && doc.scannedImageUrl ? (
-        <div className="paper-doc-scanned-wrap">
-          {/* A4 정비율 스캔 문서 래퍼 */}
-          <div className="paper-doc-scanned-container" data-testid="scanned-a4-container">
+        <div className="paper-doc-scanned-wrap" data-testid="scanned-scroll-wrap">
+          {/* 스크롤 안내 힌트 바 */}
+          <div className="scanned-scroll-notice">
+            <span>📜 마우스 휠이나 터치로 아래로 스크롤하여 계약서 하단 서명·날인까지 확인하실 수 있어요</span>
+          </div>
+
+          {/* 원본 해상도와 100% 일치하는 종횡비 컨테이너 (Zero-Letterbox Pixel-Perfect 바인딩) */}
+          <div
+            className="paper-doc-scanned-container"
+            style={{ aspectRatio: doc.aspectRatio }}
+            data-testid="scanned-a4-container"
+          >
             <img
               src={doc.scannedImageUrl}
               alt={`${doc.title} 실제 스캔본 계약서`}
@@ -491,7 +504,11 @@ export function AnnotatedDocumentDeckCard({
         {/* 왼쪽: 실제 A4 정비율 스캔본 문서 위 직접 하이라이트 핀 오버레이 */}
         <div className="paper-doc-result-view">
           {hasScannedDoc ? (
-            <div className="paper-doc-scanned-container is-result-mode" data-testid="result-scanned-container">
+            <div
+              className="paper-doc-scanned-container is-result-mode"
+              style={{ aspectRatio: doc?.aspectRatio || '824 / 1089' }}
+              data-testid="result-scanned-container"
+            >
               <img
                 src={effectiveImageUrl}
                 alt="계약서·약관 실제 스캔 이미지"
@@ -501,16 +518,16 @@ export function AnnotatedDocumentDeckCard({
               {/* 스캔 문서 위 직접 표시되는 핀 레이어 */}
               <div className="doc-annotation-layer" aria-label="점검 결과 문서 위 위치 오버레이">
                 {displayItems.map((item, idx) => {
-                  // doc에 매칭되는 clause가 있으면 그 박스 사용, 없으면 균등 분할 위치
-                  const matchedClause = doc?.clauses.find((c) =>
+                  // doc에 매칭되는 clause가 있으면 그 박스 사용, 없으면 순서 매핑
+                  const matchedClause = doc?.clauses[idx] ?? doc?.clauses.find((c) =>
                     c.text.includes(item.quote?.slice(0, 8) || '') ||
                     c.num === idx + 1
                   );
                   const box = matchedClause?.annotationBox ?? {
-                    left: 6.8,
-                    top: 50 + idx * 5.5,
-                    width: 86.4,
-                    height: 3.2,
+                    left: 8.3,
+                    top: 55 + idx * 3.5,
+                    width: 83.4,
+                    height: 2.1,
                   };
 
                   const isSelected = idx === safeIdx;

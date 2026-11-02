@@ -1470,8 +1470,9 @@ export function App() {
                   </h2>
                 </div>
 
-                {/* 누적 의뢰인 질문 통계 원(도넛) 차트 */}
+                {/* 3대 상담 분야별 질문 빅데이터 원(도넛) 차트 */}
                 <QuestionStatsDonut
+                  currentTopic={topic}
                   onSelectCategory={(question) => {
                     setInput(question);
                     inputRef.current?.focus();
