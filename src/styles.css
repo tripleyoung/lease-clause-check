@@ -1644,6 +1644,63 @@ ol.rt-list {
   display: block;
 }
 
+/* 실제 스캔본 계약서·영수증 이미지 전용 컨테이너 */
+.paper-doc-scanned-wrap {
+  width: 100%;
+  max-height: 520px;
+  overflow-y: auto;
+  border-radius: 12px;
+  border: 1px solid var(--hairline-strong);
+  background: #ecebe6;
+  padding: 12px;
+  display: flex;
+  justify-content: center;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.paper-doc-scanned-img {
+  width: 100%;
+  max-width: 720px;
+  height: auto;
+  display: block;
+  border-radius: 4px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.paper-doc__scanned-scanview {
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--hairline-strong);
+  background: #ecebe6;
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.paper-doc__scan-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--indigo);
+  background: #fff;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--hairline);
+  align-self: flex-start;
+}
+
+.paper-doc__scanned-scanview img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 4px;
+}
+
 .paper-doc__meta {
   display: flex;
   flex-direction: column;

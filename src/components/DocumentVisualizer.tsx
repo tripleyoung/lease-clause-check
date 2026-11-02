@@ -9,6 +9,7 @@ export interface SampleDocSpec {
   title: string;
   subtitle: string;
   docHeader: string;
+  scannedImageUrl?: string;
   metaLines: Array<{ label: string; value: string; maskedValue: string; isPii?: boolean }>;
   clauses: Array<{
     num: number;
@@ -29,6 +30,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
     title: '법무부·국토교통부 표준 주택임대차계약서 (보증부월세)',
     subtitle: '법무부 고시 제2023-1호 공식 서식 · 대항력 확보 조항 및 보증금 반환 지연·원상복구 독소 특약 점검',
     docHeader: '법무부·국토교통부 서식 주택임대차표준계약서 (제2023-1호)',
+    scannedImageUrl: '/samples/scanned_lease_contract.png',
     metaLines: [
       {
         label: '소재지',
@@ -101,6 +103,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
     title: '공정거래위원회 체력단련장 이용계약서 (표준약관 제10037호)',
     subtitle: '공정거래위원회 표준약관 제10037호 준용 · 중도 해지 환불 거부 및 정상가 과다 공제 독소 약관 점검',
     docHeader: '체력단련장(피트니스·PT) 이용 표준계약서 (공정위 제10037호)',
+    scannedImageUrl: '/samples/scanned_gym_contract.png',
     metaLines: [
       {
         label: '사업자',
@@ -160,6 +163,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
     title: '국세청 주택임차료(월세) 세액공제 신청 및 검증서',
     subtitle: '국세청 홈택스 연말정산 서식 기준 · 총급여 5,800만 원 직장인의 월세 세액공제 요건 및 환급액 정밀 진단',
     docHeader: '국세청 연말정산 주택임차료(월세) 세액공제 명세서',
+    scannedImageUrl: '/samples/scanned_tax_receipt.png',
     metaLines: [
       {
         label: '신청인',
@@ -226,6 +230,7 @@ export function SamplePreviewCard({
   onClose: () => void;
   busy: boolean;
 }) {
+  const [viewMode, setViewMode] = useState<'scan' | 'structured'>('scan');
   const [showMasked, setShowMasked] = useState(true);
 
   return (
@@ -237,60 +242,91 @@ export function SamplePreviewCard({
           <p className="doc-preview-shell__sub">{doc.subtitle}</p>
         </div>
         <div className="doc-preview-shell__toggles">
-          <button
-            type="button"
-            className={showMasked ? 'copy-chip copy-chip--active' : 'copy-chip'}
-            onClick={() => setShowMasked((v) => !v)}
-          >
-            {showMasked ? '🔒 개인정보 가림 적용됨' : '원본 개인정보 보기'}
-          </button>
+          {doc.scannedImageUrl && (
+            <div style={{ display: 'inline-flex', gap: '4px' }}>
+              <button
+                type="button"
+                className={viewMode === 'scan' ? 'copy-chip copy-chip--active' : 'copy-chip'}
+                onClick={() => setViewMode('scan')}
+                data-testid="toggle-view-scan"
+              >
+                📄 스캔 원본
+              </button>
+              <button
+                type="button"
+                className={viewMode === 'structured' ? 'copy-chip copy-chip--active' : 'copy-chip'}
+                onClick={() => setViewMode('structured')}
+                data-testid="toggle-view-structured"
+              >
+                📋 조항 분석
+              </button>
+            </div>
+          )}
+          {viewMode === 'structured' && (
+            <button
+              type="button"
+              className={showMasked ? 'copy-chip copy-chip--active' : 'copy-chip'}
+              onClick={() => setShowMasked((v) => !v)}
+            >
+              {showMasked ? '🔒 개인정보 가림 적용됨' : '원본 개인정보 보기'}
+            </button>
+          )}
           <button type="button" className="turn__reset" onClick={onClose}>
             닫기
           </button>
         </div>
       </div>
 
-      {/* 실제 종이 계약서·영수증 시각화 시트 */}
-      <div className="paper-doc">
-        <div className="paper-doc__header">
-          <span className="paper-doc__title">{doc.docHeader}</span>
-          <span className="paper-doc__stamp" aria-hidden="true">
-            印
-          </span>
+      {viewMode === 'scan' && doc.scannedImageUrl ? (
+        <div className="paper-doc-scanned-wrap">
+          <img
+            src={doc.scannedImageUrl}
+            alt={`${doc.title} 실제 스캔본 계약서`}
+            className="paper-doc-scanned-img"
+          />
         </div>
-
-        <div className="paper-doc__meta">
-          {doc.metaLines.map((m) => (
-            <div key={m.label} className="paper-doc__meta-row">
-              <span className="paper-doc__meta-label">{m.label}</span>
-              <span className={m.isPii && showMasked ? 'paper-doc__meta-val is-masked' : 'paper-doc__meta-val'}>
-                {showMasked ? m.maskedValue : m.value}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        <div className="paper-doc__clauses">
-          <div className="paper-doc__section-label">
-            <span>점검 대상 조항 및 주요 항목 (클릭하면 한결이 해당 위치를 짚어 설명합니다)</span>
+      ) : (
+        <div className="paper-doc">
+          <div className="paper-doc__header">
+            <span className="paper-doc__title">{doc.docHeader}</span>
+            <span className="paper-doc__stamp" aria-hidden="true">
+              印
+            </span>
           </div>
-          {doc.clauses.map((c) => (
-            <div key={c.num} className={`paper-doc__clause paper-doc__clause--${c.tone}`}>
-              <span className={`paper-doc__pin paper-doc__pin--${c.tone}`}>{c.num}</span>
-              <div className="paper-doc__clause-body">
-                <p className="paper-doc__clause-text">{c.text}</p>
-                <span className={`paper-doc__clause-badge paper-doc__clause-badge--${c.tone}`}>
-                  {c.tag} · {c.shortPoint}
+
+          <div className="paper-doc__meta">
+            {doc.metaLines.map((m) => (
+              <div key={m.label} className="paper-doc__meta-row">
+                <span className="paper-doc__meta-label">{m.label}</span>
+                <span className={m.isPii && showMasked ? 'paper-doc__meta-val is-masked' : 'paper-doc__meta-val'}>
+                  {showMasked ? m.maskedValue : m.value}
                 </span>
               </div>
+            ))}
+          </div>
+
+          <div className="paper-doc__clauses">
+            <div className="paper-doc__section-label">
+              <span>점검 대상 조항 및 주요 항목 (클릭하면 한결이 해당 위치를 짚어 설명합니다)</span>
             </div>
-          ))}
+            {doc.clauses.map((c) => (
+              <div key={c.num} className={`paper-doc__clause paper-doc__clause--${c.tone}`}>
+                <span className={`paper-doc__pin paper-doc__pin--${c.tone}`}>{c.num}</span>
+                <div className="paper-doc__clause-body">
+                  <p className="paper-doc__clause-text">{c.text}</p>
+                  <span className={`paper-doc__clause-badge paper-doc__clause-badge--${c.tone}`}>
+                    {c.tag} · {c.shortPoint}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="doc-preview-shell__footer">
         <span className="doc-preview-shell__hint">
-          👆 위 계약서·명세서에서 위험 조항 위치(①~④)를 확인하고 한결의 정밀 분석을 시작해 보세요.
+          👆 {viewMode === 'scan' ? '스캔 원본 이미지를 확인하셨다면' : '위 계약서·명세서에서 위험 조항 위치(①~⑤)를 확인하고'} 한결의 정밀 분석을 시작해 보세요.
         </span>
         <button
           type="button"
@@ -299,7 +335,7 @@ export function SamplePreviewCard({
           onClick={() => onStartCheck(doc)}
           data-testid="start-sample-check-btn"
         >
-          🔍 이 문서 가리키며 정밀 점검 시작하기
+          🔍 이 스캔 문서로 정밀 점검 시작하기
         </button>
       </div>
     </section>
@@ -370,9 +406,15 @@ export function AnnotatedDocumentDeckCard({
             </span>
           </div>
 
-          {uploadedImageUrl && (
-            <div className="paper-doc__uploaded-wrap">
-              <img src={uploadedImageUrl} alt="첨부한 계약서·영수증 이미지" className="paper-doc__uploaded-img" />
+          {(uploadedImageUrl || doc?.scannedImageUrl) && (
+            <div className="paper-doc__scanned-scanview">
+              <span className="paper-doc__scan-badge">📄 계약서·약관 실물 스캔본</span>
+              <img
+                src={uploadedImageUrl || doc?.scannedImageUrl}
+                alt="계약서·약관 실제 스캔 이미지"
+                className="paper-doc__uploaded-img"
+                style={{ height: 'auto', maxHeight: '180px', objectFit: 'contain' }}
+              />
             </div>
           )}
 
