@@ -6,6 +6,7 @@ import { check } from './check.js';
 import { runConsult } from './consult.js';
 import { extractTextFromImage } from './ocr.js';
 import { lookupLawByItemId } from './law-api.js';
+import { getLawGraphStats } from './law-graphrag.js';
 import { runTaxCheck } from './tax.js';
 import { CheckError } from './errors.js';
 import type { Version } from '../shared/types.js';
@@ -48,6 +49,11 @@ export async function handleCheck(request: Request): Promise<Response> {
   const pack = typeof body.pack === 'string' ? body.pack : '';
 
   try {
+    // 0-0. GraphRAG 지식그래프 실시간 통계 조회
+    if (body.action === 'graph_stats') {
+      return json(200, getLawGraphStats());
+    }
+
     // 0-1. 국가법령정보센터 실시간 법령·대법원 판례 조회 요청 (OKE Rust Law MCP)
     if (body.action === 'law') {
       const itemId = typeof body.itemId === 'string' && body.itemId.trim() ? body.itemId.trim() : 'no_new_mortgage';

@@ -72,6 +72,8 @@ test('api consult returns grounded legal advice, messageDraft, and 3 followups',
   assert.ok(body.messageDraft.length > 10);
   assert.equal(body.followups.length, 3);
   assert.equal(body.law.statute.lawName, '주택임대차보호법');
+  assert.ok(body.graphRag.subgraph.nodes.length >= 2);
+  assert.equal(body.graphRag.writeback.recorded, true);
 });
 
 test('api tax returns statutory tax verdict, evidence check, hometax guide, and 3 followups', async () => {
@@ -89,4 +91,14 @@ test('api tax returns statutory tax verdict, evidence check, hometax guide, and 
   assert.ok(body.law.statute.article.includes('제95조의2'));
   assert.equal(body.followups.length, 3);
   assert.ok(body.hometaxGuide.includes('홈택스'));
+  assert.equal(body.graphRag.writeback.recorded, true);
+});
+
+test('api graph_stats returns GraphRAG node, edge, and learned case counts', async () => {
+  const res = await handleCheck(post({ action: 'graph_stats' }));
+  assert.equal(res.status, 200);
+  const stats = await res.json();
+  assert.ok(stats.nodeCount >= 20);
+  assert.ok(stats.edgeCount >= 20);
+  assert.ok(stats.casebookCount >= 6);
 });

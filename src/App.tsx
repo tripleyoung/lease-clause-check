@@ -9,6 +9,46 @@ type PackInfo = { id: string; name: string; kinds: string[]; itemCount: number; 
 type MaskResult = { masked: string; found: { kind: string; sample: string }[] };
 type OcrResult = { text: string; masked: string; found: { kind: string; sample: string }[] };
 type VerdictFilter = 'all' | '위험' | '언급 없음' | '보호됨';
+type RoutePage = 'home' | 'consult' | 'tax';
+
+type LawGraphStats = {
+  nodeCount: number;
+  edgeCount: number;
+  statuteCount: number;
+  precedentCount: number;
+  casebookCount: number;
+  writebackCount: number;
+  citationHitCount: number;
+  learnedCaseCount: number;
+};
+
+type LawGraphBundle = {
+  subgraph: {
+    domain: string;
+    seedItemId: string;
+    seeds: Array<{ nodeId: string; reason: string }>;
+    nodes: Array<{ id: string; kind: string; label: string }>;
+    edges: Array<{ id: string; source: string; target: string; relation: string }>;
+    matchedCases: Array<{
+      id: string;
+      label: string;
+      headline: string;
+      statuteRef: string;
+      precedentRef: string;
+      citations: number;
+      learned: boolean;
+      score: number;
+    }>;
+    stats: LawGraphStats;
+  };
+  writeback: {
+    recorded: boolean;
+    signatureId: string;
+    citedCaseIds: string[];
+    learnedCaseId: string | null;
+    stats: LawGraphStats;
+  };
+};
 
 type ConsultResult = {
   itemId: string;
@@ -40,6 +80,7 @@ type ConsultResult = {
       officialUrl: string;
     }>;
   };
+  graphRag?: LawGraphBundle;
 };
 
 type TaxCheckResult = {
@@ -55,6 +96,7 @@ type TaxCheckResult = {
   hometaxGuide: string;
   followups: string[];
   law: ConsultResult['law'];
+  graphRag?: LawGraphBundle;
 };
 
 const CONSULT_PRESETS = [
@@ -64,11 +106,33 @@ const CONSULT_PRESETS = [
 ];
 
 const TAX_PRESETS = [
-  { label: '무주택 근로자 월세 85만원 이체', text: '무주택 세대주 직장인입니다. 매달 오피스텔 월세 85만원을 임대인 계좌로 무통장 입금하고 있는데 집주인 동의 없이 연말정산 세액공제가 되나요?', filer: 'wage_earner' as const },
-  { label: '업무용 노트북 176만원 세금계산서', text: '개인사업자입니다. 업무용 맥북 프로 1,760,000원(부가세 포함)을 구입하고 전자세금계산서를 발급받았습니다.', filer: 'individual_biz' as const },
-  { label: '거래처 식대 68,000원 법인카드', text: '거래처 미팅 저녁 식사로 68,000원을 사업용 신용카드로 결제했습니다. 부가세 매입세액 공제와 종소세 경비 처리가 모두 가능한가요?', filer: 'individual_biz' as const },
-  { label: '가정용 마트 생필품 92,000원 결제', text: '주말에 가족 식료품과 생필품 92,000원을 사업용 카드로 결제했습니다. 비용 처리가 가능한가요?', filer: 'individual_biz' as const },
+  {
+    label: '무주택 근로자 월세 85만원 이체',
+    text: '무주택 세대주 직장인입니다. 매달 오피스텔 월세 85만원을 임대인 계좌로 무통장 입금하고 있는데 집주인 동의 없이 연말정산 세액공제가 되나요?',
+    filer: 'wage_earner' as const,
+  },
+  {
+    label: '업무용 노트북 176만원 세금계산서',
+    text: '개인사업자입니다. 업무용 맥북 프로 1,760,000원(부가세 포함)을 구입하고 전자세금계산서를 발급받았습니다.',
+    filer: 'individual_biz' as const,
+  },
+  {
+    label: '거래처 식대 68,000원 법인카드',
+    text: '거래처 미팅 저녁 식사로 68,000원을 사업용 신용카드로 결제했습니다. 부가세 매입세액 공제와 종소세 경비 처리가 모두 가능한가요?',
+    filer: 'individual_biz' as const,
+  },
+  {
+    label: '가정용 마트 생필품 92,000원 결제',
+    text: '주말에 가족 식료품과 생필품 92,000원을 사업용 카드로 결제했습니다. 비용 처리가 가능한가요?',
+    filer: 'individual_biz' as const,
+  },
 ];
+
+function parseRoutePage(pathname: string): RoutePage {
+  if (pathname.startsWith('/consult')) return 'consult';
+  if (pathname.startsWith('/tax')) return 'tax';
+  return 'home';
+}
 
 async function post<T>(body: unknown): Promise<T> {
   const res = await fetch('/api/check', {
@@ -103,7 +167,7 @@ const SOURCES = [
   ['헬스장·PT 약관 (7개 항목)', '공정거래위원회 · 한국소비자원', '소비자분쟁해결기준(체력단련장업), 계속거래 해지·해제 산정기준, 약관규제법'],
   ['세무·적격증빙 자동 판정', '기획재정부 · 국세청 · 대법원', '부가가치세법 제38조·제39조, 소득세법 제27조·제33조·제160조의2, 조세특례제한법 제95조의2'],
   ['법령 데이터 연동 (OKE MCP)', '법제처 국가법령정보 공동활용 (OpenAPI)', '현행 법령(law) · 대법원 판례(prec) · 행정규칙(admrul) 단일 Rust Law MCP 파드 실시간 대조'],
-  ['개인정보 비식별화', '브라우저·서버 정규식 선처리', '주민등록번호, 전화번호, 계좌번호, 동·호수를 AI 호출 전 로컬에서 즉시 치환'],
+  ['자기진화형 GraphRAG', 'Atomic GraphRAG · Writeback 원장', '2-Hop 법리 서브그래프 추출 + 판례 인용 가중치(Utility Boost) + 신규 모범 사례 자동 승격'],
 ];
 
 function resizeImage(file: File, maxDim = 1600): Promise<string> {
@@ -138,7 +202,86 @@ function resizeImage(file: File, maxDim = 1600): Promise<string> {
   });
 }
 
+function GraphRagStatsBar({ stats }: { stats: LawGraphStats | null }) {
+  if (!stats) return null;
+  return (
+    <div className="graphrag-stats-bar" data-testid="graphrag-stats-bar">
+      <div className="graphrag-stat-cell">
+        <span>지식그래프 노드</span>
+        <strong>{stats.nodeCount}개</strong>
+      </div>
+      <div className="graphrag-stat-cell">
+        <span>법리·판례 연결 엣지</span>
+        <strong>{stats.edgeCount}개</strong>
+      </div>
+      <div className="graphrag-stat-cell">
+        <span>누적 케이스북</span>
+        <strong>{stats.casebookCount}건</strong>
+      </div>
+      <div className="graphrag-stat-cell">
+        <span>인용 가중치 누적(Hits)</span>
+        <strong>{stats.citationHitCount}회</strong>
+      </div>
+      <div className="graphrag-stat-cell">
+        <span>자기진화 학습 사례</span>
+        <strong style={{ color: '#0066ff' }}>+{stats.learnedCaseCount}건</strong>
+      </div>
+    </div>
+  );
+}
+
+function GraphRagSubgraphPanel({ bundle }: { bundle?: LawGraphBundle }) {
+  if (!bundle) return null;
+  const { subgraph, writeback } = bundle;
+  return (
+    <div className="graphrag-panel" data-testid="graphrag-subgraph">
+      <FlexBox alignItems="center" justifyContent="space-between" gap={8} sx={{ flexWrap: 'wrap' }}>
+        <Typography variant="label2" weight="bold" color="semantic.foreground.neutral.strong">
+          다온사주 방식 Atomic GraphRAG 2-Hop 법리 서브그래프 &amp; 자기진화 Writeback
+        </Typography>
+        <span className="mcp-live-badge">
+          {writeback.learnedCaseId
+            ? `신규 케이스북 승격 완료 (${writeback.learnedCaseId})`
+            : `기존 케이스 인용 가중치 강화 (+${writeback.citedCaseIds.length}건)`}
+        </span>
+      </FlexBox>
+
+      <div className="graphrag-chain">
+        {subgraph.nodes.slice(0, 4).map((n, idx) => (
+          <div key={n.id} className="graphrag-node">
+            <span className={`graphrag-node-kind ${n.kind}`}>{n.kind.toUpperCase()}</span>
+            <span className="graphrag-node-label">{n.label}</span>
+            {idx < Math.min(subgraph.nodes.length, 4) - 1 && <span className="graphrag-arrow">→</span>}
+          </div>
+        ))}
+      </div>
+
+      {subgraph.matchedCases.length > 0 && (
+        <div className="graphrag-cases">
+          <div className="prec-head">유틸리티 점수(Writeback Boost) 상위 매칭 케이스북</div>
+          <ul className="prec-list">
+            {subgraph.matchedCases.map((c) => (
+              <li key={c.id} className="prec-item">
+                <div className="prec-title-row">
+                  <span className="prec-case">
+                    <strong>{c.label}</strong> · 근거: {c.statuteRef}
+                  </span>
+                  <span className="advisor-law-tag">
+                    인용 {c.citations}회 · 점수 {c.score} {c.learned ? '· AI 학습 승격' : ''}
+                  </span>
+                </div>
+                <p className="prec-summary">{c.headline}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function App() {
+  const [routePage, setRoutePage] = useState<RoutePage>(() => parseRoutePage(window.location.pathname));
   const [packs, setPacks] = useState<PackInfo[]>([]);
   const [packId, setPackId] = useState('lease');
   const [text, setText] = useState('');
@@ -150,7 +293,7 @@ export function App() {
   const [error, setError] = useState('');
   const [filter, setFilter] = useState<VerdictFilter>('all');
 
-  const [advisorTab, setAdvisorTab] = useState<'consult' | 'tax'>('consult');
+  const [graphStats, setGraphStats] = useState<LawGraphStats | null>(null);
   const [consultItemId, setConsultItemId] = useState<string | undefined>(undefined);
   const [consultQuote, setConsultQuote] = useState('');
   const [consultQuestion, setConsultQuestion] = useState(CONSULT_PRESETS[0]);
@@ -165,17 +308,36 @@ export function App() {
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const previewRef = useRef<HTMLElement>(null);
   const resultRef = useRef<HTMLElement>(null);
-  const advisorRef = useRef<HTMLElement>(null);
+
+  function navigateTo(target: RoutePage) {
+    const path = target === 'consult' ? '/consult' : target === 'tax' ? '/tax' : '/';
+    if (window.location.pathname !== path) {
+      window.history.pushState({}, '', path);
+    }
+    setRoutePage(target);
+    setError('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  useEffect(() => {
+    const onPop = () => setRoutePage(parseRoutePage(window.location.pathname));
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
 
   useEffect(() => {
     fetch('/api/packs')
       .then((r) => r.json())
       .then((d) => setPacks(d.packs))
       .catch(() => setError('점검 종류를 불러오지 못했어요. 새로 고침해 주세요.'));
+    post<LawGraphStats>({ action: 'graph_stats' })
+      .then((s) => setGraphStats(s))
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
     const handlePaste = (e: ClipboardEvent) => {
+      if (routePage !== 'home') return;
       const items = e.clipboardData?.items;
       if (!items) return;
       for (let i = 0; i < items.length; i++) {
@@ -190,7 +352,7 @@ export function App() {
     };
     window.addEventListener('paste', handlePaste);
     return () => window.removeEventListener('paste', handlePaste);
-  }, [packId]);
+  }, [packId, routePage]);
 
   const pack = packs.find((p) => p.id === packId);
 
@@ -268,6 +430,9 @@ export function App() {
         quote: overrideQuote ?? consultQuote,
       });
       setConsultResult(data);
+      if (data.graphRag?.writeback.stats) {
+        setGraphStats(data.graphRag.writeback.stats);
+      }
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -276,14 +441,13 @@ export function App() {
   }
 
   function handleConsultFromCard(item: ItemResult, title: string) {
-    setAdvisorTab('consult');
     setConsultItemId(item.itemId);
     setConsultQuote(item.quote ?? '');
     const q = item.quote
       ? `계약서에 "${item.quote}"라고 적혀 있는데 (${title}), 법적으로 불리한 이유와 상대방에게 수정을 요청할 방법이 궁금합니다.`
       : `"${title}" 항목이 계약서에 빠져 있는데, 어떻게 특약 추가를 요청하면 좋을까요?`;
     setConsultQuestion(q);
-    advisorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    navigateTo('consult');
     void submitConsult(q, item.itemId, item.quote ?? '');
   }
 
@@ -310,6 +474,9 @@ export function App() {
         filerType: targetFiler,
       });
       setTaxResult(data);
+      if (data.graphRag?.writeback.stats) {
+        setGraphStats(data.graphRag.writeback.stats);
+      }
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -337,21 +504,66 @@ export function App() {
         justifyContent="space-between"
         sx={{ height: 56, padding: '0 20px', borderBottom: '1px solid rgba(112,115,124,0.22)', flex: 'none' }}
       >
-        <a href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
+        <a
+          href="/"
+          onClick={(e) => {
+            e.preventDefault();
+            navigateTo('home');
+          }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}
+        >
           <span className="radar-mark" aria-hidden="true" />
           <Typography as="h1" variant="headline1" weight="bold" color="semantic.foreground.neutral.strong" sx={{ margin: 0 }}>
             계약서 특약 점검기
           </Typography>
         </a>
-        <nav aria-label="주 메뉴" style={{ display: 'flex', gap: 16, whiteSpace: 'nowrap' }}>
-          <a href="#workspace" style={{ textDecoration: 'none' }}>
-            <Typography variant="label1" weight="bold" color="semantic.foreground.neutral.strong">
+        <nav aria-label="주 메뉴" style={{ display: 'flex', gap: 18, whiteSpace: 'nowrap', alignItems: 'center' }}>
+          <a
+            href="/"
+            onClick={(e) => {
+              e.preventDefault();
+              navigateTo('home');
+            }}
+            style={{ textDecoration: 'none' }}
+          >
+            <Typography
+              variant="label1"
+              weight={routePage === 'home' ? 'bold' : 'medium'}
+              color={routePage === 'home' ? 'semantic.foreground.neutral.strong' : 'semantic.foreground.neutral.tertiary'}
+            >
               특약 점검
             </Typography>
           </a>
-          <a href="#consult-tax" style={{ textDecoration: 'none' }}>
-            <Typography variant="label1" weight="medium" color="semantic.foreground.neutral.tertiary">
-              법률 상담·세무 판정
+          <a
+            href="/consult"
+            onClick={(e) => {
+              e.preventDefault();
+              navigateTo('consult');
+            }}
+            style={{ textDecoration: 'none' }}
+          >
+            <Typography
+              variant="label1"
+              weight={routePage === 'consult' ? 'bold' : 'medium'}
+              color={routePage === 'consult' ? 'semantic.foreground.neutral.strong' : 'semantic.foreground.neutral.tertiary'}
+            >
+              법령·판례 실시간 상담
+            </Typography>
+          </a>
+          <a
+            href="/tax"
+            onClick={(e) => {
+              e.preventDefault();
+              navigateTo('tax');
+            }}
+            style={{ textDecoration: 'none' }}
+          >
+            <Typography
+              variant="label1"
+              weight={routePage === 'tax' ? 'bold' : 'medium'}
+              color={routePage === 'tax' ? 'semantic.foreground.neutral.strong' : 'semantic.foreground.neutral.tertiary'}
+            >
+              세무 자동 판정
             </Typography>
           </a>
           <a href="/demo-contract.html" style={{ textDecoration: 'none' }}>
@@ -359,366 +571,383 @@ export function App() {
               전자계약 인라인 시험
             </Typography>
           </a>
-          <a href="#sources" style={{ textDecoration: 'none' }}>
-            <Typography variant="label1" weight="medium" color="semantic.foreground.neutral.tertiary">
-              법령 출처
-            </Typography>
-          </a>
-          <a href="#principles" style={{ textDecoration: 'none' }}>
-            <Typography variant="label1" weight="medium" color="semantic.foreground.neutral.tertiary">
-              작동 원칙
-            </Typography>
-          </a>
         </nav>
       </FlexBox>
 
       <main className="page">
-        <section className="hero">
-          <Typography variant="label2" color="semantic.foreground.neutral.tertiary">
-            주택임대차보호법 · 소비자분쟁해결기준 · 국가법령정보센터 기준 대조
-          </Typography>
-          <Typography as="p" variant="display1" weight="bold" color="semantic.foreground.neutral.strong" sx={{ margin: '12px 0 16px' }}>
-            서명 전 계약서의 불리한 조항을
-            <br />
-            <span style={{ color: '#5b37ed' }}>근거 법령과 비교</span>해서 알려 드립니다.
-          </Typography>
-          <Typography variant="body1" color="semantic.foreground.neutral.secondary" sx={{ maxWidth: 660 }}>
-            전월세 특약이나 헬스장·PT 약관을 넣으면 주민등록번호·전화번호·계좌번호를 먼저 가린 뒤, 법정 점검 항목별로 위험한 문구와 누락된 보호 조항을 짚어 드립니다.
-          </Typography>
-          <FlexBox gap={12} alignItems="center" sx={{ marginTop: 24, flexWrap: 'wrap' }}>
-            <a href="#workspace" style={{ textDecoration: 'none' }}>
-              <Button variant="solid" size="large">
-                계약서 바로 점검하기
-              </Button>
-            </a>
-            <a href="/demo-contract.html" style={{ textDecoration: 'none' }}>
-              <Button variant="outlined" color="assistive" size="large">
-                전자계약 인라인 시험 보기
-              </Button>
-            </a>
-          </FlexBox>
-        </section>
-
-        <section aria-labelledby="layers-title">
-          <Typography id="layers-title" as="h2" variant="title3" weight="bold">
-            세 단계로 검증합니다
-          </Typography>
-          <ol className="cards">
-            {LAYERS.map(([title, body], i) => (
-              <li key={title} className="card">
-                <span className="num">{i + 1}</span>
-                <Typography as="h3" variant="headline1" weight="bold">
-                  {title}
-                </Typography>
-                <Typography variant="body2" color="semantic.foreground.neutral.secondary">
-                  {body}
-                </Typography>
-              </li>
-            ))}
-          </ol>
-        </section>
-
-        <section id="workspace" className="workspace-section" aria-labelledby="workspace-title">
-          <Typography id="workspace-title" as="h2" variant="title3" weight="bold">
-            계약서 점검 작업대
-          </Typography>
-
-          <div className="pack-bar" role="radiogroup" aria-label="계약 종류">
-            {packs.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                role="radio"
-                aria-checked={p.id === packId}
-                className={p.id === packId ? 'pack-tab on' : 'pack-tab'}
-                onClick={() => {
-                  setPackId(p.id);
-                  changeText('');
-                  setImagePreview(null);
-                }}
-              >
-                <Typography variant="headline2" weight="bold" color={p.id === packId ? 'semantic.foreground.neutral.strong' : 'semantic.foreground.neutral.secondary'}>
-                  {p.name}
-                </Typography>
-                <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
-                  {p.kinds.join(' · ')} · {p.itemCount}개 항목
-                </Typography>
-              </button>
-            ))}
-          </div>
-
-          <div className="input-card">
-            <FlexBox alignItems="center" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
-              <FlexBox alignItems="center" gap={8} sx={{ flexWrap: 'wrap' }}>
-                <Typography variant="label2" color="semantic.foreground.neutral.tertiary">
-                  예시 넣기
-                </Typography>
-                {SAMPLES.filter((s) => s.pack === packId).map((s) => (
-                  <Chip key={s.label} variant="outlined" size="small" onClick={() => changeText(s.text)}>
-                    {s.label}
-                  </Chip>
-                ))}
-              </FlexBox>
-
-              <FlexBox alignItems="center" gap={8}>
-                <input
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  ref={cameraInputRef}
-                  style={{ display: 'none' }}
-                  onChange={(e) => e.target.files?.[0] && handleImageFile(e.target.files[0])}
-                />
-                <Button
-                  variant="outlined"
-                  color="assistive"
-                  size="small"
-                  disabled={busy !== null}
-                  onClick={() => cameraInputRef.current?.click()}
-                  leadingContent={<IconCamera />}
-                >
-                  사진 촬영
-                </Button>
-
-                <input
-                  type="file"
-                  accept="image/*"
-                  ref={fileInputRef}
-                  style={{ display: 'none' }}
-                  onChange={(e) => e.target.files?.[0] && handleImageFile(e.target.files[0])}
-                />
-                <Button
-                  variant="outlined"
-                  color="assistive"
-                  size="small"
-                  disabled={busy !== null}
-                  onClick={() => fileInputRef.current?.click()}
-                  leadingContent={<IconImage />}
-                >
-                  이미지 파일
-                </Button>
-              </FlexBox>
-            </FlexBox>
-
-            {imagePreview && (
-              <div className="image-strip">
-                <img src={imagePreview} alt="업로드된 계약서 사진" className="image-thumb" />
-                <div style={{ flex: 1 }}>
-                  <Typography variant="label2" weight="bold" color="semantic.foreground.neutral.strong">
-                    계약서 이미지에서 문구를 읽었습니다
-                  </Typography>
-                  <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
-                    아래 입력창에서 추출된 문구를 확인하거나 수정할 수 있습니다.
-                  </Typography>
-                </div>
-                <Button
-                  variant="outlined"
-                  color="assistive"
-                  size="small"
-                  onClick={() => {
-                    setImagePreview(null);
-                    setText('');
-                  }}
-                >
-                  제거
-                </Button>
-              </div>
-            )}
-
-            {busy === 'ocr' && (
-              <p className="callout">계약서 사진에서 특약 조항을 읽고 있습니다…</p>
-            )}
-
-            <textarea
-              aria-label="계약 문구"
-              value={text}
-              onChange={(e) => changeText(e.target.value)}
-              placeholder={
-                '계약서 특약사항이나 약관 문구를 붙여 넣으세요. (Ctrl+V로 캡처 이미지를 바로 붙여넣어도 됩니다)\n\n예)\n특약사항\n1. 보증금은 다음 임차인이 들어오면 반환한다.\n2. 입주 후 모든 수선비는 임차인이 부담한다.'
-              }
-              rows={7}
-            />
-
-            <FlexBox alignItems="center" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
-              <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
-                {text.trim().length.toLocaleString('ko-KR')} / 4,000자 · 개인정보는 가린 뒤 전송됩니다
+        {routePage === 'home' && (
+          <>
+            <section className="hero">
+              <Typography variant="label2" color="semantic.foreground.neutral.tertiary">
+                주택임대차보호법 · 소비자분쟁해결기준 · 국가법령정보센터 기준 대조
               </Typography>
-              <Button variant="solid" size="medium" onClick={showPreview} disabled={busy !== null}>
-                {busy === 'mask' ? '확인하는 중…' : '보낼 내용 미리 보기'}
-              </Button>
-            </FlexBox>
-          </div>
-
-          {error && (
-            <p className="callout" data-level="error" role="alert">
-              {error}
-            </p>
-          )}
-
-          {preview && (
-            <section ref={previewRef} className="preview-block" aria-labelledby="step3">
-              <FlexBox alignItems="baseline" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
-                <Typography id="step3" as="h3" variant="headline1" weight="bold">
-                  AI에 전송할 내용 확인
-                </Typography>
-                <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
-                  {preview.found.length
-                    ? `개인정보 ${preview.found.length}건 가림 완료 (${[...new Set(preview.found.map((f) => f.kind))].join(', ')})`
-                    : '감지된 개인정보 없음'}
-                </Typography>
-              </FlexBox>
-              <pre className="masked" data-testid="masked-preview">
-                {preview.masked}
-              </pre>
-              <FlexBox alignItems="center" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
-                <details className="dev">
-                  <summary>판정 방식 선택 ({version})</summary>
-                  <label>
-                    방식
-                    <select value={version} onChange={(e) => setVersion(e.target.value as Version)}>
-                      <option value="v0">v0 · 자유 질의</option>
-                      <option value="v1">v1 · 항목 + 원문 인용</option>
-                      <option value="v2">v2 · 근거 법령 + 규칙 검사 + 보정</option>
-                    </select>
-                  </label>
-                </details>
-                <Button variant="solid" size="large" onClick={runCheck} disabled={busy !== null}>
-                  {busy === 'check' ? '법령 대조 및 점검 중…' : '이 내용으로 점검하기'}
+              <Typography as="p" variant="display1" weight="bold" color="semantic.foreground.neutral.strong" sx={{ margin: '12px 0 16px' }}>
+                서명 전 계약서의 불리한 조항을
+                <br />
+                <span style={{ color: '#5b37ed' }}>근거 법령과 비교</span>해서 알려 드립니다.
+              </Typography>
+              <Typography variant="body1" color="semantic.foreground.neutral.secondary" sx={{ maxWidth: 660 }}>
+                전월세 특약이나 헬스장·PT 약관을 넣으면 주민등록번호·전화번호·계좌번호를 먼저 가린 뒤, 법정 점검 항목별로 위험한 문구와 누락된 보호 조항을 짚어 드립니다.
+              </Typography>
+              <FlexBox gap={12} alignItems="center" sx={{ marginTop: 24, flexWrap: 'wrap' }}>
+                <a href="#workspace" style={{ textDecoration: 'none' }}>
+                  <Button variant="solid" size="large">
+                    계약서 바로 점검하기
+                  </Button>
+                </a>
+                <Button variant="outlined" color="assistive" size="large" onClick={() => navigateTo('consult')}>
+                  법령·판례 실시간 상담 (/consult)
+                </Button>
+                <Button variant="outlined" color="assistive" size="large" onClick={() => navigateTo('tax')}>
+                  세무 자동 판정 (/tax)
                 </Button>
               </FlexBox>
             </section>
-          )}
-        </section>
 
-        {result && (
-          <section ref={resultRef} className="result-section" aria-labelledby="step4">
-            <FlexBox alignItems="baseline" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
-              <Typography id="step4" as="h2" variant="title3" weight="bold">
-                점검 결과
+            <section aria-labelledby="layers-title">
+              <Typography id="layers-title" as="h2" variant="title3" weight="bold">
+                세 단계로 검증합니다
               </Typography>
-              <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
-                소요 시간 {Math.round(result.elapsedMs / 100) / 10}초 · 항목을 클릭해 필터링할 수 있습니다
-              </Typography>
-            </FlexBox>
+              <ol className="cards">
+                {LAYERS.map(([title, body], i) => (
+                  <li key={title} className="card">
+                    <span className="num">{i + 1}</span>
+                    <Typography as="h3" variant="headline1" weight="bold">
+                      {title}
+                    </Typography>
+                    <Typography variant="body2" color="semantic.foreground.neutral.secondary">
+                      {body}
+                    </Typography>
+                  </li>
+                ))}
+              </ol>
+            </section>
 
-            {counts && (
-              <div className="stats" role="status">
-                <button
-                  type="button"
-                  className={`stat ${filter === 'all' ? 'on' : ''}`}
-                  onClick={() => setFilter('all')}
-                >
-                  <Typography variant="caption2" color="semantic.foreground.neutral.tertiary">
-                    전체 점검 항목
-                  </Typography>
-                  <Typography variant="heading2" weight="bold" color="semantic.foreground.neutral.strong">
-                    {allItems.length}건
-                  </Typography>
-                </button>
-                <button
-                  type="button"
-                  className={`stat ${filter === '위험' ? 'on' : ''}`}
-                  onClick={() => setFilter(filter === '위험' ? 'all' : '위험')}
-                >
-                  <Typography variant="caption2" color="semantic.foreground.neutral.tertiary">
-                    위험
-                  </Typography>
-                  <Typography variant="heading2" weight="bold" sx={{ color: '#e52222' }}>
-                    {counts.위험}건
-                  </Typography>
-                </button>
-                <button
-                  type="button"
-                  className={`stat ${filter === '언급 없음' ? 'on' : ''}`}
-                  onClick={() => setFilter(filter === '언급 없음' ? 'all' : '언급 없음')}
-                >
-                  <Typography variant="caption2" color="semantic.foreground.neutral.tertiary">
-                    언급 없음 · 확인 필요
-                  </Typography>
-                  <Typography variant="heading2" weight="bold" sx={{ color: '#9c5800' }}>
-                    {counts['언급 없음']}건
-                  </Typography>
-                </button>
-                <button
-                  type="button"
-                  className={`stat ${filter === '보호됨' ? 'on' : ''}`}
-                  onClick={() => setFilter(filter === '보호됨' ? 'all' : '보호됨')}
-                >
-                  <Typography variant="caption2" color="semantic.foreground.neutral.tertiary">
-                    보호됨
-                  </Typography>
-                  <Typography variant="heading2" weight="bold" sx={{ color: '#0066ff' }}>
-                    {counts.보호됨}건
-                  </Typography>
-                </button>
+            <section id="workspace" className="workspace-section" aria-labelledby="workspace-title">
+              <Typography id="workspace-title" as="h2" variant="title3" weight="bold">
+                계약서 점검 작업대
+              </Typography>
+
+              <div className="pack-bar" role="radiogroup" aria-label="계약 종류">
+                {packs.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={p.id === packId}
+                    className={p.id === packId ? 'pack-tab on' : 'pack-tab'}
+                    onClick={() => {
+                      setPackId(p.id);
+                      changeText('');
+                      setImagePreview(null);
+                    }}
+                  >
+                    <Typography
+                      variant="headline2"
+                      weight="bold"
+                      color={p.id === packId ? 'semantic.foreground.neutral.strong' : 'semantic.foreground.neutral.secondary'}
+                    >
+                      {p.name}
+                    </Typography>
+                    <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
+                      {p.kinds.join(' · ')} · {p.itemCount}개 항목
+                    </Typography>
+                  </button>
+                ))}
               </div>
+
+              <div className="input-card">
+                <FlexBox alignItems="center" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
+                  <FlexBox alignItems="center" gap={8} sx={{ flexWrap: 'wrap' }}>
+                    <Typography variant="label2" color="semantic.foreground.neutral.tertiary">
+                      예시 넣기
+                    </Typography>
+                    {SAMPLES.filter((s) => s.pack === packId).map((s) => (
+                      <Chip key={s.label} variant="outlined" size="small" onClick={() => changeText(s.text)}>
+                        {s.label}
+                      </Chip>
+                    ))}
+                  </FlexBox>
+
+                  <FlexBox alignItems="center" gap={8}>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      ref={cameraInputRef}
+                      style={{ display: 'none' }}
+                      onChange={(e) => e.target.files?.[0] && handleImageFile(e.target.files[0])}
+                    />
+                    <Button
+                      variant="outlined"
+                      color="assistive"
+                      size="small"
+                      disabled={busy !== null}
+                      onClick={() => cameraInputRef.current?.click()}
+                      leadingContent={<IconCamera />}
+                    >
+                      사진 촬영
+                    </Button>
+
+                    <input
+                      type="file"
+                      accept="image/*"
+                      ref={fileInputRef}
+                      style={{ display: 'none' }}
+                      onChange={(e) => e.target.files?.[0] && handleImageFile(e.target.files[0])}
+                    />
+                    <Button
+                      variant="outlined"
+                      color="assistive"
+                      size="small"
+                      disabled={busy !== null}
+                      onClick={() => fileInputRef.current?.click()}
+                      leadingContent={<IconImage />}
+                    >
+                      이미지 파일
+                    </Button>
+                  </FlexBox>
+                </FlexBox>
+
+                {imagePreview && (
+                  <div className="image-strip">
+                    <img src={imagePreview} alt="업로드된 계약서 사진" className="image-thumb" />
+                    <div style={{ flex: 1 }}>
+                      <Typography variant="label2" weight="bold" color="semantic.foreground.neutral.strong">
+                        계약서 이미지에서 문구를 읽었습니다
+                      </Typography>
+                      <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
+                        아래 입력창에서 추출된 문구를 확인하거나 수정할 수 있습니다.
+                      </Typography>
+                    </div>
+                    <Button
+                      variant="outlined"
+                      color="assistive"
+                      size="small"
+                      onClick={() => {
+                        setImagePreview(null);
+                        setText('');
+                      }}
+                    >
+                      제거
+                    </Button>
+                  </div>
+                )}
+
+                {busy === 'ocr' && <p className="callout">계약서 사진에서 특약 조항을 읽고 있습니다…</p>}
+
+                <textarea
+                  aria-label="계약 문구"
+                  value={text}
+                  onChange={(e) => changeText(e.target.value)}
+                  placeholder={
+                    '계약서 특약사항이나 약관 문구를 붙여 넣으세요. (Ctrl+V로 캡처 이미지를 바로 붙여넣어도 됩니다)\n\n예)\n특약사항\n1. 보증금은 다음 임차인이 들어오면 반환한다.\n2. 입주 후 모든 수선비는 임차인이 부담한다.'
+                  }
+                  rows={7}
+                />
+
+                <FlexBox alignItems="center" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
+                  <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
+                    {text.trim().length.toLocaleString('ko-KR')} / 4,000자 · 개인정보는 가린 뒤 전송됩니다
+                  </Typography>
+                  <Button variant="solid" size="medium" onClick={showPreview} disabled={busy !== null}>
+                    {busy === 'mask' ? '확인하는 중…' : '보낼 내용 미리 보기'}
+                  </Button>
+                </FlexBox>
+              </div>
+
+              {error && (
+                <p className="callout" data-level="error" role="alert">
+                  {error}
+                </p>
+              )}
+
+              {preview && (
+                <section ref={previewRef} className="preview-block" aria-labelledby="step3">
+                  <FlexBox alignItems="baseline" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
+                    <Typography id="step3" as="h3" variant="headline1" weight="bold">
+                      AI에 전송할 내용 확인
+                    </Typography>
+                    <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
+                      {preview.found.length
+                        ? `개인정보 ${preview.found.length}건 가림 완료 (${[...new Set(preview.found.map((f) => f.kind))].join(', ')})`
+                        : '감지된 개인정보 없음'}
+                    </Typography>
+                  </FlexBox>
+                  <pre className="masked" data-testid="masked-preview">
+                    {preview.masked}
+                  </pre>
+                  <FlexBox alignItems="center" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
+                    <details className="dev">
+                      <summary>판정 방식 선택 ({version})</summary>
+                      <label>
+                        방식
+                        <select value={version} onChange={(e) => setVersion(e.target.value as Version)}>
+                          <option value="v0">v0 · 자유 질의</option>
+                          <option value="v1">v1 · 항목 + 원문 인용</option>
+                          <option value="v2">v2 · 근거 법령 + 규칙 검사 + 보정</option>
+                        </select>
+                      </label>
+                    </details>
+                    <Button variant="solid" size="large" onClick={runCheck} disabled={busy !== null}>
+                      {busy === 'check' ? '법령 대조 및 점검 중…' : '이 내용으로 점검하기'}
+                    </Button>
+                  </FlexBox>
+                </section>
+              )}
+            </section>
+
+            {result && (
+              <section ref={resultRef} className="result-section" aria-labelledby="step4">
+                <FlexBox alignItems="baseline" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
+                  <Typography id="step4" as="h2" variant="title3" weight="bold">
+                    점검 결과
+                  </Typography>
+                  <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
+                    소요 시간 {Math.round(result.elapsedMs / 100) / 10}초 · 항목을 클릭해 필터링할 수 있습니다
+                  </Typography>
+                </FlexBox>
+
+                {counts && (
+                  <div className="stats" role="status">
+                    <button type="button" className={`stat ${filter === 'all' ? 'on' : ''}`} onClick={() => setFilter('all')}>
+                      <Typography variant="caption2" color="semantic.foreground.neutral.tertiary">
+                        전체 점검 항목
+                      </Typography>
+                      <Typography variant="heading2" weight="bold" color="semantic.foreground.neutral.strong">
+                        {allItems.length}건
+                      </Typography>
+                    </button>
+                    <button
+                      type="button"
+                      className={`stat ${filter === '위험' ? 'on' : ''}`}
+                      onClick={() => setFilter(filter === '위험' ? 'all' : '위험')}
+                    >
+                      <Typography variant="caption2" color="semantic.foreground.neutral.tertiary">
+                        위험
+                      </Typography>
+                      <Typography variant="heading2" weight="bold" sx={{ color: '#e52222' }}>
+                        {counts.위험}건
+                      </Typography>
+                    </button>
+                    <button
+                      type="button"
+                      className={`stat ${filter === '언급 없음' ? 'on' : ''}`}
+                      onClick={() => setFilter(filter === '언급 없음' ? 'all' : '언급 없음')}
+                    >
+                      <Typography variant="caption2" color="semantic.foreground.neutral.tertiary">
+                        언급 없음 · 확인 필요
+                      </Typography>
+                      <Typography variant="heading2" weight="bold" sx={{ color: '#9c5800' }}>
+                        {counts['언급 없음']}건
+                      </Typography>
+                    </button>
+                    <button
+                      type="button"
+                      className={`stat ${filter === '보호됨' ? 'on' : ''}`}
+                      onClick={() => setFilter(filter === '보호됨' ? 'all' : '보호됨')}
+                    >
+                      <Typography variant="caption2" color="semantic.foreground.neutral.tertiary">
+                        보호됨
+                      </Typography>
+                      <Typography variant="heading2" weight="bold" sx={{ color: '#0066ff' }}>
+                        {counts.보호됨}건
+                      </Typography>
+                    </button>
+                  </div>
+                )}
+
+                {result.referenceOnly && (
+                  <p className="callout">
+                    <strong>전용 점검팩이 없는 계약입니다.</strong> 정해진 법령 항목 대신 일반 원칙으로 불리한 조항을 안내해 드립니다.
+                    {result.note && <span style={{ display: 'block', marginTop: 6 }}>{result.note}</span>}
+                  </p>
+                )}
+
+                <div className="clause-list">
+                  {filteredItems.map((it) => (
+                    <ResultCard
+                      key={it.itemId}
+                      item={it}
+                      info={pack?.items.find((i) => i.id === it.itemId)}
+                      onConsult={handleConsultFromCard}
+                    />
+                  ))}
+                </div>
+              </section>
             )}
 
-            {result.referenceOnly && (
-              <p className="callout">
-                <strong>전용 점검팩이 없는 계약입니다.</strong> 정해진 법령 항목 대신 일반 원칙으로 불리한 조항을 안내해 드립니다.
-                {result.note && <span style={{ display: 'block', marginTop: 6 }}>{result.note}</span>}
+            <section id="sources" aria-labelledby="sources-title">
+              <Typography id="sources-title" as="h2" variant="title3" weight="bold">
+                법령 및 기준 출처
+              </Typography>
+              <Typography variant="body2" color="semantic.foreground.neutral.secondary">
+                모든 판정은 AI의 임의 추측이 아닌 공식 법령과 행정 규칙 원문을 함께 묶어 대조합니다.
+              </Typography>
+              <table className="sources">
+                <thead>
+                  <tr>
+                    <th scope="col">대상 영역</th>
+                    <th scope="col">근거 기관</th>
+                    <th scope="col">적용 법령 및 기준</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {SOURCES.map(([field, org, use]) => (
+                    <tr key={field}>
+                      <td>{field}</td>
+                      <td>{org}</td>
+                      <td>{use}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </section>
+
+            <section id="principles" aria-labelledby="principles-title">
+              <Typography id="principles-title" as="h2" variant="title3" weight="bold">
+                지키는 원칙
+              </Typography>
+              <ul className="principles">
+                <li>
+                  <strong>개인정보를 AI로 보내지 않습니다.</strong> 주민등록번호, 전화번호, 계좌번호, 동·호수는 전송 전에 가려지며, 사용자가 가려진 전문을 직접 확인한 뒤에야 점검이 실행됩니다.
+                </li>
+                <li>
+                  <strong>계약서에 없는 문구를 지어내지 않습니다.</strong> AI가 근거로 인용한 문장이 실제 입력 원문에 존재하지 않으면 서버가 즉시 무효화하여 헛경고(환각)를 차단합니다.
+                </li>
+                <li>
+                  <strong>법률 자문을 대체하지 않습니다.</strong> 본 도구는 서명 전 위험 신호를 빠르게 점검하는 체크리스트이며, 실제 계약 체결 전에는 공인중개사 또는 법률 전문가와 상의하시기 바랍니다.
+                </li>
+              </ul>
+            </section>
+          </>
+        )}
+
+        {routePage === 'consult' && (
+          <section className="workspace-section" aria-labelledby="consult-page-title">
+            <FlexBox alignItems="baseline" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
+              <div>
+                <Typography variant="label2" color="semantic.foreground.neutral.tertiary">
+                  전용 법률 상담 워크스페이스 (/consult) · 다온사주 Atomic GraphRAG 적용
+                </Typography>
+                <Typography id="consult-page-title" as="h2" variant="title2" weight="bold" sx={{ marginTop: 4 }}>
+                  법령·대법원 판례 실시간 법률 상담
+                </Typography>
+                <Typography variant="body2" color="semantic.foreground.neutral.secondary" sx={{ marginTop: 6 }}>
+                  OKE 단일 Rust Law MCP 파드(<code>https://webrtc.ugot.uk/law/mcp</code>)에서 현행 법령과 대법원 판례를 실시간 조회하고, 상담할수록 케이스북 인용 가중치와 신규 사례가 누적 진화(GraphRAG Writeback)합니다.
+                </Typography>
+              </div>
+              <span className="mcp-live-badge">OKE Rust Law MCP · Atomic GraphRAG</span>
+            </FlexBox>
+
+            <GraphRagStatsBar stats={graphStats} />
+
+            {error && (
+              <p className="callout" data-level="error" role="alert">
+                {error}
               </p>
             )}
 
-            <div className="clause-list">
-              {filteredItems.map((it) => (
-                <ResultCard
-                  key={it.itemId}
-                  item={it}
-                  info={pack?.items.find((i) => i.id === it.itemId)}
-                  onConsult={handleConsultFromCard}
-                />
-              ))}
-            </div>
-          </section>
-        )}
-
-        <section ref={advisorRef} id="consult-tax" className="workspace-section" aria-labelledby="consult-tax-title">
-          <FlexBox alignItems="baseline" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
-            <div>
-              <Typography id="consult-tax-title" as="h2" variant="title3" weight="bold">
-                법령·판례 실시간 상담 &amp; 세무 자동 판정
-              </Typography>
-              <Typography variant="body2" color="semantic.foreground.neutral.secondary" sx={{ marginTop: 4 }}>
-                OKE 클러스터 단일 Rust Law MCP 파드(<code>https://webrtc.ugot.uk/law/mcp</code>)에서 현행 법령·세법 조문과 대법원 판례를 실시간 조회해 고정한 뒤, 문자 초안과 후속 질문까지 이어서 안내합니다.
-              </Typography>
-            </div>
-            <span className="mcp-live-badge">OKE Rust Law MCP 연동 · 파드 증설 0</span>
-          </FlexBox>
-
-          <div className="pack-bar" role="tablist" aria-label="상담 및 세무 모드 선택">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={advisorTab === 'consult'}
-              className={advisorTab === 'consult' ? 'pack-tab on' : 'pack-tab'}
-              onClick={() => setAdvisorTab('consult')}
-            >
-              <Typography variant="headline2" weight="bold" color={advisorTab === 'consult' ? 'semantic.foreground.neutral.strong' : 'semantic.foreground.neutral.secondary'}>
-                계약·특약 법률 상담
-              </Typography>
-              <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
-                법령·대법원 판례 근거 해설 + 상대방 전달용 문자 초안 + 후속 질문 3선
-              </Typography>
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={advisorTab === 'tax'}
-              className={advisorTab === 'tax' ? 'pack-tab on' : 'pack-tab'}
-              onClick={() => setAdvisorTab('tax')}
-            >
-              <Typography variant="headline2" weight="bold" color={advisorTab === 'tax' ? 'semantic.foreground.neutral.strong' : 'semantic.foreground.neutral.secondary'}>
-                영수증·계약서 세무 자동 판정
-              </Typography>
-              <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
-                부가가치세법·소득세법·조세특례제한법 + 적격증빙(3만원) + 홈택스 실무 가이드
-              </Typography>
-            </button>
-          </div>
-
-          {advisorTab === 'consult' ? (
             <div className="input-card" data-testid="consult-panel">
               <FlexBox alignItems="center" gap={8} sx={{ flexWrap: 'wrap' }}>
                 <Typography variant="label2" color="semantic.foreground.neutral.tertiary">
@@ -736,7 +965,7 @@ export function App() {
                       void submitConsult(q, undefined, '');
                     }}
                   >
-                    {q.slice(0, 26)}…
+                    {q.slice(0, 28)}…
                   </Chip>
                 ))}
               </FlexBox>
@@ -745,21 +974,23 @@ export function App() {
                 aria-label="법률 상담 질문"
                 value={consultQuestion}
                 onChange={(e) => setConsultQuestion(e.target.value)}
-                rows={3}
+                rows={4}
                 placeholder="특약 조항이나 계약 분쟁 상황을 입력해 주세요. (주민번호·전화번호·계좌번호는 자동 마스킹됩니다)"
               />
 
               <FlexBox alignItems="center" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
                 <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
-                  국가법령정보센터(open.law.go.kr) 현행 조문·대법원 판례 고정 대조 방식
+                  국가법령정보센터(open.law.go.kr) 현행 조문·대법원 판례 고정 대조 + GraphRAG 2-Hop 검색
                 </Typography>
                 <Button variant="solid" size="medium" disabled={busy !== null} onClick={() => void submitConsult()}>
-                  {busy === 'consult' ? '법령·판례 조회 및 상담 생성 중…' : '법령·판례 근거로 상담받기'}
+                  {busy === 'consult' ? '법령·판례 조회 및 GraphRAG 상담 생성 중…' : '법령·판례 근거로 상담받기'}
                 </Button>
               </FlexBox>
 
               {consultResult && (
                 <div className="advisor-result" data-testid="consult-result">
+                  <GraphRagSubgraphPanel bundle={consultResult.graphRag} />
+
                   <div className="advisor-headline-box">
                     <div className="advisor-meta-row">
                       <span className="verdict-chip safe">{consultResult.itemTitle}</span>
@@ -825,7 +1056,7 @@ export function App() {
 
                   <div className="followup-block">
                     <Typography variant="label2" weight="bold" color="semantic.foreground.neutral.secondary">
-                      이어서 물어보기 (클릭 시 즉시 법령 대조)
+                      이어서 물어보기 (클릭 시 즉시 법령 대조 및 GraphRAG 학습)
                     </Typography>
                     <div className="followup-list">
                       {consultResult.followups.map((fq, i) => (
@@ -847,7 +1078,34 @@ export function App() {
                 </div>
               )}
             </div>
-          ) : (
+          </section>
+        )}
+
+        {routePage === 'tax' && (
+          <section className="workspace-section" aria-labelledby="tax-page-title">
+            <FlexBox alignItems="baseline" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
+              <div>
+                <Typography variant="label2" color="semantic.foreground.neutral.tertiary">
+                  전용 세무 자동 판정 워크스페이스 (/tax) · 세법 Atomic GraphRAG 적용
+                </Typography>
+                <Typography id="tax-page-title" as="h2" variant="title2" weight="bold" sx={{ marginTop: 4 }}>
+                  영수증·계약서 세무 자동 판정 (부가세·종소세·연말정산)
+                </Typography>
+                <Typography variant="body2" color="semantic.foreground.neutral.secondary" sx={{ marginTop: 6 }}>
+                  OKE 단일 Rust Law MCP 파드(<code>https://webrtc.ugot.uk/law/mcp</code>)에서 부가가치세법·소득세법·조세특례제한법 조문과 대법원 세무 판례를 실시간 조회하여 적격증빙(3만 원 기준) 및 홈택스 처리 경로를 안내합니다.
+                </Typography>
+              </div>
+              <span className="mcp-live-badge">OKE Rust Law MCP · 세법 GraphRAG</span>
+            </FlexBox>
+
+            <GraphRagStatsBar stats={graphStats} />
+
+            {error && (
+              <p className="callout" data-level="error" role="alert">
+                {error}
+              </p>
+            )}
+
             <div className="input-card" data-testid="tax-panel">
               <FlexBox alignItems="center" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
                 <FlexBox alignItems="center" gap={8} sx={{ flexWrap: 'wrap' }}>
@@ -895,7 +1153,7 @@ export function App() {
                 aria-label="세무 판정 대상 문구"
                 value={taxText}
                 onChange={(e) => setTaxText(e.target.value)}
-                rows={3}
+                rows={4}
                 placeholder="영수증·거래명세서 내역이나 월세·경비 지출 내역을 입력해 주세요."
               />
 
@@ -904,12 +1162,14 @@ export function App() {
                   부가가치세법 제38·39조 · 소득세법 제27·33·160조의2 · 조세특례제한법 제95조의2 실시간 대조
                 </Typography>
                 <Button variant="solid" size="medium" disabled={busy !== null} onClick={() => void submitTax()}>
-                  {busy === 'tax' ? '세법 조문·세무 판례 대조 중…' : '세법·홈택스 기준 판정하기'}
+                  {busy === 'tax' ? '세법 조문·세무 판례 GraphRAG 대조 중…' : '세법·홈택스 기준 판정하기'}
                 </Button>
               </FlexBox>
 
               {taxResult && (
                 <div className="advisor-result" data-testid="tax-result">
+                  <GraphRagSubgraphPanel bundle={taxResult.graphRag} />
+
                   <div className="tax-grid">
                     <div className="tax-metric">
                       <span className="tax-metric-label">부가가치세 판정</span>
@@ -983,7 +1243,7 @@ export function App() {
 
                   <div className="followup-block">
                     <Typography variant="label2" weight="bold" color="semantic.foreground.neutral.secondary">
-                      이어서 물어보기 (클릭 시 세법 조문 즉시 대조)
+                      이어서 물어보기 (클릭 시 세법 조문 즉시 대조 및 GraphRAG 학습)
                     </Typography>
                     <div className="followup-list">
                       {taxResult.followups.map((fq, i) => (
@@ -1005,52 +1265,8 @@ export function App() {
                 </div>
               )}
             </div>
-          )}
-        </section>
-
-        <section id="sources" aria-labelledby="sources-title">
-          <Typography id="sources-title" as="h2" variant="title3" weight="bold">
-            법령 및 기준 출처
-          </Typography>
-          <Typography variant="body2" color="semantic.foreground.neutral.secondary">
-            모든 판정은 AI의 임의 추측이 아닌 공식 법령과 행정 규칙 원문을 함께 묶어 대조합니다.
-          </Typography>
-          <table className="sources">
-            <thead>
-              <tr>
-                <th scope="col">대상 영역</th>
-                <th scope="col">근거 기관</th>
-                <th scope="col">적용 법령 및 기준</th>
-              </tr>
-            </thead>
-            <tbody>
-              {SOURCES.map(([field, org, use]) => (
-                <tr key={field}>
-                  <td>{field}</td>
-                  <td>{org}</td>
-                  <td>{use}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
-
-        <section id="principles" aria-labelledby="principles-title">
-          <Typography id="principles-title" as="h2" variant="title3" weight="bold">
-            지키는 원칙
-          </Typography>
-          <ul className="principles">
-            <li>
-              <strong>개인정보를 AI로 보내지 않습니다.</strong> 주민등록번호, 전화번호, 계좌번호, 동·호수는 전송 전에 가려지며, 사용자가 가려진 전문을 직접 확인한 뒤에야 점검이 실행됩니다.
-            </li>
-            <li>
-              <strong>계약서에 없는 문구를 지어내지 않습니다.</strong> AI가 근거로 인용한 문장이 실제 입력 원문에 존재하지 않으면 서버가 즉시 무효화하여 헛경고(환각)를 차단합니다.
-            </li>
-            <li>
-              <strong>법률 자문을 대체하지 않습니다.</strong> 본 도구는 서명 전 위험 신호를 빠르게 점검하는 체크리스트이며, 실제 계약 체결 전에는 공인중개사 또는 법률 전문가와 상의하시기 바랍니다.
-            </li>
-          </ul>
-        </section>
+          </section>
+        )}
 
         <footer className="footer">
           <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">

@@ -14,6 +14,12 @@ import { generateText, Output } from 'ai';
 import { z } from 'zod';
 import { CheckError } from './errors.js';
 import { lookupLawByItemId, type LawLookupResponse } from './law-api.js';
+import {
+  recordLawTaxWriteback,
+  retrieveLawTaxSubgraph,
+  type LawAtomicSubgraph,
+  type LawWritebackResult,
+} from './law-graphrag.js';
 import { resolveModel } from './llm.js';
 import { maskPii } from './pii.js';
 
@@ -35,6 +41,10 @@ export interface TaxCheckResponse {
   hometaxGuide: string;
   followups: string[];
   law: LawLookupResponse;
+  graphRag: {
+    subgraph: LawAtomicSubgraph;
+    writeback: LawWritebackResult;
+  };
 }
 
 const TaxAiSchema = z.object({
@@ -69,7 +79,7 @@ function buildDeterministicTaxResult(
   maskedText: string,
   filerType: 'individual_biz' | 'wage_earner' | 'freelancer',
   law: LawLookupResponse,
-): TaxCheckResponse {
+): Omit<TaxCheckResponse, 'graphRag'> {
   const hasQualifiedEvidence = /세금계산서|신용카드|체크카드|법인카드|현금영수증/.test(maskedText);
   const isCashTransferOnly = /계좌이체|무통장|간이영수증/.test(maskedText) && !hasQualifiedEvidence;
 
@@ -196,9 +206,19 @@ export async function runTaxCheck(req: TaxCheckRequest): Promise<TaxCheckRespons
   const { masked: maskedText } = maskPii(rawText);
   const taxLawItemId = classifyTaxItemId(maskedText, filerType);
 
-  // OKE Rust Law MCP (`https://webrtc.ugot.uk/law/mcp`) 실시간 세법 조문 및 대법원 세무 판례 조회
+  // 1) OKE Rust Law MCP (`https://webrtc.ugot.uk/law/mcp`) 실시간 세법 조문 및 대법원 세무 판례 조회
   const law = await lookupLawByItemId(taxLawItemId);
+
+  // 2) 다온사주 스타일 Atomic GraphRAG 2-Hop 세법 서브그래프 및 누적 학습 케이스북 추출
+  const subgraph = retrieveLawTaxSubgraph({
+    domain: 'tax',
+    itemId: taxLawItemId,
+    queryText: maskedText,
+    liveLaw: law,
+  });
+
   const fallback = buildDeterministicTaxResult(taxLawItemId, maskedText, filerType, law);
+  let finalResult = fallback;
 
   try {
     const { model } = await resolveModel();
@@ -215,7 +235,9 @@ export async function runTaxCheck(req: TaxCheckRequest): Promise<TaxCheckRespons
 
     const prompt = [
       '당신은 대한민국 국세청 홈택스 실무 및 부가가치세법·소득세법·조세특례제한법 전문 세무 자동 판정 도우미입니다.',
-      '반드시 아래 [고정된 현행 세법 조문 및 대법원 판례]만을 근거로 판정하고, 없는 조문 번호나 판례를 절대 지어내지 마세요.',
+      '반드시 아래 [고정된 현행 세법 조문 및 대법원 판례]와 [GraphRAG 누적 학습 서브그래프]만을 근거로 판정하고, 없는 조문 번호나 판례를 절대 지어내지 마세요.',
+      '',
+      subgraph.formattedContext,
       '',
       `[납세자 유형] ${filerLabel}`,
       `[현행 세법 조문 (${law.statute.lawName} · ${law.statute.article})]`,
@@ -242,7 +264,7 @@ export async function runTaxCheck(req: TaxCheckRequest): Promise<TaxCheckRespons
     });
 
     if (res.output) {
-      return {
+      finalResult = {
         taxLawItemId,
         maskedText,
         filerType,
@@ -258,8 +280,25 @@ export async function runTaxCheck(req: TaxCheckRequest): Promise<TaxCheckRespons
       };
     }
   } catch {
-    // AI 호출 실패 시에도 OKE Rust Law MCP 세법·판례 기반 결정론적 세무 판정 반환
+    // AI 호출 실패 시에도 OKE Rust Law MCP 세법·판례 기반 결정론적 세무 판정 사용
   }
 
-  return fallback;
+  // 3) 자기진화형 GraphRAG Writeback (인용 가중치 상승 + 신규 세무 케이스북 승격)
+  const writeback = recordLawTaxWriteback({
+    domain: 'tax',
+    itemId: taxLawItemId,
+    maskedQuestion: maskedText,
+    headline: finalResult.headline,
+    analysis: finalResult.analysis,
+    liveLaw: law,
+    matchedCases: subgraph.matchedCases,
+  });
+
+  return {
+    ...finalResult,
+    graphRag: {
+      subgraph: { ...subgraph, stats: writeback.stats },
+      writeback,
+    },
+  };
 }

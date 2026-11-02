@@ -623,6 +623,104 @@ textarea:focus {
   font-weight: 700;
 }
 
+/* 다온사주 스타일 Atomic GraphRAG 대시보드 & 서브그래프 */
+.graphrag-stats-bar {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+
+.graphrag-stat-cell {
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.graphrag-stat-cell span {
+  font-size: 12px;
+  color: #70737c;
+  font-weight: 500;
+}
+
+.graphrag-stat-cell strong {
+  font-size: 18px;
+  color: #171719;
+  font-weight: 700;
+}
+
+.graphrag-panel {
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 102, 255, 0.22);
+  background: rgba(0, 102, 255, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.graphrag-chain {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.graphrag-node {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.graphrag-node-kind {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #f0f0f3;
+  color: #46474c;
+}
+
+.graphrag-node-kind.statute {
+  background: rgba(91, 55, 237, 0.1);
+  color: #5b37ed;
+}
+
+.graphrag-node-kind.precedent {
+  background: rgba(0, 102, 255, 0.1);
+  color: #0066ff;
+}
+
+.graphrag-node-kind.casebook {
+  background: rgba(217, 119, 6, 0.12);
+  color: #9c5800;
+}
+
+.graphrag-node-label {
+  font-weight: 600;
+  color: #171719;
+}
+
+.graphrag-arrow {
+  color: #70737c;
+  font-weight: 700;
+  margin-left: 2px;
+}
+
+.graphrag-cases {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 /* SafeRadar 와 동일한 출처 표 & 원칙 리스트 */
 .sources {
   width: 100%;

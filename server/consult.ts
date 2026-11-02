@@ -9,6 +9,13 @@ import { generateText, Output } from 'ai';
 import { z } from 'zod';
 import { CheckError } from './errors.js';
 import { lookupLawByItemId, type LawLookupResponse } from './law-api.js';
+import {
+  recordLawTaxWriteback,
+  retrieveLawTaxSubgraph,
+  type LawAtomicSubgraph,
+  type LawGraphDomain,
+  type LawWritebackResult,
+} from './law-graphrag.js';
 import { resolveModel } from './llm.js';
 import { PACKS } from './packs.js';
 import { maskPii } from './pii.js';
@@ -29,6 +36,10 @@ export interface ConsultResponse {
   messageDraft: string;
   followups: string[];
   law: LawLookupResponse;
+  graphRag: {
+    subgraph: LawAtomicSubgraph;
+    writeback: LawWritebackResult;
+  };
 }
 
 const ConsultSchema = z.object({
@@ -76,7 +87,7 @@ function buildFallbackConsult(
   itemId: string,
   maskedQuestion: string,
   law: LawLookupResponse,
-): ConsultResponse {
+): Omit<ConsultResponse, 'graphRag'> {
   const allItems = PACKS.flatMap((p) => p.items);
   const item = allItems.find((i) => i.id === itemId) ?? allItems[0];
 
@@ -130,10 +141,27 @@ export async function runConsult(req: ConsultRequest): Promise<ConsultResponse> 
   const resolvedItemId = inferItemId(maskedQuestion, req.pack, req.itemId);
   const allItems = PACKS.flatMap((p) => p.items);
   const item = allItems.find((i) => i.id === resolvedItemId) ?? allItems[0];
+  const domain: LawGraphDomain =
+    req.pack === 'gym' || ['refund_allowed', 'penalty_rate', 'price_basis', 'before_start', 'business_fault', 'ad_mismatch', 'gift_return'].includes(resolvedItemId)
+      ? 'gym'
+      : 'lease';
 
-  // OKE Rust Law MCP (`https://webrtc.ugot.uk/law/mcp`) 실시간 법령·판례 조회
+  // 1) OKE Rust Law MCP (`https://webrtc.ugot.uk/law/mcp`) 실시간 법령·판례 조회
   const law = await lookupLawByItemId(resolvedItemId);
+
+  // 2) 다온사주 스타일 Atomic GraphRAG 2-Hop 서브그래프 및 누적 학습 케이스북 추출
+  const subgraph = retrieveLawTaxSubgraph({
+    domain,
+    itemId: resolvedItemId,
+    queryText: `${maskedQuestion} ${maskedQuote}`,
+    liveLaw: law,
+  });
+
   const fallback = buildFallbackConsult(resolvedItemId, maskedQuestion, law);
+  let finalHeadline = fallback.headline;
+  let finalAnalysis = fallback.analysis;
+  let finalDraft = fallback.messageDraft;
+  let finalFollowups = fallback.followups;
 
   try {
     const { model } = await resolveModel();
@@ -143,7 +171,9 @@ export async function runConsult(req: ConsultRequest): Promise<ConsultResponse> 
 
     const prompt = [
       '당신은 대한민국 주택임대차보호법·민법·소비자분쟁해결기준·약관규제법 전문 법률 상담 도우미입니다.',
-      '반드시 아래 [고정된 현행 법령 및 대법원 판례]만을 근거로 답변하고, 없는 조문 번호나 판례 번호를 절대 지어내지 마세요.',
+      '반드시 아래 [고정된 현행 법령 및 대법원 판례]와 [GraphRAG 누적 학습 서브그래프]만을 근거로 답변하고, 없는 조문 번호나 판례 번호를 절대 지어내지 마세요.',
+      '',
+      subgraph.formattedContext,
       '',
       `[점검 항목] ${item.title}`,
       `[핵심 법리] ${item.riskReason}`,
@@ -173,20 +203,38 @@ export async function runConsult(req: ConsultRequest): Promise<ConsultResponse> 
     });
 
     if (res.output) {
-      return {
-        itemId: item.id,
-        itemTitle: item.title,
-        maskedQuestion,
-        headline: res.output.headline,
-        analysis: res.output.analysis,
-        messageDraft: res.output.messageDraft,
-        followups: res.output.followups,
-        law,
-      };
+      finalHeadline = res.output.headline;
+      finalAnalysis = res.output.analysis;
+      finalDraft = res.output.messageDraft;
+      finalFollowups = res.output.followups;
     }
   } catch {
-    // AI 호출 지연/키 미설정 시에도 법령·판례 기반 결정론적 상담 결과 반환
+    // AI 호출 지연/키 미설정 시에도 법령·판례 기반 결정론적 상담 결과 사용
   }
 
-  return fallback;
+  // 3) 자기진화형 GraphRAG Writeback (인용 가중치 상승 + 신규 학습 케이스북 승격)
+  const writeback = recordLawTaxWriteback({
+    domain,
+    itemId: item.id,
+    maskedQuestion,
+    headline: finalHeadline,
+    analysis: finalAnalysis,
+    liveLaw: law,
+    matchedCases: subgraph.matchedCases,
+  });
+
+  return {
+    itemId: item.id,
+    itemTitle: item.title,
+    maskedQuestion,
+    headline: finalHeadline,
+    analysis: finalAnalysis,
+    messageDraft: finalDraft,
+    followups: finalFollowups,
+    law,
+    graphRag: {
+      subgraph: { ...subgraph, stats: writeback.stats },
+      writeback,
+    },
+  };
 }
