@@ -319,7 +319,7 @@ export function SamplePreviewCard({
         <div className="paper-doc-scanned-wrap" data-testid="scanned-scroll-wrap">
           {/* 스크롤 안내 힌트 바 */}
           <div className="scanned-scroll-notice">
-            <span>📜 마우스 휠이나 터치로 아래로 스크롤하여 계약서 하단 서명·날인까지 확인하실 수 있어요</span>
+            <span>📜 아래로 스크롤하여 계약서 하단 서명·날인과 [정밀 점검 시작] 버튼까지 전체를 확인하실 수 있어요</span>
           </div>
 
           {/* 원본 해상도와 100% 일치하는 종횡비 컨테이너 (Zero-Letterbox Pixel-Perfect 바인딩) */}
