@@ -57,11 +57,16 @@ export async function check(input: CheckInput, deps: { model?: LanguageModel } =
   const pack = getPack(input.pack);
   const model = deps.model ?? (await resolveModel()).model;
   const started = Date.now();
-  const common = { model, temperature: 0, maxRetries: MAX_RETRIES, abortSignal: AbortSignal.timeout(CALL_TIMEOUT_MS) };
+  const opts = (m: LanguageModel, timeoutMs = 8_000) => ({
+    model: m,
+    temperature: 0,
+    maxRetries: MAX_RETRIES,
+    abortSignal: AbortSignal.timeout(timeoutMs),
+  });
 
   if (!pack) {
     const res = await call(() =>
-      generateText({ ...common, system: '다음 계약·약관 문구에서 나에게 불리할 수 있는 조항을 쉬운 말로 짚어 줘. 법률 판단을 단정하지 마.', prompt: masked }),
+      generateText({ ...opts(model, CALL_TIMEOUT_MS), system: '다음 계약·약관 문구에서 나에게 불리할 수 있는 조항을 쉬운 말로 짚어 줘. 법률 판단을 단정하지 마.', prompt: masked }),
     );
     return { pack: input.pack, version: 'v0', items: [], elapsedMs: Date.now() - started, referenceOnly: true, note: res.text };
   }
@@ -70,13 +75,13 @@ export async function check(input: CheckInput, deps: { model?: LanguageModel } =
   const p = version === 'v0' ? promptV0(pack, masked) : version === 'v1' ? promptV1(pack, masked) : promptV2(pack, masked, ruleScan(masked, pack));
   let raw: { itemId: string; verdict: Verdict; quote: string }[] | null = null;
   try {
-    const res = await call(() => generateText({ ...common, ...p, output: Output.object({ schema: schemaFor(pack) }) }));
+    const res = await call(() => generateText({ ...opts(model, 8_000), ...p, output: Output.object({ schema: schemaFor(pack) }) }), false);
     raw = res.output.items;
   } catch (e) {
     if (!deps.model) {
       try {
         const fallback = await resolveModel(process.env, 'gemini-3.6-flash');
-        const res = await call(() => generateText({ ...common, model: fallback.model, ...p, output: Output.object({ schema: schemaFor(pack) }) }));
+        const res = await call(() => generateText({ ...opts(fallback.model, 20_000), ...p, output: Output.object({ schema: schemaFor(pack) }) }), true);
         raw = res.output.items;
       } catch (e2) {
         if (e2 instanceof CheckError) throw e2;
@@ -91,13 +96,14 @@ export async function check(input: CheckInput, deps: { model?: LanguageModel } =
 }
 
 /** 제공사 오류를 화면용 문장으로 바꾼다. 모양 오류(스키마)는 그대로 던져 위에서 autoFailed 처리. */
-async function call<T>(fn: () => Promise<T>): Promise<T> {
+async function call<T>(fn: () => Promise<T>, isFinal = true): Promise<T> {
   try {
     return await fn();
   } catch (e) {
     const name = (e as Error)?.name ?? '';
     const msg = String((e as Error)?.message ?? '');
     if (/NoObjectGenerated|NoOutputGenerated/i.test(name)) throw e;
+    if (!isFinal) throw e;
     if (name === 'TimeoutError' || name === 'AbortError' || /timeout|aborted/i.test(msg)) {
       throw new CheckError(504, 'AI 응답이 늦어요. 잠시 뒤 다시 눌러 주세요. 입력한 문구는 그대로 있어요.');
     }
