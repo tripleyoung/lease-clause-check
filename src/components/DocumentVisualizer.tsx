@@ -241,6 +241,172 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
 ];
 
 /**
+ * 고해상도 스캔 계약서 원본 전체화면 뷰어 (라이트박스 모달)
+ */
+export function DocumentFullscreenModal({
+  doc,
+  isOpen,
+  onClose,
+  onStartCheck,
+  selectedClauseNum,
+  onSelectClause,
+}: {
+  doc: SampleDocSpec;
+  isOpen: boolean;
+  onClose: () => void;
+  onStartCheck?: (doc: SampleDocSpec) => void;
+  selectedClauseNum: number;
+  onSelectClause: (num: number) => void;
+}) {
+  const [zoom, setZoom] = useState(100);
+
+  if (!isOpen || !doc.scannedImageUrl) return null;
+
+  const activeClause = doc.clauses.find((c) => c.num === selectedClauseNum) ?? doc.clauses[0];
+
+  return (
+    <div
+      className="doc-fullscreen-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${doc.title} 스캔 원본 전체화면`}
+      data-testid="doc-fullscreen-modal"
+    >
+      <div className="doc-fullscreen-header">
+        <div className="doc-fullscreen-header__left">
+          <span className="doc-fullscreen-badge">{doc.badge}</span>
+          <h3 className="doc-fullscreen-title">{doc.title}</h3>
+          <span className="doc-fullscreen-sub">(공식 원본 서식 1:1 대조 모드)</span>
+        </div>
+
+        {/* 줌 컨트롤 & 닫기 액션 */}
+        <div className="doc-fullscreen-header__actions">
+          <div className="doc-zoom-controls">
+            <button
+              type="button"
+              className="copy-chip"
+              onClick={() => setZoom((z) => Math.max(80, z - 15))}
+              disabled={zoom <= 80}
+              title="축소"
+            >
+              ➖ 축소
+            </button>
+            <span className="doc-zoom-val">{zoom}%</span>
+            <button
+              type="button"
+              className="copy-chip"
+              onClick={() => setZoom((z) => Math.min(180, z + 15))}
+              disabled={zoom >= 180}
+              title="확대"
+            >
+              ➕ 확대
+            </button>
+            <button
+              type="button"
+              className="copy-chip doc-zoom-reset-btn"
+              onClick={() => setZoom(100)}
+              title="100% 기본 맞춤"
+            >
+              ⛶ 100%
+            </button>
+          </div>
+
+          <button
+            type="button"
+            className="turn__reset"
+            onClick={onClose}
+            aria-label="전체화면 닫기"
+            data-testid="close-doc-fullscreen"
+          >
+            ✕ 닫기 (Esc)
+          </button>
+        </div>
+      </div>
+
+      {/* 스크롤 가능한 대화면 뷰포트 */}
+      <div className="doc-fullscreen-body">
+        <div
+          className="paper-doc-scanned-container is-fullscreen"
+          style={{
+            aspectRatio: doc.aspectRatio,
+            width: `${Math.round(860 * (zoom / 100))}px`,
+            maxWidth: 'none',
+          }}
+        >
+          <img
+            src={doc.scannedImageUrl}
+            alt={`${doc.title} 전체화면 고해상도 스캔본`}
+            className="paper-doc-scanned-img"
+          />
+
+          {/* 문서 위 직접 조항 핀 오버레이 */}
+          <div className="doc-annotation-layer" aria-label="문서 위 조항 위치 하이라이트">
+            {doc.clauses.map((c) => {
+              if (!c.annotationBox) return null;
+              const isSelected = c.num === selectedClauseNum;
+              return (
+                <button
+                  key={c.num}
+                  type="button"
+                  className={`doc-annotation-box doc-annotation-box--${c.tone} ${isSelected ? 'is-selected is-active-pulse' : ''}`}
+                  style={{
+                    left: `${c.annotationBox.left}%`,
+                    top: `${c.annotationBox.top}%`,
+                    width: `${c.annotationBox.width}%`,
+                    height: `${c.annotationBox.height}%`,
+                  }}
+                  onClick={() => onSelectClause(c.num)}
+                  title={`${c.num}번: ${c.tag}`}
+                  data-testid={`fs-pin-${c.num}`}
+                >
+                  <span className={`doc-annotation-pin doc-annotation-pin--${c.tone}`}>
+                    {c.num}
+                  </span>
+                  {isSelected && (
+                    <span className="doc-annotation-tooltip">
+                      <strong>#{c.num} {c.tag}</strong>
+                      <small>{c.shortPoint}</small>
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* 하단 플로팅 액션 바 */}
+      <footer className="doc-fullscreen-footer">
+        {activeClause && (
+          <div className="doc-fullscreen-clause-summary">
+            <span className={`paper-doc__pin paper-doc__pin--${activeClause.tone}`}>
+              {activeClause.num}
+            </span>
+            <div className="doc-fullscreen-clause-text">
+              <strong>{activeClause.tag}</strong>
+              <p>{activeClause.text}</p>
+            </div>
+          </div>
+        )}
+        {onStartCheck && (
+          <button
+            type="button"
+            className="pill-btn pill-btn--primary"
+            onClick={() => {
+              onClose();
+              onStartCheck(doc);
+            }}
+            data-testid="fs-start-check-btn"
+          >
+            🔍 이 스캔 문서로 정밀 점검 시작하기
+          </button>
+        )}
+      </footer>
+    </div>
+  );
+}
+
+/**
  * 첫 화면에서 샘플 문서를 클릭했을 때 실제 문서 모양과 마스킹 위치를 먼저 눈으로 확인하는 미리보기 시트
  */
 export function SamplePreviewCard({
@@ -258,62 +424,75 @@ export function SamplePreviewCard({
   const [showMasked, setShowMasked] = useState(true);
   const [showPinsOnScan, setShowPinsOnScan] = useState(true);
   const [selectedClauseNum, setSelectedClauseNum] = useState<number>(3); // 기본 위험 3번 조항 선택
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const activeClause = doc.clauses.find((c) => c.num === selectedClauseNum) ?? doc.clauses[0];
 
   return (
-    <section className="doc-preview-shell" aria-label={`${doc.title} 미리보기`} data-testid="sample-preview-card">
-      <div className="doc-preview-shell__top">
-        <div>
-          <span className="visual-card__eyebrow">📄 공식 계약서 스캔 원본 및 위험 조항 위치 확인</span>
-          <h3 className="visual-card__title">{doc.title}</h3>
-          <p className="doc-preview-shell__sub">{doc.subtitle}</p>
-        </div>
-        <div className="doc-preview-shell__toggles">
-          {doc.scannedImageUrl && (
-            <div style={{ display: 'inline-flex', gap: '4px' }}>
+    <>
+      <section className="doc-preview-shell" aria-label={`${doc.title} 미리보기`} data-testid="sample-preview-card">
+        <div className="doc-preview-shell__top">
+          <div>
+            <span className="visual-card__eyebrow">📄 공식 계약서 스캔 원본 및 위험 조항 위치 확인</span>
+            <h3 className="visual-card__title">{doc.title}</h3>
+            <p className="doc-preview-shell__sub">{doc.subtitle}</p>
+          </div>
+          <div className="doc-preview-shell__toggles">
+            {doc.scannedImageUrl && (
+              <div style={{ display: 'inline-flex', gap: '4px' }}>
+                <button
+                  type="button"
+                  className={viewMode === 'scan' ? 'copy-chip copy-chip--active' : 'copy-chip'}
+                  onClick={() => setViewMode('scan')}
+                  data-testid="toggle-view-scan"
+                >
+                  📄 스캔 원본 (A4 정비율)
+                </button>
+                <button
+                  type="button"
+                  className={viewMode === 'structured' ? 'copy-chip copy-chip--active' : 'copy-chip'}
+                  onClick={() => setViewMode('structured')}
+                  data-testid="toggle-view-structured"
+                >
+                  📋 조항 분석 텍스트
+                </button>
+              </div>
+            )}
+            {viewMode === 'scan' && (
+              <>
+                <button
+                  type="button"
+                  className={showPinsOnScan ? 'copy-chip copy-chip--active' : 'copy-chip'}
+                  onClick={() => setShowPinsOnScan((v) => !v)}
+                  data-testid="toggle-scan-pins"
+                >
+                  {showPinsOnScan ? '🎯 조항 위치 핀 표시 켜짐' : '🎯 조항 핀 숨기기'}
+                </button>
+                <button
+                  type="button"
+                  className="copy-chip"
+                  onClick={() => setIsFullscreen(true)}
+                  title="스캔 계약서 전체화면으로 크게 보기"
+                  data-testid="open-doc-fullscreen-btn"
+                >
+                  ⛶ 스캔문서 전체화면
+                </button>
+              </>
+            )}
+            {viewMode === 'structured' && (
               <button
                 type="button"
-                className={viewMode === 'scan' ? 'copy-chip copy-chip--active' : 'copy-chip'}
-                onClick={() => setViewMode('scan')}
-                data-testid="toggle-view-scan"
+                className={showMasked ? 'copy-chip copy-chip--active' : 'copy-chip'}
+                onClick={() => setShowMasked((v) => !v)}
               >
-                📄 스캔 원본 (A4 정비율)
+                {showMasked ? '🔒 개인정보 가림 적용됨' : '원본 개인정보 보기'}
               </button>
-              <button
-                type="button"
-                className={viewMode === 'structured' ? 'copy-chip copy-chip--active' : 'copy-chip'}
-                onClick={() => setViewMode('structured')}
-                data-testid="toggle-view-structured"
-              >
-                📋 조항 분석 텍스트
-              </button>
-            </div>
-          )}
-          {viewMode === 'scan' && (
-            <button
-              type="button"
-              className={showPinsOnScan ? 'copy-chip copy-chip--active' : 'copy-chip'}
-              onClick={() => setShowPinsOnScan((v) => !v)}
-              data-testid="toggle-scan-pins"
-            >
-              {showPinsOnScan ? '🎯 조항 위치 핀 표시 켜짐' : '🎯 조항 핀 숨기기'}
+            )}
+            <button type="button" className="turn__reset" onClick={onClose}>
+              닫기
             </button>
-          )}
-          {viewMode === 'structured' && (
-            <button
-              type="button"
-              className={showMasked ? 'copy-chip copy-chip--active' : 'copy-chip'}
-              onClick={() => setShowMasked((v) => !v)}
-            >
-              {showMasked ? '🔒 개인정보 가림 적용됨' : '원본 개인정보 보기'}
-            </button>
-          )}
-          <button type="button" className="turn__reset" onClick={onClose}>
-            닫기
-          </button>
+          </div>
         </div>
-      </div>
 
       {viewMode === 'scan' && doc.scannedImageUrl ? (
         <div className="paper-doc-scanned-wrap" data-testid="scanned-scroll-wrap">
@@ -426,7 +605,12 @@ export function SamplePreviewCard({
 
       <div className="doc-preview-shell__footer">
         <span className="doc-preview-shell__hint">
-          👆 {viewMode === 'scan' ? '스캔 계약서 위 핀(①~⑤)을 눌러 위치를 확인한 후' : '위 계약서·명세서에서 위험 조항 위치(①~⑤)를 확인하고'} 한결의 정밀 분석을 시작해 보세요.
+          <span className="hint-desktop">
+            👆 {viewMode === 'scan' ? '스캔 계약서 위 핀(①~⑤)을 눌러 위치를 확인한 후' : '위 계약서·명세서에서 위험 조항 위치(①~⑤)를 확인하고'} 한결의 정밀 분석을 시작해 보세요.
+          </span>
+          <span className="hint-mobile">
+            👆 {viewMode === 'scan' ? '스캔본 핀(①~⑤) 확인 후' : '위험 조항 위치(①~⑤) 확인 후'} 정밀 분석을 시작하세요.
+          </span>
         </span>
         <button
           type="button"
@@ -439,6 +623,19 @@ export function SamplePreviewCard({
         </button>
       </div>
     </section>
+
+    {/* 스캔 계약서 전체화면 라이트박스 뷰어 */}
+    {doc.scannedImageUrl && (
+      <DocumentFullscreenModal
+        doc={doc}
+        isOpen={isFullscreen}
+        onClose={() => setIsFullscreen(false)}
+        onStartCheck={onStartCheck}
+        selectedClauseNum={selectedClauseNum}
+        onSelectClause={setSelectedClauseNum}
+      />
+    )}
+  </>
   );
 }
 
@@ -464,6 +661,7 @@ export function AnnotatedDocumentDeckCard({
   const highlightedItems = items.filter((i) => i.verdict === '위험' || i.verdict === '보호됨');
   const displayItems = highlightedItems.length > 0 ? highlightedItems : items.slice(0, 4);
   const [selectedIdx, setSelectedIdx] = useState(0);
+  const [isFullscreenDoc, setIsFullscreenDoc] = useState(false);
 
   const safeIdx = Math.min(selectedIdx, Math.max(0, displayItems.length - 1));
   const activeItem = displayItems[safeIdx];
@@ -490,15 +688,27 @@ export function AnnotatedDocumentDeckCard({
   const effectiveImageUrl = uploadedImageUrl || doc?.scannedImageUrl;
 
   return (
-    <section className="visual-card annotated-doc-card" aria-label="문서 원문 위치 가리키기 및 조항별 해설" data-testid="annotated-doc-card">
-      <header className="annotated-doc-card__head">
-        <div>
-          <span className="visual-card__eyebrow">👆 계약서 실물 위 직접 표시 · 번호 핀을 누르면 한결이 해당 위치를 설명해요</span>
-          <h3 className="visual-card__title">
-            계약서 실물 원본 하이라이트 ({safeIdx + 1}/{displayItems.length}번 조항 짚는 중)
-          </h3>
-        </div>
-      </header>
+    <>
+      <section className="visual-card annotated-doc-card" aria-label="문서 원문 위치 가리키기 및 조항별 해설" data-testid="annotated-doc-card">
+        <header className="annotated-doc-card__head">
+          <div>
+            <span className="visual-card__eyebrow">👆 계약서 실물 위 직접 표시 · 번호 핀을 누르면 한결이 해당 위치를 설명해요</span>
+            <h3 className="visual-card__title">
+              계약서 실물 원본 하이라이트 ({safeIdx + 1}/{displayItems.length}번 조항 짚는 중)
+            </h3>
+          </div>
+          {doc?.scannedImageUrl && (
+            <button
+              type="button"
+              className="copy-chip"
+              onClick={() => setIsFullscreenDoc(true)}
+              title="스캔 계약서 고해상도 전체화면으로 크게 보기"
+              data-testid="annotated-doc-fullscreen-btn"
+            >
+              ⛶ 스캔문서 전체화면
+            </button>
+          )}
+        </header>
 
       <div className="annotated-doc-grid">
         {/* 왼쪽: 실제 A4 정비율 스캔본 문서 위 직접 하이라이트 핀 오버레이 */}
@@ -644,6 +854,18 @@ export function AnnotatedDocumentDeckCard({
         )}
       </div>
     </section>
+
+    {/* 결과 화면에서 스캔 원본 크게 보기 라이트박스 */}
+    {doc?.scannedImageUrl && (
+      <DocumentFullscreenModal
+        doc={doc}
+        isOpen={isFullscreenDoc}
+        onClose={() => setIsFullscreenDoc(false)}
+        selectedClauseNum={safeIdx + 1}
+        onSelectClause={(num) => handleSelect(Math.max(0, num - 1))}
+      />
+    )}
+  </>
   );
 }
 

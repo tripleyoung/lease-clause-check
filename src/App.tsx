@@ -312,6 +312,17 @@ export function App() {
   const [streamText, setStreamText] = useState('');
   const [streaming, setStreaming] = useState(false);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [isFullscreenDeck, setIsFullscreenDeck] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullscreenDeck) {
+        setIsFullscreenDeck(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isFullscreenDeck]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -1430,7 +1441,7 @@ export function App() {
         onSaveProfile={handleSaveProfile}
       />
 
-      <div className="layout layout--chat">
+      <div className={`layout layout--chat ${previewDoc || activeTurn ? 'layout--inspecting' : ''}`}>
         <aside className="stage stage--chat" aria-label="한결의 법률·세무 브리핑">
           <Narrator
             mood={mascotState.mood}
@@ -1568,45 +1579,63 @@ export function App() {
             )}
 
             {activeTurn && (
-              <section className="turn" aria-label="현재 풀이 및 시각화 카드">
+              <section
+                className={isFullscreenDeck ? 'turn turn--fullscreen' : 'turn'}
+                aria-label="현재 풀이 및 시각화 카드"
+                data-testid="turn-card-section"
+              >
                 <header className="turn__question">
-                  <button
-                    type="button"
-                    className="turn__step"
-                    onClick={() => setTurnIndex((i) => Math.max(0, i - 1))}
-                    disabled={turnIndex === 0}
-                    aria-label="이전 질문"
-                  >
-                    ◀
-                  </button>
-                  <p title={activeTurn.question}>
-                    {turns.length > 1 && (
-                      <span className="turn__count">
-                        {turnIndex + 1}/{turns.length}
-                      </span>
-                    )}
-                    {activeTurn.question}
-                  </p>
-                  <button
-                    type="button"
-                    className="turn__step"
-                    onClick={() => setTurnIndex((i) => Math.min(turns.length - 1, i + 1))}
-                    disabled={turnIndex >= turns.length - 1}
-                    aria-label="다음 질문"
-                  >
-                    ▶
-                  </button>
-                  <button
-                    type="button"
-                    className="turn__reset"
-                    onClick={() => {
-                      setTurns([]);
-                      setTurnIndex(0);
-                      setPreviewDoc(null);
-                    }}
-                  >
-                    처음으로
-                  </button>
+                  <div className="turn__nav">
+                    <button
+                      type="button"
+                      className="turn__step"
+                      onClick={() => setTurnIndex((i) => Math.max(0, i - 1))}
+                      disabled={turnIndex === 0}
+                      aria-label="이전 질문"
+                    >
+                      ◀
+                    </button>
+                    <p title={activeTurn.question}>
+                      {turns.length > 1 && (
+                        <span className="turn__count">
+                          {turnIndex + 1}/{turns.length}
+                        </span>
+                      )}
+                      {activeTurn.question}
+                    </p>
+                    <button
+                      type="button"
+                      className="turn__step"
+                      onClick={() => setTurnIndex((i) => Math.min(turns.length - 1, i + 1))}
+                      disabled={turnIndex >= turns.length - 1}
+                      aria-label="다음 질문"
+                    >
+                      ▶
+                    </button>
+                  </div>
+                  <div className="turn__actions">
+                    <button
+                      type="button"
+                      className="copy-chip"
+                      onClick={() => setIsFullscreenDeck((f) => !f)}
+                      title={isFullscreenDeck ? '시각화 전체화면 종료 (Esc)' : '시각화 패널 전체화면으로 크게 보기'}
+                      data-testid="toggle-deck-fullscreen-btn"
+                    >
+                      {isFullscreenDeck ? '✕ 전체화면 닫기' : '⛶ 전체화면'}
+                    </button>
+                    <button
+                      type="button"
+                      className="turn__reset"
+                      onClick={() => {
+                        setTurns([]);
+                        setTurnIndex(0);
+                        setPreviewDoc(null);
+                        setIsFullscreenDeck(false);
+                      }}
+                    >
+                      처음으로
+                    </button>
+                  </div>
                 </header>
 
                 {(activeTurn.maskedSummary || activeTurn.cached) && (

@@ -715,13 +715,22 @@ ol.rt-list {
 
 .turn__question {
   flex: none;
-  display: grid;
-  grid-template-columns: 30px minmax(0, 1fr) 30px auto;
+  display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.turn__question p {
+.turn__nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.turn__nav p {
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -729,7 +738,15 @@ ol.rt-list {
   font-size: 13px;
   font-weight: 600;
   color: var(--ink);
-  text-align: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.turn__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
 .turn__count {
@@ -3084,4 +3101,521 @@ button.paper-doc__clause:hover {
   color: var(--ink-soft);
   margin-left: 2px;
 }
+
+/* ========================================================
+ * 1. 스캔 계약서 원본 전체화면 뷰어 (라이트박스 모달)
+ * ======================================================== */
+.doc-fullscreen-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: rgba(14, 18, 24, 0.94);
+  backdrop-filter: blur(14px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: fadeIn 0.18s ease;
+}
+
+.doc-fullscreen-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 24px;
+  background: rgba(24, 28, 36, 0.96);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.doc-fullscreen-header__left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.doc-fullscreen-badge {
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--dancheong);
+  color: #fff;
+}
+
+.doc-fullscreen-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+
+.doc-fullscreen-sub {
+  font-size: 12px;
+  color: #a0aec0;
+}
+
+.doc-fullscreen-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.doc-zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 3px 6px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.doc-zoom-controls button {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.2);
+  background: transparent;
+  padding: 4px 8px;
+  font-size: 11.5px;
+}
+
+.doc-zoom-controls button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.doc-zoom-val {
+  font-size: 12px;
+  font-weight: 700;
+  color: #e2e8f0;
+  min-width: 40px;
+  text-align: center;
+}
+
+.doc-fullscreen-body {
+  flex: 1;
+  overflow: auto;
+  padding: 32px 20px 90px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  -webkit-overflow-scrolling: touch;
+}
+
+.paper-doc-scanned-container.is-fullscreen {
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+  transition: width 160ms cubic-bezier(0.4, 0, 0.2, 1);
+  margin-bottom: 24px;
+}
+
+.doc-fullscreen-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 24px;
+  background: rgba(24, 28, 36, 0.96);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  z-index: 1220;
+  flex-wrap: wrap;
+}
+
+.doc-fullscreen-clause-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #fff;
+  flex: 1;
+  min-width: 280px;
+}
+
+.doc-fullscreen-clause-text strong {
+  display: block;
+  font-size: 13.5px;
+  color: #fff;
+}
+
+.doc-fullscreen-clause-text p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #cbd5e0;
+}
+
+/* ========================================================
+ * 2. 시각화 패널 전체화면 대시보드 모드 (.turn--fullscreen)
+ * ======================================================== */
+.turn--fullscreen {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 1100 !important;
+  background: var(--paper) !important;
+  padding: 24px 32px 36px !important;
+  overflow-y: auto !important;
+  max-height: 100dvh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 20px !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  animation: fullscreenFade 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fullscreenFade {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.turn--fullscreen .turn__question {
+  background: var(--paper-raised);
+  padding: 12px 18px;
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--hairline-strong);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.turn--fullscreen .visual-deck {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.turn--fullscreen .annotated-doc-grid {
+  grid-template-columns: minmax(420px, 1.1fr) minmax(360px, 1fr);
+  gap: 28px;
+}
+
+/* ========================================================
+ * 3. 반응형 모바일 최적화 & 스크롤 잠김 해제 (Mobile Responsive)
+ * ======================================================== */
+.hint-mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .hint-desktop {
+    display: none;
+  }
+  .hint-mobile {
+    display: inline;
+  }
+
+  /* 문서 미리보기/풀이 중일 때 모바일 상단 한결 브리핑 컴팩트 축소 */
+  .layout--inspecting .stage--chat {
+    padding: 6px var(--gutter) 8px;
+  }
+
+  .layout--inspecting .narrator {
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 8px;
+    align-items: center;
+  }
+
+  .layout--inspecting .narrator__figure {
+    width: 42px;
+    height: 48px;
+  }
+
+  .layout--inspecting .narrator__bubble {
+    font-size: 12.5px;
+    padding: 6px 12px;
+    line-height: 1.4;
+    max-height: 48px;
+    overflow-y: auto;
+  }
+
+  /* 모바일 스캔 문서 미리보기 시트 - 내부 잘림 방지 및 일체형 터치 스크롤 */
+  .doc-preview-shell {
+    padding: 10px 8px 8px;
+    gap: 8px;
+    border-radius: 14px;
+    flex: 1;
+    min-height: 0;
+    max-height: 100%;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
+
+  .doc-preview-shell__top {
+    gap: 8px;
+  }
+
+  .doc-preview-shell__title {
+    font-size: 14.5px;
+  }
+
+  .doc-preview-shell__sub {
+    font-size: 11.5px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .doc-preview-shell__toggles {
+    width: 100%;
+    gap: 4px;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+  }
+
+  .doc-preview-shell__toggles .copy-chip,
+  .doc-preview-shell__toggles .turn__reset {
+    font-size: 11px;
+    padding: 3px 8px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .paper-doc-scanned-wrap {
+    padding: 4px 2px;
+    margin: 0;
+  }
+
+  .doc-preview-shell__footer {
+    position: sticky;
+    bottom: 0;
+    padding: 8px 10px;
+    margin: 4px -2px -2px;
+    gap: 6px;
+    flex-direction: column;
+    align-items: stretch;
+    z-index: 30;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  .doc-preview-shell__hint {
+    font-size: 11px;
+    text-align: center;
+  }
+
+  .doc-preview-shell__footer .pill-btn--primary {
+    width: 100%;
+    height: 38px;
+    font-size: 13px;
+    justify-content: center;
+  }
+
+  /* 모바일 스캔 원본 전체화면 뷰어 (라이트박스) */
+  .doc-fullscreen-header {
+    padding: 8px 10px;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: nowrap;
+  }
+
+  .doc-fullscreen-header__left {
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+
+  .doc-fullscreen-title {
+    display: none;
+  }
+
+  .doc-fullscreen-sub {
+    display: none;
+  }
+
+  .doc-fullscreen-badge {
+    font-size: 11px;
+    padding: 3px 6px;
+    max-width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 0;
+    line-height: 1.2;
+  }
+
+  .doc-fullscreen-header__actions {
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .doc-zoom-controls {
+    padding: 2px 4px;
+    gap: 2px;
+  }
+
+  .doc-zoom-reset-btn {
+    display: none;
+  }
+
+  .doc-zoom-controls button {
+    padding: 2px 4px;
+    font-size: 10px;
+  }
+
+  .doc-zoom-val {
+    font-size: 10.5px;
+    min-width: 26px;
+  }
+
+  .doc-fullscreen-close-btn {
+    height: 26px;
+    padding: 0 7px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .doc-fullscreen-body {
+    padding: 10px 4px 80px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .paper-doc-scanned-container.is-fullscreen {
+    margin-bottom: 16px;
+  }
+
+  .doc-fullscreen-footer {
+    padding: 8px 12px;
+    gap: 8px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .doc-fullscreen-clause-summary {
+    min-width: 0;
+    gap: 8px;
+  }
+
+  .doc-fullscreen-clause-text strong {
+    font-size: 12.5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .doc-fullscreen-clause-text p {
+    font-size: 11px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .doc-fullscreen-footer .pill-btn--primary {
+    width: 100%;
+    height: 38px;
+    font-size: 13px;
+    justify-content: center;
+  }
+
+  /* 모바일 시각화 전체화면 대시보드 */
+  .turn--fullscreen {
+    padding: 10px 8px 20px !important;
+    gap: 12px !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .turn--fullscreen .turn__question {
+    padding: 8px 10px;
+    border-radius: 10px;
+  }
+
+  .turn--fullscreen .annotated-doc-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  .turn--fullscreen .deck {
+    flex: none;
+  }
+
+  .turn--fullscreen .deck__slide {
+    overflow-y: visible !important;
+  }
+
+  /* 모바일 조항별 하이라이트 카드 헤더 */
+  .annotated-doc-card {
+    padding: 10px 8px;
+  }
+
+  .annotated-doc-card__head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .annotated-doc-card__head button {
+    align-self: flex-end;
+  }
+
+  .pointed-detail {
+    padding: 10px 10px;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 560px) {
+  /* 질문 통계 도넛 모바일 2x2 균형 탭 */
+  .question-stats-card {
+    padding: 14px 12px;
+    border-radius: 14px;
+    gap: 12px;
+  }
+
+  .question-stats-filter-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+    gap: 4px;
+    padding: 3px;
+  }
+
+  .question-filter-tab {
+    text-align: center;
+    padding: 6px 4px;
+    font-size: 11.5px;
+  }
+
+  .question-donut-container {
+    width: 200px;
+    height: 200px;
+  }
+
+  .question-donut-center {
+    padding: 12px;
+  }
+
+  .question-donut-center__val {
+    font-size: 14px;
+  }
+
+  .question-stats-detail__spotlight {
+    padding: 10px 12px;
+  }
+
+  .question-stats-detail__q {
+    font-size: 13.5px;
+  }
+
+  .question-stats-detail__desc {
+    font-size: 12px;
+  }
+}
+
+
 

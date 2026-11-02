@@ -457,7 +457,7 @@ export function QuestionStatsDonut({
                 {activeId ? `${activeItem.count.toLocaleString()}건` : `1위: ${items[0].shortLabel}`}
               </strong>
               <span className="question-donut-center__sub">
-                {activeId ? '클릭 시 질문 자동 입력' : '마우스를 올려보세요'}
+                {activeId ? '터치/클릭 시 질문 자동입력' : '터치 또는 마우스 오버'}
               </span>
             </div>
           </div>
