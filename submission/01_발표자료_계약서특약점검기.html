@@ -277,18 +277,21 @@
         </div>
         <div class="card-box" style="border-left: 4px solid var(--warning);">
           <div>
-            <h3 style="margin-top:0; color: var(--warning);">⚠️ 범용 AI 질의 시 발생하는 4대 한계</h3>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+              <h3 style="margin:0; color: var(--warning);">⚠️ 범용 AI 질의 시 발생하는 4대 한계</h3>
+              <span class="badge badge-danger" style="font-size:10.5px;">스탠퍼드 실측 환각률 58~82%</span>
+            </div>
             <ul>
-              <li><strong>비결정론적 누락</strong>: 질문할 때마다 판정 결과가 바뀌고 중요 조항을 임의 누락함.</li>
-              <li><strong>지어낸 조문(환각)</strong>: 실제 존재하지 않는 법령 조문 번호를 그럴듯하게 인용.</li>
-              <li><strong>개인정보 무방비 유출</strong>: 주민등록번호, 계좌번호, 전화번호가 외부 AI 서버로 노출.</li>
-              <li><strong>정량 숫자 계산 오류</strong>: 증액 5% 한도, 위약금 10% 등 단순 어림셈 실패.</li>
+              <li><strong>비결정론적 누락 & 조항 왜곡</strong>: 질문마다 판정이 달라지고, 실제 문맥을 오독하는 'Misgrounding' 발생.</li>
+              <li><strong>지어낸 법령 조문(환각)</strong>: 실재하지 않는 법령 번호나 조항을 권위적인 어조로 날조 인용.</li>
+              <li><strong>개인정보 무방비 외부 노출</strong>: 주민등록번호, 계좌번호, 주소, 연락처가 외부 AI 서버로 전송.</li>
+              <li><strong>정량 숫자 연산 오류</strong>: 5% 증액 상한선, 10% 위약금 등 엄밀한 법정 한도 계산 실패.</li>
             </ul>
           </div>
           <div class="evidence-box">
-            <strong>🔍 해결 아키텍처 소스:</strong><br>
-            • server/pii.ts (정규식 사전 가림으로 개인정보 유출 0%)<br>
-            • server/rules.ts (5% 증액, 10% 위약금 결정론적 수학 계산 엔진)
+            <strong>🔍 스탠퍼드 실측 연구 & 온율 극복 아키텍처:</strong><br>
+            • <em>Stanford RegLab & HAI (2024)</em>: 상용 LLM 법률 질의 58%~82% 환각 및 Misgrounding 위험 실증<br>
+            • <strong>온율 3계층 하이브리드</strong>: 188건 벤치마크 정밀도 100%, PII 사전 가림(유출 0%), 결정론적 규칙 엔진(오차 0%)
           </div>
         </div>
       </div>
