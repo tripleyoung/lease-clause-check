@@ -1,3 +1,5 @@
+import { Button, Chip, FlexBox, Typography } from '@montage-ui/core';
+import { IconCamera, IconImage } from '@montage-ui/icon';
 import { useEffect, useRef, useState } from 'react';
 import type { CheckResult, Version } from '../shared/types.ts';
 import { ResultCard, type PackItemInfo } from './components/ResultCard.tsx';
@@ -20,6 +22,12 @@ async function post<T>(body: unknown): Promise<T> {
 }
 
 const ORDER: Record<string, number> = { 위험: 0, '언급 없음': 1, 보호됨: 2 };
+
+const SOURCES = [
+  ['전월세 임대차 (11개 항목)', '법제처 국가법령정보센터 · 법무부', '주택임대차보호법 제3조·제4조·제6조의3·제7조·제10조, 민법 제623조, 주택임대차표준계약서'],
+  ['헬스장·PT 약관 (7개 항목)', '공정거래위원회 · 한국소비자원', '소비자분쟁해결기준(체력단련장업), 계속거래 등의 해지·해제에 관한 산정기준, 약관규제법'],
+  ['개인정보 비식별화', '브라우저·서버 정규식 선처리', '주민등록번호, 전화번호, 계좌번호, 동·호수를 AI 호출 전 로컬에서 즉시 치환'],
+];
 
 function resizeImage(file: File, maxDim = 1600): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -170,298 +178,350 @@ export function App() {
     : null;
 
   return (
-    <div className="app-shell">
-      <header className="topbar">
-        <div className="topbar-inner">
-          <div className="brand">
-            <div className="brand-mark" aria-hidden="true">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                <path d="m9 12 2 2 4-4" />
-              </svg>
-            </div>
-            <div>
-              <h1>계약서 특약 점검기</h1>
-              <p className="brand-sub">주택임대차보호법 · 소비자분쟁해결기준 기반 조항 대조 시스템</p>
-            </div>
-          </div>
-          <div className="trust-pills" aria-label="핵심 보장 기준">
-            <span className="trust-pill">개인정보 사전 마스킹</span>
-            <span className="trust-pill">원문 인용 검증</span>
-            <span className="trust-pill">법령 조문 대조</span>
-          </div>
-        </div>
-      </header>
+    <FlexBox flexDirection="column" sx={{ minHeight: '100dvh' }}>
+      <FlexBox
+        as="header"
+        alignItems="center"
+        justifyContent="space-between"
+        sx={{ height: 56, padding: '0 20px', borderBottom: '1px solid rgba(112,115,124,0.22)', flex: 'none' }}
+      >
+        <a href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
+          <span className="radar-mark" aria-hidden="true" />
+          <Typography as="h1" variant="headline1" weight="bold" color="semantic.foreground.neutral.strong" sx={{ margin: 0 }}>
+            계약서 특약 점검기
+          </Typography>
+        </a>
+        <nav aria-label="주 메뉴" style={{ display: 'flex', gap: 16, whiteSpace: 'nowrap' }}>
+          <a href="#workspace" style={{ textDecoration: 'none' }}>
+            <Typography variant="label1" weight="bold" color="semantic.foreground.neutral.strong">
+              특약 점검
+            </Typography>
+          </a>
+          <a href="#sources" style={{ textDecoration: 'none' }}>
+            <Typography variant="label1" weight="medium" color="semantic.foreground.neutral.tertiary">
+              법령 출처
+            </Typography>
+          </a>
+          <a href="#principles" style={{ textDecoration: 'none' }}>
+            <Typography variant="label1" weight="medium" color="semantic.foreground.neutral.tertiary">
+              작동 원칙
+            </Typography>
+          </a>
+        </nav>
+      </FlexBox>
 
       <main className="page">
-        <section className="panel pack-selector-panel" aria-labelledby="step1">
-          <div className="section-head">
-            <span className="step-num">STEP 01</span>
-            <h2 id="step1">점검할 계약서 유형 선택</h2>
-          </div>
-          <div className="seg" role="radiogroup" aria-label="계약 종류">
+        <section className="hero">
+          <Typography variant="label2" color="semantic.foreground.neutral.tertiary">
+            주택임대차보호법 · 소비자분쟁해결기준 · 표준계약서 대조
+          </Typography>
+          <Typography as="p" variant="display1" weight="bold" color="semantic.foreground.neutral.strong" sx={{ margin: '10px 0 14px' }}>
+            서명 전 계약서의 불리한 조항을
+            <br />
+            <span style={{ color: '#5b37ed' }}>근거 법령과 비교</span>해서 알려 드립니다.
+          </Typography>
+          <Typography variant="body1" color="semantic.foreground.neutral.secondary" sx={{ maxWidth: 680 }}>
+            전월세 특약이나 헬스장·PT 약관을 넣으면 주민등록번호·전화번호·계좌번호를 먼저 가린 뒤, 법정 점검 항목별로 위험한 문구와 누락된 보호 조항을 짚어 드립니다.
+          </Typography>
+        </section>
+
+        <section id="workspace" className="workspace-section" aria-label="계약서 점검 작업대">
+          <div className="pack-bar" role="radiogroup" aria-label="계약 종류">
             {packs.map((p) => (
               <button
                 key={p.id}
                 type="button"
                 role="radio"
                 aria-checked={p.id === packId}
-                className={p.id === packId ? 'on' : ''}
+                className={p.id === packId ? 'pack-tab on' : 'pack-tab'}
                 onClick={() => {
                   setPackId(p.id);
                   changeText('');
                   setImagePreview(null);
                 }}
               >
-                <div className="seg-top">
-                  <span className="seg-title">{p.name}</span>
-                  <span className="seg-count">{p.itemCount}개 법정 점검항목</span>
-                </div>
-                <span className="sub">{p.kinds.join(' · ')}</span>
+                <Typography variant="headline2" weight="bold" color={p.id === packId ? 'semantic.foreground.neutral.strong' : 'semantic.foreground.neutral.secondary'}>
+                  {p.name}
+                </Typography>
+                <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
+                  {p.kinds.join(' · ')} · {p.itemCount}개 항목
+                </Typography>
               </button>
             ))}
           </div>
-        </section>
 
-        <div className={`workbench ${result ? 'has-result' : ''}`}>
-          <div className="workbench-input">
-            <section className="panel document-panel" aria-labelledby="step2">
-              <div className="step2-header">
-                <div className="section-head">
-                  <span className="step-num">STEP 02</span>
-                  <h2 id="step2">계약서 원문 입력 또는 사진 스캔</h2>
-                </div>
-                <div className="image-actions">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    ref={cameraInputRef}
-                    style={{ display: 'none' }}
-                    onChange={(e) => e.target.files?.[0] && handleImageFile(e.target.files[0])}
-                  />
-                  <button
-                    type="button"
-                    className="btn-upload"
-                    onClick={() => cameraInputRef.current?.click()}
-                    disabled={busy !== null}
-                  >
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                      <circle cx="12" cy="13" r="4" />
-                    </svg>
-                    <span>카메라 촬영</span>
-                  </button>
+          <div className="input-card">
+            <FlexBox alignItems="center" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
+              <FlexBox alignItems="center" gap={8} sx={{ flexWrap: 'wrap' }}>
+                <Typography variant="label2" color="semantic.foreground.neutral.tertiary">
+                  예시 넣기
+                </Typography>
+                {SAMPLES.filter((s) => s.pack === packId).map((s) => (
+                  <Chip key={s.label} variant="outlined" size="small" onClick={() => changeText(s.text)}>
+                    {s.label}
+                  </Chip>
+                ))}
+              </FlexBox>
 
-                  <input
-                    type="file"
-                    accept="image/*"
-                    ref={fileInputRef}
-                    style={{ display: 'none' }}
-                    onChange={(e) => e.target.files?.[0] && handleImageFile(e.target.files[0])}
-                  />
-                  <button
-                    type="button"
-                    className="btn-upload"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={busy !== null}
-                  >
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                      <circle cx="8.5" cy="8.5" r="1.5" />
-                      <polyline points="21 15 16 10 5 21" />
-                    </svg>
-                    <span>이미지 파일</span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="sample-bar">
-                <span className="sample-bar-label">샘플 문구 불러오기</span>
-                <div className="samples">
-                  {SAMPLES.filter((s) => s.pack === packId).map((s) => (
-                    <button key={s.label} type="button" className="sample-chip" onClick={() => changeText(s.text)}>
-                      {s.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {imagePreview && (
-                <div className="image-preview-container">
-                  <div className="image-preview-card">
-                    <img src={imagePreview} alt="업로드된 계약서 사진" className="image-thumb" />
-                    <div className="image-preview-info">
-                      <strong>계약서 이미지 스캔 완료</strong>
-                      <span className="muted">문서 내 특약 조항 텍스트를 추출했습니다.</span>
-                    </div>
-                    <button
-                      type="button"
-                      className="link-btn-danger"
-                      onClick={() => {
-                        setImagePreview(null);
-                        setText('');
-                      }}
-                    >
-                      삭제
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {busy === 'ocr' && (
-                <div className="ocr-loading-box">
-                  <span className="spinner" />
-                  <span>계약서 이미지에서 특약 조항을 판독하고 있습니다…</span>
-                </div>
-              )}
-
-              <div className="editor-sheet">
-                <textarea
-                  aria-label="계약 문구"
-                  value={text}
-                  onChange={(e) => changeText(e.target.value)}
-                  placeholder={
-                    '계약서의 특약사항이나 약관 문구를 붙여 넣으세요.\n화면 캡처 이미지를 바로 붙여넣기(Ctrl+V / Cmd+V) 하셔도 자동으로 인식됩니다.\n\n[입력 예시]\n특약사항\n1. 보증금은 다음 임차인이 들어오면 반환한다.\n2. 입주 후 모든 수선비는 임차인이 부담한다.'
-                  }
-                  rows={8}
+              <FlexBox alignItems="center" gap={8}>
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  ref={cameraInputRef}
+                  style={{ display: 'none' }}
+                  onChange={(e) => e.target.files?.[0] && handleImageFile(e.target.files[0])}
                 />
-                <div className="editor-footer">
-                  <span className="char-counter">{text.trim().length.toLocaleString('ko-KR')} / 4,000자</span>
-                  <span className="paste-hint">Ctrl+V 이미지 바로 붙여넣기 지원</span>
-                </div>
-              </div>
+                <Button
+                  variant="outlined"
+                  color="assistive"
+                  size="small"
+                  disabled={busy !== null}
+                  onClick={() => cameraInputRef.current?.click()}
+                  leadingContent={<IconCamera />}
+                >
+                  사진 촬영
+                </Button>
 
-              <button type="button" className="primary" onClick={showPreview} disabled={busy !== null}>
-                {busy === 'mask' ? '개인정보 마스킹 확인 중…' : '보낼 내용 미리 보기'}
-              </button>
-            </section>
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  style={{ display: 'none' }}
+                  onChange={(e) => e.target.files?.[0] && handleImageFile(e.target.files[0])}
+                />
+                <Button
+                  variant="outlined"
+                  color="assistive"
+                  size="small"
+                  disabled={busy !== null}
+                  onClick={() => fileInputRef.current?.click()}
+                  leadingContent={<IconImage />}
+                >
+                  이미지 파일
+                </Button>
+              </FlexBox>
+            </FlexBox>
 
-            {preview && (
-              <section ref={previewRef} className="panel privacy-panel" aria-labelledby="step3">
-                <div className="privacy-header">
-                  <div className="section-head">
-                    <span className="step-num">STEP 03</span>
-                    <h2 id="step3">개인정보 가림막 검증</h2>
-                  </div>
-                  <span className={`privacy-badge ${preview.found.length ? 'masked-active' : ''}`}>
-                    {preview.found.length
-                      ? `민감정보 ${preview.found.length}건 자동 치환됨 (${[...new Set(preview.found.map((f) => f.kind))].join(', ')})`
-                      : '노출된 개인정보 없음'}
-                  </span>
+            {imagePreview && (
+              <div className="image-strip">
+                <img src={imagePreview} alt="업로드된 계약서 사진" className="image-thumb" />
+                <div style={{ flex: 1 }}>
+                  <Typography variant="label2" weight="bold" color="semantic.foreground.neutral.strong">
+                    계약서 이미지에서 문구를 읽었습니다
+                  </Typography>
+                  <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
+                    아래 입력창에서 추출된 문구를 확인하거나 수정할 수 있습니다.
+                  </Typography>
                 </div>
-                <p className="privacy-desc">
-                  AI 모델에는 원본 계약서의 실명·주민등록번호·연락처·계좌번호가 절대 전송되지 않으며, 아래의 비식별화된 텍스트만 전달됩니다.
-                </p>
-                <pre className="masked" data-testid="masked-preview">
-                  {preview.masked}
-                </pre>
-                <div className="privacy-actions">
-                  <details className="dev">
-                    <summary>판정 엔진 설정</summary>
-                    <label>
-                      점검 방식
-                      <select value={version} onChange={(e) => setVersion(e.target.value as Version)}>
-                        <option value="v0">v0 · 기본 프롬프트</option>
-                        <option value="v1">v1 · 항목별 원문 인용 강제</option>
-                        <option value="v2">v2 · 법령 근거 + 규칙 선검사 + 서버 보정 (권장)</option>
-                      </select>
-                    </label>
-                  </details>
-                  <button type="button" className="primary check-cta" onClick={runCheck} disabled={busy !== null}>
-                    {busy === 'check' ? '법령 대조 및 조항 정밀 분석 중…' : '이 내용으로 점검하기'}
-                  </button>
-                </div>
-              </section>
-            )}
-
-            {error && (
-              <div className="error" role="alert">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="8" x2="12" y2="12" />
-                  <line x1="12" y1="16" x2="12.01" y2="16" />
-                </svg>
-                <span>{error}</span>
+                <Button
+                  variant="outlined"
+                  color="assistive"
+                  size="small"
+                  onClick={() => {
+                    setImagePreview(null);
+                    setText('');
+                  }}
+                >
+                  제거
+                </Button>
               </div>
             )}
+
+            {busy === 'ocr' && (
+              <p className="callout">계약서 사진에서 특약 조항을 읽고 있습니다…</p>
+            )}
+
+            <textarea
+              aria-label="계약 문구"
+              value={text}
+              onChange={(e) => changeText(e.target.value)}
+              placeholder={
+                '계약서 특약사항이나 약관 문구를 붙여 넣으세요. (Ctrl+V로 캡처 이미지를 바로 붙여넣어도 됩니다)\n\n예)\n특약사항\n1. 보증금은 다음 임차인이 들어오면 반환한다.\n2. 입주 후 모든 수선비는 임차인이 부담한다.'
+              }
+              rows={7}
+            />
+
+            <FlexBox alignItems="center" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
+              <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
+                {text.trim().length.toLocaleString('ko-KR')} / 4,000자 · 개인정보는 가린 뒤 전송됩니다
+              </Typography>
+              <Button variant="solid" size="medium" onClick={showPreview} disabled={busy !== null}>
+                {busy === 'mask' ? '확인하는 중…' : '보낼 내용 미리 보기'}
+              </Button>
+            </FlexBox>
           </div>
 
-          {result && (
-            <section ref={resultRef} className="panel result-panel" aria-labelledby="step4">
-              <div className="result-header">
-                <div className="section-head">
-                  <span className="step-num">REPORT</span>
-                  <h2 id="step4">계약서 법령 대조 리포트</h2>
-                </div>
-                <span className="elapsed">분석 소요 {Math.round(result.elapsedMs / 100) / 10}초</span>
-              </div>
+          {error && (
+            <p className="callout" data-level="error" role="alert">
+              {error}
+            </p>
+          )}
 
-              {counts && (
-                <>
-                  <div className="summary-dashboard" role="status">
-                    <button
-                      type="button"
-                      className={`metric-card risk ${filter === '위험' ? 'active' : ''}`}
-                      onClick={() => setFilter(filter === '위험' ? 'all' : '위험')}
-                    >
-                      <span className="metric-label">위험 조항</span>
-                      <strong className="metric-val">{counts.위험}건</strong>
-                    </button>
-                    <button
-                      type="button"
-                      className={`metric-card none ${filter === '언급 없음' ? 'active' : ''}`}
-                      onClick={() => setFilter(filter === '언급 없음' ? 'all' : '언급 없음')}
-                    >
-                      <span className="metric-label">언급 없음 · 확인 필요</span>
-                      <strong className="metric-val">{counts['언급 없음']}건</strong>
-                    </button>
-                    <button
-                      type="button"
-                      className={`metric-card safe ${filter === '보호됨' ? 'active' : ''}`}
-                      onClick={() => setFilter(filter === '보호됨' ? 'all' : '보호됨')}
-                    >
-                      <span className="metric-label">보호됨</span>
-                      <strong className="metric-val">{counts.보호됨}건</strong>
-                    </button>
-                  </div>
-
-                  {filter !== 'all' && (
-                    <div className="filter-notice">
-                      <span>‘{filter}’ 항목만 표시하고 있습니다 ({filteredItems.length}건)</span>
-                      <button type="button" className="link" onClick={() => setFilter('all')}>
-                        전체 항목 보기 ({allItems.length}건)
-                      </button>
-                    </div>
-                  )}
-                </>
-              )}
-
-              {result.referenceOnly && (
-                <div className="ref-note">
-                  <p>
-                    <strong>전용 점검팩이 없는 계약 유형입니다.</strong> 일반 계약 원칙을 바탕으로 불리한 조항 여부를 안내해 드립니다.
-                  </p>
-                  {result.note && <p className="free">{result.note}</p>}
-                </div>
-              )}
-
-              <div className="cards">
-                {filteredItems.map((it) => (
-                  <ResultCard key={it.itemId} item={it} info={pack?.items.find((i) => i.id === it.itemId)} />
-                ))}
-              </div>
+          {preview && (
+            <section ref={previewRef} className="preview-block" aria-labelledby="step3">
+              <FlexBox alignItems="baseline" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
+                <Typography id="step3" as="h2" variant="title3" weight="bold">
+                  AI에 전송할 내용 확인
+                </Typography>
+                <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
+                  {preview.found.length
+                    ? `개인정보 ${preview.found.length}건 가림 완료 (${[...new Set(preview.found.map((f) => f.kind))].join(', ')})`
+                    : '감지된 개인정보 없음'}
+                </Typography>
+              </FlexBox>
+              <pre className="masked" data-testid="masked-preview">
+                {preview.masked}
+              </pre>
+              <FlexBox alignItems="center" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
+                <details className="dev">
+                  <summary>판정 방식 선택 ({version})</summary>
+                  <label>
+                    방식
+                    <select value={version} onChange={(e) => setVersion(e.target.value as Version)}>
+                      <option value="v0">v0 · 자유 질의</option>
+                      <option value="v1">v1 · 항목 + 원문 인용</option>
+                      <option value="v2">v2 · 근거 법령 + 규칙 검사 + 보정</option>
+                    </select>
+                  </label>
+                </details>
+                <Button variant="solid" size="large" onClick={runCheck} disabled={busy !== null}>
+                  {busy === 'check' ? '법령 대조 및 점검 중…' : '이 내용으로 점검하기'}
+                </Button>
+              </FlexBox>
             </section>
           )}
-        </div>
-      </main>
+        </section>
 
-      <footer className="foot">
-        <p>
-          본 서비스는 주택임대차보호법·민법·소비자분쟁해결기준 등 공공 법령 문서를 근거로 계약서 조항의 위험도를 사전 점검하는 참고 도구입니다.
-          법률 자문을 대체하지 않으므로 중요 계약 체결 전에는 법률 전문가 또는 공인중개사와 반드시 확인하시기 바랍니다.
-        </p>
-      </footer>
-    </div>
+        {result && (
+          <section ref={resultRef} className="result-section" aria-labelledby="step4">
+            <FlexBox alignItems="baseline" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
+              <Typography id="step4" as="h2" variant="title3" weight="bold">
+                점검 결과
+              </Typography>
+              <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
+                소요 시간 {Math.round(result.elapsedMs / 100) / 10}초 · 항목을 클릭해 필터링할 수 있습니다
+              </Typography>
+            </FlexBox>
+
+            {counts && (
+              <div className="stats" role="status">
+                <button
+                  type="button"
+                  className={`stat ${filter === 'all' ? 'on' : ''}`}
+                  onClick={() => setFilter('all')}
+                >
+                  <Typography variant="caption2" color="semantic.foreground.neutral.tertiary">
+                    전체 점검 항목
+                  </Typography>
+                  <Typography variant="heading2" weight="bold" color="semantic.foreground.neutral.strong">
+                    {allItems.length}건
+                  </Typography>
+                </button>
+                <button
+                  type="button"
+                  className={`stat ${filter === '위험' ? 'on' : ''}`}
+                  onClick={() => setFilter(filter === '위험' ? 'all' : '위험')}
+                >
+                  <Typography variant="caption2" color="semantic.foreground.neutral.tertiary">
+                    위험
+                  </Typography>
+                  <Typography variant="heading2" weight="bold" sx={{ color: '#e52222' }}>
+                    {counts.위험}건
+                  </Typography>
+                </button>
+                <button
+                  type="button"
+                  className={`stat ${filter === '언급 없음' ? 'on' : ''}`}
+                  onClick={() => setFilter(filter === '언급 없음' ? 'all' : '언급 없음')}
+                >
+                  <Typography variant="caption2" color="semantic.foreground.neutral.tertiary">
+                    언급 없음 · 확인 필요
+                  </Typography>
+                  <Typography variant="heading2" weight="bold" sx={{ color: '#9c5800' }}>
+                    {counts['언급 없음']}건
+                  </Typography>
+                </button>
+                <button
+                  type="button"
+                  className={`stat ${filter === '보호됨' ? 'on' : ''}`}
+                  onClick={() => setFilter(filter === '보호됨' ? 'all' : '보호됨')}
+                >
+                  <Typography variant="caption2" color="semantic.foreground.neutral.tertiary">
+                    보호됨
+                  </Typography>
+                  <Typography variant="heading2" weight="bold" sx={{ color: '#0066ff' }}>
+                    {counts.보호됨}건
+                  </Typography>
+                </button>
+              </div>
+            )}
+
+            {result.referenceOnly && (
+              <p className="callout">
+                <strong>전용 점검팩이 없는 계약입니다.</strong> 정해진 법령 항목 대신 일반 원칙으로 불리한 조항을 안내해 드립니다.
+                {result.note && <span style={{ display: 'block', marginTop: 6 }}>{result.note}</span>}
+              </p>
+            )}
+
+            <div className="clause-list">
+              {filteredItems.map((it) => (
+                <ResultCard key={it.itemId} item={it} info={pack?.items.find((i) => i.id === it.itemId)} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        <section id="sources" aria-labelledby="sources-title">
+          <Typography id="sources-title" as="h2" variant="title3" weight="bold">
+            법령 및 기준 출처
+          </Typography>
+          <Typography variant="body2" color="semantic.foreground.neutral.secondary">
+            모든 판정은 AI의 임의 추측이 아닌 공식 법령과 행정 규칙 원문을 함께 묶어 대조합니다.
+          </Typography>
+          <table className="sources">
+            <thead>
+              <tr>
+                <th scope="col">대상 영역</th>
+                <th scope="col">근거 기관</th>
+                <th scope="col">적용 법령 및 기준</th>
+              </tr>
+            </thead>
+            <tbody>
+              {SOURCES.map(([field, org, use]) => (
+                <tr key={field}>
+                  <td>{field}</td>
+                  <td>{org}</td>
+                  <td>{use}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+
+        <section id="principles" aria-labelledby="principles-title">
+          <Typography id="principles-title" as="h2" variant="title3" weight="bold">
+            지키는 원칙
+          </Typography>
+          <ul className="principles">
+            <li>
+              <strong>개인정보를 AI로 보내지 않습니다.</strong> 주민등록번호, 전화번호, 계좌번호, 동·호수는 전송 전에 가려지며, 사용자가 가려진 전문을 직접 확인한 뒤에야 점검이 실행됩니다.
+            </li>
+            <li>
+              <strong>계약서에 없는 문구를 지어내지 않습니다.</strong> AI가 근거로 인용한 문장이 실제 입력 원문에 존재하지 않으면 서버가 즉시 무효화하여 헛경고(환각)를 차단합니다.
+            </li>
+            <li>
+              <strong>법률 자문을 대체하지 않습니다.</strong> 본 도구는 서명 전 위험 신호를 빠르게 점검하는 체크리스트이며, 실제 계약 체결 전에는 공인중개사 또는 법률 전문가와 상의하시기 바랍니다.
+            </li>
+          </ul>
+        </section>
+
+        <footer className="footer">
+          <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
+            계약서 특약 점검기 · 주택임대차보호법 및 소비자분쟁해결기준 기반 · 디자인 시스템: Montage by Wantedlab (MIT)
+          </Typography>
+        </footer>
+      </main>
+    </FlexBox>
   );
 }

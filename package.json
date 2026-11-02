@@ -16,6 +16,12 @@
   "dependencies": {
     "@ai-sdk/google": "4.0.109",
     "@ai-sdk/openai": "4.0.106",
+    "@emotion/cache": "^11.14.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/serialize": "^1.3.3",
+    "@emotion/utils": "^1.4.2",
+    "@montage-ui/core": "^4.1.3",
+    "@montage-ui/icon": "^4.1.3",
     "ai": "7.0.159",
     "react": "19.2.1",
     "react-dom": "19.2.1",
