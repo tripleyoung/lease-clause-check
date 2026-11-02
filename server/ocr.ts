@@ -44,6 +44,7 @@ export async function extractTextFromImage(imageDataUrl: string): Promise<string
         },
       ],
       temperature: 0.1,
+      maxRetries: 0,
       abortSignal: AbortSignal.timeout(timeoutMs),
     });
   };
@@ -51,12 +52,12 @@ export async function extractTextFromImage(imageDataUrl: string): Promise<string
   try {
     let res;
     try {
-      // 1순위: Gemini 3.8 Flash (15초 제한)
-      res = await tryCall('gemini-3.8-flash', 15_000);
+      // 1순위: Gemini 3.8 Flash (6초 제한, 지연/쿼터초과 시 즉시 fallback)
+      res = await tryCall('gemini-3.8-flash', 6_000);
     } catch (primaryErr) {
-      console.warn('[OCR] gemini-3.8-flash delayed or failed, falling back to gemini-3.6-flash:', (primaryErr as Error)?.message);
-      // 2순위 Fallback: Gemini 3.6 Flash (15초)
-      res = await tryCall('gemini-3.6-flash', 15_000);
+      console.warn('[OCR] gemini-3.8-flash delayed or failed, falling back immediately to gemini-3.6-flash:', (primaryErr as Error)?.message);
+      // 2순위 Fallback: Gemini 3.6 Flash (18초)
+      res = await tryCall('gemini-3.6-flash', 18_000);
     }
 
     const text = res.text.trim();
