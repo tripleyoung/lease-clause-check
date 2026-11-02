@@ -1,78 +1,85 @@
-/* ClauseGuard 인라인 하이라이트 및 툴팁 스타일 */
+/* 계약서 특약 점검기 크롬 확장 — Montage by Wantedlab 토큰 적용 */
 
 .clause-guard-highlight-risk {
-  background-color: rgba(239, 68, 68, 0.15) !important;
-  border-bottom: 2.5px wavy #ef4444 !important;
+  background-color: rgba(229, 34, 34, 0.1) !important;
+  border-bottom: 2px solid #e52222 !important;
   cursor: pointer !important;
-  transition: background-color 0.2s ease;
-  position: relative;
+  transition: background-color 0.15s ease;
+  padding: 1px 2px;
+  border-radius: 2px;
 }
 
 .clause-guard-highlight-risk:hover {
-  background-color: rgba(239, 68, 68, 0.28) !important;
+  background-color: rgba(229, 34, 34, 0.2) !important;
 }
 
 .clause-guard-highlight-protect {
-  background-color: rgba(16, 185, 129, 0.15) !important;
-  border-bottom: 2px solid #10b981 !important;
+  background-color: rgba(0, 102, 255, 0.08) !important;
+  border-bottom: 2px solid #0066ff !important;
 }
 
-/* 플로팅 알림 뱃지 (화면 우측 하단) */
+/* 우측 하단 플로팅 캡슐 */
 #clause-guard-floating-pill {
   position: fixed;
   bottom: 24px;
   right: 24px;
   z-index: 2147483640;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
-  background: #1e293b;
+  background: #171719;
   color: #ffffff;
-  border-radius: 9999px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-  font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif;
+  border-radius: 999px;
+  box-shadow: 0px 4px 6px -2px #17171712, 0px 10px 15px -3px #1717171f;
+  font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  transition: transform 0.15s ease, background 0.15s ease;
 }
 
 #clause-guard-floating-pill:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
 }
 
-#clause-guard-floating-pill.scanning {
-  background: #2563eb;
+#clause-guard-floating-pill .cg-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #0066ff;
+  flex-shrink: 0;
+}
+
+#clause-guard-floating-pill.scanning .cg-dot {
+  background: #f58a00;
 }
 
 #clause-guard-floating-pill.has-risk {
-  background: #dc2626;
-  animation: clause-guard-pulse 2s infinite;
+  background: #171719;
 }
 
-@keyframes clause-guard-pulse {
-  0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
-  70% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+#clause-guard-floating-pill.has-risk .cg-dot {
+  background: #e52222;
 }
 
-/* 인라인 툴팁 카드 */
+/* 인라인 명세 툴팁 카드 (박스 중첩 제거) */
 #clause-guard-tooltip {
   position: absolute;
   z-index: 2147483647;
-  max-width: 360px;
+  width: 380px;
+  max-width: calc(100vw - 32px);
   background: #ffffff;
-  color: #1e293b;
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif;
+  color: #171719;
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: 0px 4px 12px -2px rgba(23, 23, 25, 0.12), 0px 16px 32px -4px rgba(23, 23, 25, 0.14);
+  border: 1px solid rgba(112, 115, 124, 0.22);
+  font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 13px;
-  line-height: 1.5;
+  line-height: 1.55;
+  word-break: keep-all;
   display: none;
 }
 
@@ -80,114 +87,103 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
-  border-bottom: 1px solid #f1f5f9;
-  padding-bottom: 6px;
+  gap: 8px;
+  margin-bottom: 10px;
 }
 
-.cg-badge-risk {
-  background: #fee2e2;
-  color: #b91c1c;
-  padding: 2px 8px;
-  border-radius: 6px;
-  font-weight: 700;
-  font-size: 12px;
+.cg-tooltip-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cg-tooltip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e52222;
+  flex-shrink: 0;
 }
 
 .cg-tooltip-title {
   font-weight: 700;
-  font-size: 14px;
-  color: #0f172a;
-  margin-bottom: 6px;
+  font-size: 15px;
+  color: #171719;
+  margin: 0;
 }
 
-.cg-tooltip-reason {
-  background: #fff7ed;
-  border: 1px solid #fed7aa;
-  border-left: 3.5px solid #f97316;
-  padding: 8px 10px;
+.cg-badge-risk {
+  background: #feeced;
+  color: #e52222;
+  padding: 2px 8px;
   border-radius: 6px;
-  font-size: 12px;
-  color: #9a3412;
-  margin: 6px 0;
-  line-height: 1.45;
-}
-
-.cg-reason-label {
   font-weight: 700;
   font-size: 11px;
-  color: #ea580c;
-  margin-bottom: 2px;
+  white-space: nowrap;
+}
+
+.cg-tooltip-quote {
+  margin: 0 0 12px;
+  padding: 2px 0 2px 10px;
+  border-left: 2px solid #171719;
+  font-size: 13px;
+  color: #46474c;
+}
+
+.cg-spec-list {
+  margin: 0;
+  border-top: 1px solid rgba(112, 115, 124, 0.16);
   display: flex;
-  align-items: center;
-  gap: 4px;
+  flex-direction: column;
 }
 
-.cg-tooltip-consequence {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-left: 3.5px solid #ef4444;
-  padding: 8px 10px;
-  border-radius: 6px;
+.cg-spec-row {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(112, 115, 124, 0.14);
+  align-items: baseline;
+}
+
+.cg-spec-row:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.cg-spec-label {
   font-size: 12px;
-  color: #991b1b;
-  margin: 6px 0;
-  line-height: 1.45;
+  font-weight: 600;
+  color: #5a5c63;
 }
 
-.cg-consequence-label {
-  font-weight: 700;
-  font-size: 11px;
-  color: #dc2626;
-  margin-bottom: 2px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
+.cg-spec-val {
+  font-size: 13px;
+  color: #171719;
+  margin: 0;
 }
 
-.cg-tooltip-law {
-  background: #f8fafc;
-  border-left: 3px solid #3b82f6;
-  padding: 6px 10px;
-  font-size: 11px;
-  color: #475569;
-  margin: 6px 0;
-  border-radius: 0 4px 4px 0;
-}
-
-.cg-tooltip-fix {
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  padding: 10px;
-  border-radius: 8px;
-  margin-top: 8px;
-}
-
-.cg-fix-label {
-  font-weight: 700;
-  font-size: 11px;
-  color: #1d4ed8;
-  margin-bottom: 4px;
-}
-
-.cg-fix-text {
-  font-size: 12px;
-  color: #1e3a8a;
+.cg-spec-val.consequence {
+  color: #c91c1c;
 }
 
 .cg-copy-btn {
-  display: inline-block;
-  margin-top: 6px;
-  padding: 4px 10px;
-  background: #2563eb;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  padding: 5px 11px;
+  background: #ffffff;
+  color: #171719;
+  border: 1px solid rgba(112, 115, 124, 0.32);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
 }
 
 .cg-copy-btn:hover {
-  background: #1d4ed8;
+  background: #f7f7f8;
+  border-color: #171719;
 }

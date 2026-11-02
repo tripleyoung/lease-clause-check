@@ -23,9 +23,25 @@ async function post<T>(body: unknown): Promise<T> {
 
 const ORDER: Record<string, number> = { 위험: 0, '언급 없음': 1, 보호됨: 2 };
 
+const LAYERS = [
+  [
+    '전송 전 개인정보 가림',
+    '계약서에 적힌 주민등록번호, 전화번호, 계좌번호, 동·호수를 정규식으로 먼저 가리고, 비식별화된 전문을 눈으로 확인한 뒤에야 AI를 호출합니다.',
+  ],
+  [
+    '법령 원문 + 수치 규칙 대조',
+    '임대료 5% 초과 인상이나 위약금 10% 초과 같은 수치 기준은 코드 규칙으로 먼저 판별하고, 법령·분쟁해결기준 원문을 함께 묶어 조항별로 대조합니다.',
+  ],
+  [
+    '원문 인용 검증과 대안 문구',
+    'AI가 인용한 문장이 실제 계약서에 없으면 서버가 즉시 무효화해 헛경고를 차단하고, 현장에서 바로 요청할 수 있는 수정 특약 문구를 제공합니다.',
+  ],
+];
+
 const SOURCES = [
   ['전월세 임대차 (11개 항목)', '법제처 국가법령정보센터 · 법무부', '주택임대차보호법 제3조·제4조·제6조의3·제7조·제10조, 민법 제623조, 주택임대차표준계약서'],
-  ['헬스장·PT 약관 (7개 항목)', '공정거래위원회 · 한국소비자원', '소비자분쟁해결기준(체력단련장업), 계속거래 등의 해지·해제에 관한 산정기준, 약관규제법'],
+  ['헬스장·PT 약관 (7개 항목)', '공정거래위원회 · 한국소비자원', '소비자분쟁해결기준(체력단련장업), 계속거래 해지·해제 산정기준, 약관규제법'],
+  ['법령 데이터 연동', '법제처 국가법령정보 공동활용 (OpenAPI)', '현행 법령(law) · 대법원 판례(prec) · 행정규칙(admrul) 기준 조문 대조'],
   ['개인정보 비식별화', '브라우저·서버 정규식 선처리', '주민등록번호, 전화번호, 계좌번호, 동·호수를 AI 호출 전 로컬에서 즉시 치환'],
 ];
 
@@ -197,6 +213,11 @@ export function App() {
               특약 점검
             </Typography>
           </a>
+          <a href="/demo-contract.html" style={{ textDecoration: 'none' }}>
+            <Typography variant="label1" weight="medium" color="semantic.foreground.neutral.tertiary">
+              전자계약 인라인 시험
+            </Typography>
+          </a>
           <a href="#sources" style={{ textDecoration: 'none' }}>
             <Typography variant="label1" weight="medium" color="semantic.foreground.neutral.tertiary">
               법령 출처
@@ -213,19 +234,54 @@ export function App() {
       <main className="page">
         <section className="hero">
           <Typography variant="label2" color="semantic.foreground.neutral.tertiary">
-            주택임대차보호법 · 소비자분쟁해결기준 · 표준계약서 대조
+            주택임대차보호법 · 소비자분쟁해결기준 · 국가법령정보센터 기준 대조
           </Typography>
-          <Typography as="p" variant="display1" weight="bold" color="semantic.foreground.neutral.strong" sx={{ margin: '10px 0 14px' }}>
+          <Typography as="p" variant="display1" weight="bold" color="semantic.foreground.neutral.strong" sx={{ margin: '12px 0 16px' }}>
             서명 전 계약서의 불리한 조항을
             <br />
             <span style={{ color: '#5b37ed' }}>근거 법령과 비교</span>해서 알려 드립니다.
           </Typography>
-          <Typography variant="body1" color="semantic.foreground.neutral.secondary" sx={{ maxWidth: 680 }}>
+          <Typography variant="body1" color="semantic.foreground.neutral.secondary" sx={{ maxWidth: 660 }}>
             전월세 특약이나 헬스장·PT 약관을 넣으면 주민등록번호·전화번호·계좌번호를 먼저 가린 뒤, 법정 점검 항목별로 위험한 문구와 누락된 보호 조항을 짚어 드립니다.
           </Typography>
+          <FlexBox gap={12} alignItems="center" sx={{ marginTop: 24, flexWrap: 'wrap' }}>
+            <a href="#workspace" style={{ textDecoration: 'none' }}>
+              <Button variant="solid" size="large">
+                계약서 바로 점검하기
+              </Button>
+            </a>
+            <a href="/demo-contract.html" style={{ textDecoration: 'none' }}>
+              <Button variant="outlined" color="assistive" size="large">
+                전자계약 인라인 시험 보기
+              </Button>
+            </a>
+          </FlexBox>
         </section>
 
-        <section id="workspace" className="workspace-section" aria-label="계약서 점검 작업대">
+        <section aria-labelledby="layers-title">
+          <Typography id="layers-title" as="h2" variant="title3" weight="bold">
+            세 단계로 검증합니다
+          </Typography>
+          <ol className="cards">
+            {LAYERS.map(([title, body], i) => (
+              <li key={title} className="card">
+                <span className="num">{i + 1}</span>
+                <Typography as="h3" variant="headline1" weight="bold">
+                  {title}
+                </Typography>
+                <Typography variant="body2" color="semantic.foreground.neutral.secondary">
+                  {body}
+                </Typography>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section id="workspace" className="workspace-section" aria-labelledby="workspace-title">
+          <Typography id="workspace-title" as="h2" variant="title3" weight="bold">
+            계약서 점검 작업대
+          </Typography>
+
           <div className="pack-bar" role="radiogroup" aria-label="계약 종류">
             {packs.map((p) => (
               <button
@@ -361,7 +417,7 @@ export function App() {
           {preview && (
             <section ref={previewRef} className="preview-block" aria-labelledby="step3">
               <FlexBox alignItems="baseline" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
-                <Typography id="step3" as="h2" variant="title3" weight="bold">
+                <Typography id="step3" as="h3" variant="headline1" weight="bold">
                   AI에 전송할 내용 확인
                 </Typography>
                 <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">

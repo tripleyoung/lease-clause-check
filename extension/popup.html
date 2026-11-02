@@ -2,34 +2,52 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>계약서 특약 자동 점검기</title>
+  <title>계약서 특약 점검기</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
   <style>
+    :root {
+      --line: rgba(112, 115, 124, 0.22);
+      --line-soft: rgba(112, 115, 124, 0.14);
+    }
+    * {
+      box-sizing: border-box;
+    }
     body {
-      width: 280px;
+      width: 300px;
       margin: 0;
-      padding: 16px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif;
-      color: #1e293b;
-      background: #f8fafc;
+      padding: 18px 20px;
+      font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #171719;
+      background: #ffffff;
+      word-break: keep-all;
     }
     .header {
       display: flex;
       align-items: center;
       gap: 8px;
       margin-bottom: 12px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+    .radar-mark {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2.5px solid #0066ff;
+      box-shadow: inset 0 0 0 2.5px #fff, inset 0 0 0 6px #0066ff;
+      flex-shrink: 0;
     }
     .header h1 {
       font-size: 15px;
       margin: 0;
       font-weight: 700;
-      color: #0f172a;
+      letter-spacing: -0.01em;
+      color: #171719;
     }
     .desc {
-      font-size: 12px;
-      color: #64748b;
-      line-height: 1.4;
+      font-size: 13px;
+      color: #5a5c63;
+      line-height: 1.5;
       margin-bottom: 14px;
     }
     .form-group {
@@ -37,72 +55,90 @@
     }
     label {
       display: block;
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 600;
-      color: #475569;
-      margin-bottom: 4px;
+      color: #5a5c63;
+      margin-bottom: 6px;
     }
     select {
       width: 100%;
-      padding: 8px 10px;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font: inherit;
       font-size: 13px;
-      background: #ffffff;
+      color: #171719;
+      background: #f7f7f8;
       outline: none;
+    }
+    select:focus {
+      border-color: #171719;
+      background: #ffffff;
     }
     .btn-scan {
       width: 100%;
-      padding: 10px;
-      background: #2563eb;
-      color: white;
+      padding: 11px 14px;
+      background: #0066ff;
+      color: #ffffff;
       border: none;
-      border-radius: 6px;
-      font-size: 13px;
-      font-weight: 600;
+      border-radius: 10px;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 700;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: background 0.15s ease;
     }
     .btn-scan:hover {
-      background: #1d4ed8;
+      background: #0054d1;
     }
-    .footer {
+    .links {
       margin-top: 14px;
-      text-align: center;
-      border-top: 1px solid #e2e8f0;
-      padding-top: 10px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line-soft);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
-    .footer a {
-      font-size: 11px;
-      color: #3b82f6;
+    .links a {
+      font-size: 12px;
+      font-weight: 500;
+      color: #46474c;
       text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 0;
     }
-    .footer a:hover {
-      text-decoration: underline;
+    .links a:hover {
+      color: #0066ff;
     }
   </style>
 </head>
 <body>
   <div class="header">
-    <span style="font-size: 18px;">🛡️</span>
-    <h1>특약 자동 점검기</h1>
+    <span class="radar-mark" aria-hidden="true"></span>
+    <h1>계약서 특약 점검기</h1>
   </div>
   <div class="desc">
-    보고 계신 전자계약서나 약관 페이지에서 위험한 특약을 찾아 자동으로 빨간 밑줄을 그어 줍니다.
+    열려 있는 전자계약서나 약관 페이지에서 불리한 조항을 찾아 밑줄로 표시하고 대안 문구를 제안합니다.
   </div>
   <div class="form-group">
-    <label for="pack-select">점검 기준 선택</label>
+    <label for="pack-select">점검 기준</label>
     <select id="pack-select">
       <option value="lease" selected>전월세 임대차 특약 (11개 항목)</option>
-      <option value="gym">헬스장·PT 이용약관 (7개 항목)</option>
+      <option value="gym">헬스장·PT 이용 약관 (7개 항목)</option>
     </select>
   </div>
-  <button class="btn-scan" id="btn-scan">🔍 현재 페이지 점검</button>
-  <div style="margin-top: 8px; text-align: center;">
-    <a href="https://lease-clause-check.vercel.app" target="_blank" style="font-size: 11px; color: #2563eb; font-weight: 600; text-decoration: none;">📷 종이 계약서 사진 찍어서 점검하기 ↗</a>
-  </div>
-  <div class="footer">
-    <a href="https://lease-clause-check.vercel.app" target="_blank">🌐 웹 앱 전체 화면으로 열기 ↗</a>
+  <button class="btn-scan" id="btn-scan">현재 페이지 특약 점검</button>
+  <div class="links">
+    <a href="https://lease-clause-check.vercel.app/demo-contract.html" target="_blank">
+      <span>전자계약서 샘플 페이지에서 시험하기</span>
+      <span>↗</span>
+    </a>
+    <a href="https://lease-clause-check.vercel.app" target="_blank">
+      <span>웹 작업대 전체 화면 열기 (사진 스캔)</span>
+      <span>↗</span>
+    </a>
   </div>
   <script src="popup.js"></script>
 </body>

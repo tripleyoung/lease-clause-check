@@ -3,311 +3,358 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>부동산 임대차 표준계약서 (ClauseGuard 실전 테스트 견본)</title>
+  <title>전자계약서 인라인 점검 시험 — 계약서 특약 점검기</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
   <style>
+    :root {
+      --line: rgba(112, 115, 124, 0.22);
+      --line-soft: rgba(112, 115, 124, 0.14);
+    }
+    * {
+      box-sizing: border-box;
+    }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif;
-      background: #f1f5f9;
-      margin: 0;
-      padding: 40px 20px;
-      color: #0f172a;
-      line-height: 1.6;
-    }
-    .contract-container {
-      max-width: 800px;
-      margin: 0 auto;
+      font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, sans-serif;
       background: #ffffff;
-      padding: 48px;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-      border: 1px solid #e2e8f0;
-      position: relative;
+      margin: 0;
+      color: #171719;
+      line-height: 1.6;
+      word-break: keep-all;
     }
-    .header {
+    .topbar {
+      height: 56px;
+      padding: 0 20px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: #171719;
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .radar-mark {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 3px solid #0066ff;
+      box-shadow: inset 0 0 0 3px #fff, inset 0 0 0 7px #0066ff;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 14px;
+    }
+    .nav-links a {
+      text-decoration: none;
+      color: #5a5c63;
+      font-weight: 500;
+    }
+    .nav-links a.active {
+      color: #171719;
+      font-weight: 700;
+    }
+    .page-wrap {
+      width: min(880px, 100% - 32px);
+      margin: 0 auto;
+      padding: 40px 0 64px;
+    }
+    .action-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 16px 20px;
+      background: #f7f7f8;
+      border-radius: 12px;
+      margin-bottom: 28px;
+    }
+    .action-bar-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #171719;
+    }
+    .action-bar-sub {
+      font-size: 13px;
+      color: #5a5c63;
+      margin-top: 2px;
+    }
+    .btn-scan {
+      background: #0066ff;
+      color: #ffffff;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .btn-scan:hover:not(:disabled) {
+      background: #0054d1;
+    }
+    .btn-scan:disabled {
+      opacity: 0.6;
+      cursor: progress;
+    }
+    .contract-sheet {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 40px;
+      background: #ffffff;
+    }
+    .doc-header {
       text-align: center;
       margin-bottom: 32px;
-      border-bottom: 2px solid #0f172a;
-      padding-bottom: 16px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #171719;
     }
-    h1 {
+    .doc-header h1 {
       font-size: 24px;
-      margin: 0 0 8px 0;
-      letter-spacing: -0.5px;
+      margin: 0 0 6px;
+      letter-spacing: -0.02em;
     }
-    .subtitle {
+    .doc-subtitle {
       font-size: 13px;
-      color: #64748b;
+      color: #5a5c63;
+    }
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin: 28px 0 10px;
+      color: #171719;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 24px;
-      font-size: 13px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      border: 1px solid var(--line);
     }
     th, td {
-      border: 1px solid #cbd5e1;
-      padding: 10px 12px;
+      border: 1px solid var(--line-soft);
+      padding: 10px 14px;
     }
     th {
-      background: #f8fafc;
-      width: 25%;
+      background: #f7f7f8;
+      width: 22%;
       text-align: left;
       font-weight: 600;
-    }
-    .section-title {
-      font-size: 16px;
-      font-weight: 700;
-      margin: 28px 0 12px 0;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: #1e293b;
+      color: #5a5c63;
+      font-size: 13px;
     }
     .clause-box {
-      background: #fafafa;
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      padding: 24px;
-      font-size: 14px;
-      line-height: 1.8;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 20px 24px;
+      font-size: 15px;
+      line-height: 1.75;
     }
     .clause-box ol {
       margin: 0;
       padding-left: 20px;
     }
     .clause-box li {
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
-    .banner {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #eff6ff;
-      border: 1px solid #bfdbfe;
-      padding: 12px 20px;
-      border-radius: 8px;
-      margin-bottom: 28px;
+    .clause-box li:last-child {
+      margin-bottom: 0;
     }
-    .btn-scan {
-      background: #2563eb;
-      color: #ffffff;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: background 0.2s;
-    }
-    .btn-scan:hover {
-      background: #1d4ed8;
-    }
-    .btn-scan:disabled {
-      background: #94a3b8;
-      cursor: not-allowed;
-    }
-
-    /* ClauseGuard 인라인 하이라이트 스타일 */
     .clause-guard-highlight-risk {
-      background-color: rgba(239, 68, 68, 0.15) !important;
-      border-bottom: 2.5px wavy #ef4444 !important;
+      background-color: rgba(229, 34, 34, 0.1) !important;
+      border-bottom: 2px solid #e52222 !important;
       cursor: pointer !important;
-      transition: background-color 0.2s ease;
-      position: relative;
+      padding: 1px 2px;
+      border-radius: 2px;
     }
     .clause-guard-highlight-risk:hover {
-      background-color: rgba(239, 68, 68, 0.28) !important;
+      background-color: rgba(229, 34, 34, 0.2) !important;
     }
-
-    /* 툴팁 */
+    /* 인라인 명세 툴팁 */
     #cg-demo-tooltip {
       position: absolute;
       z-index: 9999;
-      max-width: 380px;
+      width: 380px;
+      max-width: calc(100vw - 32px);
       background: #ffffff;
-      color: #1e293b;
-      border-radius: 12px;
-      padding: 18px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-      border: 1px solid #cbd5e1;
+      color: #171719;
+      border-radius: 14px;
+      padding: 18px 20px;
+      box-shadow: 0px 4px 12px -2px rgba(23, 23, 25, 0.12), 0px 16px 32px -4px rgba(23, 23, 25, 0.14);
+      border: 1px solid var(--line);
       font-size: 13px;
-      line-height: 1.5;
+      line-height: 1.55;
       display: none;
     }
     .cg-tooltip-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 8px;
-      border-bottom: 1px solid #f1f5f9;
-      padding-bottom: 6px;
+      gap: 8px;
+      margin-bottom: 10px;
     }
-    .cg-badge-risk {
-      background: #fee2e2;
-      color: #b91c1c;
-      padding: 2px 8px;
-      border-radius: 6px;
-      font-weight: 700;
-      font-size: 12px;
+    .cg-tooltip-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .cg-tooltip-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #e52222;
     }
     .cg-tooltip-title {
       font-weight: 700;
       font-size: 15px;
-      color: #0f172a;
-      margin-bottom: 6px;
+      color: #171719;
+      margin: 0;
+    }
+    .cg-badge-risk {
+      background: #feeced;
+      color: #e52222;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 11px;
     }
     .cg-tooltip-quote {
+      margin: 0 0 12px;
+      padding: 2px 0 2px 10px;
+      border-left: 2px solid #171719;
+      font-size: 13px;
+      color: #46474c;
+    }
+    .cg-spec-list {
+      border-top: 1px solid var(--line-soft);
+      display: flex;
+      flex-direction: column;
+    }
+    .cg-spec-row {
+      display: grid;
+      grid-template-columns: 76px 1fr;
+      gap: 10px;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--line-soft);
+      align-items: baseline;
+    }
+    .cg-spec-row:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+    .cg-spec-label {
       font-size: 12px;
-      color: #334155;
-      background: #f1f5f9;
-      padding: 8px;
-      border-radius: 4px;
-      font-style: italic;
-      margin-bottom: 8px;
+      font-weight: 600;
+      color: #5a5c63;
     }
-    .cg-tooltip-reason {
-      background: #fff7ed;
-      border: 1px solid #fed7aa;
-      border-left: 3.5px solid #f97316;
-      padding: 8px 10px;
-      border-radius: 6px;
-      font-size: 12px;
-      color: #9a3412;
-      margin: 8px 0;
-      line-height: 1.45;
+    .cg-spec-val {
+      font-size: 13px;
+      color: #171719;
+      margin: 0;
     }
-    .cg-reason-label {
-      font-weight: 700;
-      font-size: 11px;
-      color: #ea580c;
-      margin-bottom: 2px;
-    }
-    .cg-tooltip-consequence {
-      background: #fef2f2;
-      border: 1px solid #fecaca;
-      border-left: 3.5px solid #ef4444;
-      padding: 8px 10px;
-      border-radius: 6px;
-      font-size: 12px;
-      color: #991b1b;
-      margin: 8px 0;
-      line-height: 1.45;
-    }
-    .cg-consequence-label {
-      font-weight: 700;
-      font-size: 11px;
-      color: #dc2626;
-      margin-bottom: 2px;
-    }
-    .cg-tooltip-law {
-      background: #f8fafc;
-      border-left: 3px solid #3b82f6;
-      padding: 6px 10px;
-      font-size: 11px;
-      color: #475569;
-      margin: 8px 0;
-      border-radius: 0 4px 4px 0;
-    }
-    .cg-tooltip-fix {
-      background: #eff6ff;
-      border: 1px solid #bfdbfe;
-      padding: 10px;
-      border-radius: 8px;
-      margin-top: 10px;
-    }
-    .cg-fix-label {
-      font-weight: 700;
-      font-size: 11px;
-      color: #1d4ed8;
-      margin-bottom: 4px;
-    }
-    .cg-fix-text {
-      font-size: 12px;
-      color: #1e3a8a;
+    .cg-spec-val.consequence {
+      color: #c91c1c;
     }
     .cg-copy-btn {
-      display: inline-block;
-      margin-top: 6px;
-      padding: 4px 10px;
-      background: #2563eb;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+      margin-top: 8px;
+      padding: 5px 11px;
+      background: #ffffff;
+      color: #171719;
+      border: 1px solid rgba(112, 115, 124, 0.32);
+      border-radius: 8px;
+      font: inherit;
+      font-size: 12px;
       font-weight: 600;
       cursor: pointer;
     }
     .cg-copy-btn:hover {
-      background: #1d4ed8;
+      background: #f7f7f8;
+      border-color: #171719;
     }
   </style>
 </head>
 <body>
-  <div class="contract-container">
-    <div class="banner">
+  <header class="topbar">
+    <a href="/" class="brand">
+      <span class="radar-mark" aria-hidden="true"></span>
+      <span>계약서 특약 점검기</span>
+    </a>
+    <nav class="nav-links">
+      <a href="/">웹 작업대</a>
+      <a href="/demo-contract.html" class="active">전자계약 인라인 시험</a>
+    </nav>
+  </header>
+
+  <main class="page-wrap">
+    <div class="action-bar">
       <div>
-        <strong style="color: #1e40af;">🛡️ ClauseGuard AI 특약 정밀 분석 데모</strong>
-        <div style="font-size: 12px; color: #3b82f6;">Google Cloud WIF (Gemini 3.8 Flash) 기반 실시간 위험 조항·피해 결과 탐지</div>
+        <div class="action-bar-title">전자계약서 인라인 특약 점검 시험</div>
+        <div class="action-bar-sub">버튼을 누르면 문서 안의 위험 특약에 붉은 밑줄이 그어지며, 밑줄을 클릭해 법적 근거와 대안 문구를 바로 확인할 수 있습니다.</div>
       </div>
       <button class="btn-scan" id="btn-run-check">
-        <span>🔍</span> <span id="btn-text">특약 정밀 분석 실행</span>
+        <span id="btn-text">이 계약서 인라인 점검 실행</span>
       </button>
     </div>
 
-    <div class="header">
-      <h1>주택 임대차 계약서 (전월세)</h1>
-      <div class="subtitle">국토교통부·법무부 표준임대차계약서 준용 견본</div>
-    </div>
+    <div class="contract-sheet">
+      <div class="doc-header">
+        <h1>주택 임대차 계약서</h1>
+        <div class="doc-subtitle">국토교통부·법무부 주택임대차표준계약서 서식 기준 시험용 견본</div>
+      </div>
 
-    <div class="section-title">1. 부동산의 표시</div>
-    <table>
-      <tr>
-        <th>소재지</th>
-        <td colspan="3">서울특별시 마포구 독막로 123 (상수동) 아파트 101동 502호</td>
-      </tr>
-      <tr>
-        <th>구조 및 용도</th>
-        <td>철근콘크리트조 / 공동주택</td>
-        <th>전용면적</th>
-        <td>84.95 ㎡</td>
-      </tr>
-    </table>
+      <div class="section-title">1. 부동산의 표시</div>
+      <table>
+        <tr>
+          <th>소재지</th>
+          <td colspan="3">서울특별시 마포구 독막로 123 (상수동) 101동 502호</td>
+        </tr>
+        <tr>
+          <th>구조·용도</th>
+          <td>철근콘크리트조 · 공동주택</td>
+          <th>전용면적</th>
+          <td>84.95 ㎡</td>
+        </tr>
+      </table>
 
-    <div class="section-title">2. 계약 내용</div>
-    <table>
-      <tr>
-        <th>보증금</th>
-        <td>금 100,000,000 원 (일억 원)</td>
-        <th>월차임</th>
-        <td>금 500,000 원 (매월 25일 지급)</td>
-      </tr>
-      <tr>
-        <th>계약기간</th>
-        <td colspan="3">2026년 11월 15일부터 2028년 11월 14일까지 (24개월)</td>
-      </tr>
-    </table>
+      <div class="section-title">2. 계약 내용</div>
+      <table>
+        <tr>
+          <th>보증금</th>
+          <td>금 100,000,000 원 (일억 원)</td>
+          <th>차임(월세)</th>
+          <td>금 500,000 원 (매월 25일 지급)</td>
+        </tr>
+        <tr>
+          <th>임대차기간</th>
+          <td colspan="3">2026년 11월 15일부터 2028년 11월 14일까지 (24개월)</td>
+        </tr>
+      </table>
 
-    <div class="section-title">3. 특약사항 (Special Agreements)</div>
-    <div class="clause-box" id="clause-content">
-      <ol>
-        <li>현 시설물 상태에서의 임대차 계약이며, 입주 후 보일러 고장, 배관 누수 등 일체의 수선 및 수리 비용은 임차인이 전액 부담하기로 한다.</li>
-        <li>임대인은 잔금 당일 금융기관에서 담보 대출을 실행하고 근저당권을 설정할 수 있으며, 임차인은 이에 일체 동의한다.</li>
-        <li>임차인은 임대차기간 만료 시 어떠한 경우에도 계약갱신요구권을 청구하지 않고 포기하며 기한 내 퇴거한다.</li>
-        <li>임대료 및 보증금은 물가상승률을 감안하여 매년 10%씩 인상하기로 쌍방 합의한다.</li>
-        <li>임차보증금은 계약 종료 당일이 아닌, 새로운 임차인이 들어오면 반환하는 것으로 한다.</li>
-        <li>임차인은 입주 당일 전입신고 및 확정일자를 받도록 한다.</li>
-      </ol>
-    </div>
-
-    <div style="margin-top: 40px; text-align: center; color: #94a3b8; font-size: 12px;">
-      빨간 물결선으로 밑줄 친 위험 특약을 클릭하면 <b>'왜 위험한지'</b>와 <b>'서명 시 발생할 실제 피해'</b>, 그리고 <b>'안전한 대안 문구'</b>를 확인하실 수 있습니다.
+      <div class="section-title">3. 특약사항</div>
+      <div class="clause-box" id="clause-content">
+        <ol>
+          <li>현 시설물 상태에서의 임대차 계약이며, 입주 후 보일러 고장, 배관 누수 등 일체의 수선 및 수리 비용은 임차인이 전액 부담하기로 한다.</li>
+          <li>임대인은 잔금 당일 금융기관에서 담보 대출을 실행하고 근저당권을 설정할 수 있으며, 임차인은 이에 일체 동의한다.</li>
+          <li>임차인은 임대차기간 만료 시 어떠한 경우에도 계약갱신요구권을 청구하지 않고 포기하며 기한 내 퇴거한다.</li>
+          <li>임대료 및 보증금은 물가상승률을 감안하여 매년 10%씩 인상하기로 쌍방 합의한다.</li>
+          <li>임차보증금은 계약 종료 당일이 아닌, 새로운 임차인이 들어오면 반환하는 것으로 한다.</li>
+          <li>임차인은 입주 당일 전입신고 및 확정일자를 받도록 한다.</li>
+        </ol>
+      </div>
     </div>
 
     <div id="cg-demo-tooltip"></div>
-  </div>
+  </main>
 
   <script>
     const btn = document.getElementById('btn-run-check');
@@ -316,7 +363,7 @@
 
     btn.addEventListener('click', async () => {
       btn.disabled = true;
-      btnText.innerText = 'Gemini 3.8 Flash 분석 중...';
+      btnText.innerText = '법령 대조 및 인라인 분석 중…';
 
       const clauseText = document.getElementById('clause-content').innerText;
       try {
@@ -329,13 +376,13 @@
         if (!res.ok) throw new Error(data.error || '분석 실패');
 
         const risks = (data.items || []).filter(i => i.verdict === '위험');
-        btnText.innerText = `🚨 위험 특약 ${risks.length}건 발견!`;
-        btn.style.background = '#dc2626';
+        btnText.innerText = `위험 특약 ${risks.length}건 발견 (붉은 밑줄 클릭)`;
+        btn.style.background = '#171719';
 
         highlightDemoRisks(risks);
       } catch (err) {
         console.error(err);
-        btnText.innerText = '⚠️ 점검 재시도';
+        btnText.innerText = '점검 다시 시도';
         btn.disabled = false;
         alert('점검 오류: ' + err.message);
       }
@@ -343,6 +390,7 @@
 
     function highlightDemoRisks(risks) {
       const container = document.getElementById('clause-content');
+      let firstSpan = null;
       for (const risk of risks) {
         if (!risk.quote || risk.quote.length < 5) continue;
         const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
@@ -356,7 +404,7 @@
             span.dataset.title = risk.title || risk.itemId || '불리한 특약';
             span.dataset.reason = risk.riskReason || '';
             span.dataset.consequence = risk.riskConsequence || '';
-            span.dataset.knowledge = risk.knowledge || '';
+            span.dataset.knowledge = (risk.knowledge || '').replace(/^knowledge\/[^/]+\//, '').replace('.md#', ' · ');
             span.dataset.fix = risk.fixText || risk.fix || '';
             span.dataset.quote = risk.quote;
 
@@ -364,6 +412,8 @@
             range.setStart(node, idx);
             range.setEnd(node, idx + risk.quote.length);
             range.surroundContents(span);
+
+            if (!firstSpan) firstSpan = span;
 
             span.addEventListener('click', (e) => {
               e.stopPropagation();
@@ -373,6 +423,7 @@
           }
         }
       }
+      if (firstSpan) showDemoTooltip(firstSpan);
     }
 
     function showDemoTooltip(span) {
@@ -385,35 +436,42 @@
 
       tooltip.innerHTML = `
         <div class="cg-tooltip-header">
-          <span class="cg-badge-risk">🚨 주의 필요</span>
-          <span style="font-size:11px; color:#64748b;">${knowledge.split('#')[0] || '주택임대차보호법'}</span>
+          <div class="cg-tooltip-title-wrap">
+            <span class="cg-tooltip-dot"></span>
+            <h4 class="cg-tooltip-title">${title}</h4>
+          </div>
+          <span class="cg-badge-risk">위험</span>
         </div>
-        <div class="cg-tooltip-title">${title}</div>
-        <div class="cg-tooltip-quote">"${quote}"</div>
-
-        ${reason ? `
-          <div class="cg-tooltip-reason">
-            <div class="cg-reason-label">⚠️ 왜 위험한가요? (원인)</div>
-            <div>${reason}</div>
-          </div>
-        ` : ''}
-
-        ${consequence ? `
-          <div class="cg-tooltip-consequence">
-            <div class="cg-consequence-label">💥 서명 시 발생할 실제 피해 (결과의 리스크):</div>
-            <div><b>${consequence}</b></div>
-          </div>
-        ` : ''}
-
-        ${knowledge ? `<div class="cg-tooltip-law"><b>⚖️ 법적 근거:</b> ${knowledge.split('#')[1] || knowledge}</div>` : ''}
-
-        ${fix ? `
-          <div class="cg-tooltip-fix">
-            <div class="cg-fix-label">💡 이렇게 바꿔달라고 요구하세요:</div>
-            <div class="cg-fix-text" id="demo-fix-txt">${fix}</div>
-            <button class="cg-copy-btn" id="demo-copy-btn">대안 문구 복사</button>
-          </div>
-        ` : ''}
+        <blockquote class="cg-tooltip-quote">“${quote}”</blockquote>
+        <div class="cg-spec-list">
+          ${knowledge ? `
+            <div class="cg-spec-row">
+              <span class="cg-spec-label">법령 근거</span>
+              <p class="cg-spec-val">${knowledge}</p>
+            </div>
+          ` : ''}
+          ${reason ? `
+            <div class="cg-spec-row">
+              <span class="cg-spec-label">판정 이유</span>
+              <p class="cg-spec-val">${reason}</p>
+            </div>
+          ` : ''}
+          ${consequence ? `
+            <div class="cg-spec-row">
+              <span class="cg-spec-label">예상 불이익</span>
+              <p class="cg-spec-val consequence">${consequence}</p>
+            </div>
+          ` : ''}
+          ${fix ? `
+            <div class="cg-spec-row">
+              <span class="cg-spec-label">대안 문구</span>
+              <div>
+                <p class="cg-spec-val">${fix}</p>
+                <button class="cg-copy-btn" id="demo-copy-btn">문구 복사</button>
+              </div>
+            </div>
+          ` : ''}
+        </div>
       `;
 
       const rect = span.getBoundingClientRect();
@@ -425,8 +483,8 @@
       if (copyBtn) {
         copyBtn.addEventListener('click', () => {
           navigator.clipboard.writeText(fix);
-          copyBtn.innerText = '✓ 복사 완료!';
-          setTimeout(() => (copyBtn.innerText = '대안 문구 복사'), 2000);
+          copyBtn.innerText = '복사했어요';
+          setTimeout(() => (copyBtn.innerText = '문구 복사'), 1800);
         });
       }
     }
