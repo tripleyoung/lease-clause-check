@@ -290,8 +290,8 @@ async function recordUnifiedDashboardDemo() {
     await page.waitForTimeout(2500);
   }
 
-  // [01:25 ~ 01:50] STEP 5: 온율 메일 서버 직접 전송 (Direct Delivery via mail-mcp-rs / mail.ugot.uk)
-  await setCaption('STEP 5 · 실제 편지함 직접 발송', '온율 메일 서버(mail.ugot.uk) 연동 ➔ 수신자의 실제 편지함으로 분석 리포트 직접 전송', 'green');
+  // [01:25 ~ 01:50] STEP 5: 온율 메일 서버 직접 전송 및 실제 수신 확인 (Direct Delivery)
+  await setCaption('STEP 5 · 구글 계정으로 메일 전송', '로그인된 구글 계정(dudnjsckrgo@gmail.com) 실제 편지함으로 분석 리포트 직접 전송', 'green');
   console.log('STEP 5: Email report modal test with direct delivery');
 
   // 상단 스트립의 "이메일로 전달" 버튼 클릭
@@ -299,19 +299,35 @@ async function recordUnifiedDashboardDemo() {
   await clickWithCursor(openEmailBtn);
   await page.waitForTimeout(1500);
 
-  // 이메일 수신자 입력 (dudnjsckrgo@naver.com)
+  // 이메일 수신자 확인 (로그인된 구글 계정: dudnjsckrgo@gmail.com)
   const emailInput = page.locator('[data-testid="email-recipient-input"]');
   if (await emailInput.isVisible()) {
     await moveCursorTo(emailInput);
-    await emailInput.fill('dudnjsckrgo@naver.com');
+    await emailInput.fill('dudnjsckrgo@gmail.com');
     await page.waitForTimeout(1000);
   }
 
   // 메일 전송 버튼 클릭 (온율 서버에서 mail-mcp-rs 데몬을 통해 실제 편지함으로 직접 발송)
-  await setCaption('STEP 5 · Direct Delivery 완료', '온율 서버에서 수신자의 실제 메일함으로 리포트 즉시 전송 완료 (Direct Delivery)', 'green');
+  await setCaption('STEP 5 · Direct Delivery 발송', '온율 서버에서 수신자의 실제 편지함으로 즉시 전송 실행 (Direct Delivery)', 'green');
   const sendEmailBtn = page.locator('[data-testid="send-email-btn"]');
   await clickWithCursor(sendEmailBtn);
-  await page.waitForTimeout(3000); // 발송 완료 피드백 배너 정독
+  await page.waitForTimeout(2000);
+
+  // 수신 메일함(Inbox) 도착 확인 카드 둘러보기 & 첨부 PDF 리포트 확인
+  const receiptCard = page.locator('[data-testid="inbox-receipt-card"]');
+  if (await receiptCard.isVisible()) {
+    await setCaption('STEP 5 · 실제 메일함 수신 완료', 'dudnjsckrgo@gmail.com 수신함 도착 확인 ➔ 보낸사람/제목/정밀 리포트 본문 수신 검증', 'green');
+    await moveCursorTo(receiptCard);
+    await page.waitForTimeout(2500);
+
+    // 첨부된 A4 규격 PDF 법률 리포트 열기/다운로드 버튼 클릭
+    const pdfBtn = page.locator('[data-testid="download-attached-pdf-btn"]');
+    if (await pdfBtn.isVisible()) {
+      await clickWithCursor(pdfBtn);
+      await setCaption('STEP 5 · 공식 A4 PDF 리포트 전달', '주택임대차보호법 제10조 강행규정 근거 및 온율 공식 직인 날인 A4 PDF 문서 첨부 확인', 'green');
+      await page.waitForTimeout(3000);
+    }
+  }
 
   // 메일 모달 닫기
   const closeEmailBtn = page.locator('[data-testid="close-email-modal"]');

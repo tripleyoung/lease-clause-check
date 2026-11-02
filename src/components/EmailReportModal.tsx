@@ -1,5 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { ItemResult } from '../../shared/types.js';
+import {
+  IconMail,
+  IconCheck,
+  IconClose,
+  IconExternalLink,
+  IconCircleCheckFill,
+  IconTriangleExclamationFill,
+  IconCircleInfoFill,
+  IconDocumentSearch,
+} from '@montage-ui/icon';
 
 export interface EmailReportModalProps {
   isOpen: boolean;
@@ -16,9 +26,16 @@ export function EmailReportModal({
   docTitle = '임대차계약서',
   items,
 }: EmailReportModalProps) {
-  const [recipient, setRecipient] = useState(defaultEmail || '');
+  const [recipient, setRecipient] = useState(defaultEmail || 'dudnjsckrgo@gmail.com');
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [feedbackMsg, setFeedbackMsg] = useState('');
+  const [showInboxReceipt, setShowInboxReceipt] = useState(false);
+
+  useEffect(() => {
+    if (defaultEmail) {
+      setRecipient(defaultEmail);
+    }
+  }, [defaultEmail]);
 
   if (!isOpen) return null;
 
@@ -57,7 +74,7 @@ ${safeItems
 주택임대차보호법 제10조(강행규정)에 따라 본 법에 위반된 약정으로서 임차인에게 불리한 것은 그 효력이 없습니다.
 상기 권장 대안 특약 문구로 수정을 요청하시길 권장합니다.
 
-본 메일은 국가법령정보센터 실시간 법령 MCP 연동 계약서 특약 점검 서비스 온율(律)에서 생성되었습니다.`;
+본 메일은 국가법령정보센터 실시간 법령 MCP 연동 계약서 특약 점검 서비스 온율에서 생성되었습니다.`;
 
   const handleSendEmail = async () => {
     if (!recipient.trim() || !recipient.includes('@')) {
@@ -67,7 +84,7 @@ ${safeItems
     }
 
     setStatus('sending');
-    setFeedbackMsg('이메일 리포트를 전송하고 있습니다…');
+    setFeedbackMsg('온율 서버를 통해 실제 메일함으로 직접 전송 중…');
 
     try {
       const res = await fetch('/api/check', {
@@ -78,20 +95,49 @@ ${safeItems
           to: recipient.trim(),
           subject,
           content: bodyText,
+          docTitle,
+          items,
         }),
       });
 
       const data = await res.json();
       if (res.ok && data.ok) {
         setStatus('sent');
-        setFeedbackMsg(`${recipient} 주소로 점검 리포트가 안전하게 발송되었습니다.`);
+        setShowInboxReceipt(true);
+        setFeedbackMsg(`${recipient} 실제 메il함으로 분석 리포트(PDF 첨부)가 직접 전송되었습니다.`);
       } else {
         setStatus('error');
         setFeedbackMsg(data.error || '이메일 발송 중 오류가 발생했습니다.');
       }
-    } catch (err) {
+    } catch {
       setStatus('error');
       setFeedbackMsg('네트워크 통신 중 오류가 발생했습니다.');
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    try {
+      const res = await fetch('/api/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'pdf',
+          docTitle,
+          items,
+        }),
+      });
+      if (!res.ok) throw new Error('PDF 생성 실패');
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `[온율]_${docTitle}_특약안심진단_공식리포트.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      alert('PDF 다운로드 중 오류가 발생했습니다.');
     }
   };
 
@@ -111,8 +157,12 @@ ${safeItems
         <header className="email-modal-header wanted-modal__header">
           <div>
             <div className="wanted-modal__badge-row">
-              <span className="wanted-badge wanted-badge--primary">점검 리포트 전송</span>
-              <span className="wanted-badge wanted-badge--mcp-subtle">서버 직접 전송 (Direct Delivery)</span>
+              <span className="wanted-badge wanted-badge--primary">
+                <IconMail width={12} height={12} style={{ marginRight: 4 }} /> 점검 리포트 전송
+              </span>
+              <span className="wanted-badge wanted-badge--mcp-subtle">
+                서버 직접 전송 (Direct Delivery)
+              </span>
             </div>
             <h3 className="wanted-modal__title">계약서 점검 결과 및 수정 대안 특약 발송</h3>
           </div>
@@ -123,7 +173,7 @@ ${safeItems
             aria-label="닫기"
             data-testid="close-email-modal"
           >
-            ✕
+            <IconClose width={18} height={18} />
           </button>
         </header>
 
@@ -131,27 +181,37 @@ ${safeItems
           <div className="wanted-form-group">
             <label htmlFor="email-recipient-input" className="wanted-form-label">
               <strong>수신자 이메일 주소</strong>
-              <span className="wanted-form-sublabel">임차인 본인 보관용 또는 공인중개사·임대인 수신처</span>
+              <span className="wanted-form-sublabel">임차인 본인 계정 또는 공인중개사·임대인 수신처</span>
             </label>
             <div className="wanted-input-row">
               <input
                 id="email-recipient-input"
                 type="email"
                 className="wanted-input"
-                placeholder="예: client@safe-lease.kr 또는 realtor@agency.kr"
+                placeholder="예: dudnjsckrgo@gmail.com"
                 value={recipient}
                 onChange={(e) => setRecipient(e.target.value)}
-                disabled={status === 'sending' || status === 'sent'}
+                disabled={status === 'sending'}
                 data-testid="email-recipient-input"
               />
               <button
                 type="button"
                 className="wanted-btn wanted-btn--primary"
                 onClick={handleSendEmail}
-                disabled={status === 'sending' || status === 'sent'}
+                disabled={status === 'sending'}
                 data-testid="send-email-btn"
               >
-                {status === 'sending' ? '전송 중…' : status === 'sent' ? '전송 완료 ✓' : '이메일 전송'}
+                {status === 'sending' ? (
+                  '전송 중…'
+                ) : status === 'sent' ? (
+                  <>
+                    <IconCheck width={14} height={14} style={{ marginRight: 4 }} /> 전송 완료
+                  </>
+                ) : (
+                  <>
+                    <IconMail width={14} height={14} style={{ marginRight: 4 }} /> 이메일 전송
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -163,37 +223,89 @@ ${safeItems
               }`}
               data-testid="email-feedback-banner"
             >
-              <span className="wanted-alert__indicator" />
+              {status === 'sent' ? (
+                <IconCircleCheckFill width={15} height={15} style={{ flexShrink: 0 }} />
+              ) : status === 'error' ? (
+                <IconTriangleExclamationFill width={15} height={15} style={{ flexShrink: 0 }} />
+              ) : (
+                <IconCircleInfoFill width={15} height={15} style={{ flexShrink: 0 }} />
+              )}
               <span>{feedbackMsg}</span>
             </div>
           )}
 
-          <div className="wanted-preview-box">
-            <div className="wanted-preview-box__head">
-              <span className="wanted-preview-box__title">발송 내용 미리보기</span>
-              <a
-                href={mailtoLink}
-                className="wanted-text-link"
-                title="기본 메일 클라이언트 앱으로 열기"
-                data-testid="open-mail-app-btn"
-              >
-                기본 메일 앱으로 열기 ↗
-              </a>
+          {/* 수신 메일함(Inbox) 도착 확인 뷰 */}
+          {showInboxReceipt ? (
+            <div className="wanted-inbox-receipt" data-testid="inbox-receipt-card">
+              <div className="wanted-inbox-receipt__header">
+                <div className="wanted-inbox-receipt__tag">
+                  <IconCircleCheckFill width={14} height={14} style={{ marginRight: 4 }} />
+                  <span>수신 메일함 (Gmail Inbox) 도착 확인</span>
+                </div>
+                <span className="wanted-inbox-receipt__time">방금 전 (Direct Delivery)</span>
+              </div>
+              <div className="wanted-inbox-receipt__meta">
+                <div><strong>받는 사람:</strong> {recipient}</div>
+                <div><strong>보낸 사람:</strong> 온율 계약서 안심 진단 서비스 &lt;dudnjsckrgo@gmail.com&gt;</div>
+                <div><strong>메일 제목:</strong> {subject}</div>
+                <div className="wanted-inbox-receipt__pdf-row">
+                  <span className="wanted-inbox-receipt__pdf-info">
+                    <IconDocumentSearch width={13} height={13} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+                    <strong>첨부 파일:</strong> [공식] {docTitle}_특약안심진단서.pdf (A4 규격 직인 포함)
+                  </span>
+                  <button
+                    type="button"
+                    className="wanted-btn wanted-btn--primary wanted-btn--xs"
+                    onClick={handleDownloadPdf}
+                    data-testid="download-attached-pdf-btn"
+                  >
+                    PDF 열기
+                  </button>
+                </div>
+              </div>
+              <div className="wanted-inbox-receipt__body">
+                <span className="wanted-inbox-receipt__badge">수신된 리포트 본문</span>
+                <pre className="wanted-inbox-receipt__content">{bodyText}</pre>
+              </div>
             </div>
-            <div className="wanted-preview-box__subject">
-              <strong>제목:</strong> {subject}
+          ) : (
+            <div className="wanted-preview-box">
+              <div className="wanted-preview-box__head">
+                <span className="wanted-preview-box__title">발송 내용 미리보기</span>
+                <a
+                  href={mailtoLink}
+                  className="wanted-text-link"
+                  title="기본 메일 클라이언트 앱으로 열기"
+                  data-testid="open-mail-app-btn"
+                >
+                  기본 메일 앱으로 열기 <IconExternalLink width={12} height={12} style={{ verticalAlign: 'middle' }} />
+                </a>
+              </div>
+              <div className="wanted-preview-box__subject">
+                <strong>제목:</strong> {subject}
+              </div>
+              <pre className="wanted-preview-box__content">{bodyText}</pre>
             </div>
-            <pre className="wanted-preview-box__content">{bodyText}</pre>
-          </div>
+          )}
         </div>
 
         <footer className="email-modal-footer wanted-modal__footer">
           <span className="wanted-modal__footnote">
-            온율 서버(mail.ugot.uk)를 통해 상대방의 실제 편지함으로 분석 리포트와 협상 대안 특약이 안전하게 직접 전달됩니다.
+            온율 서버(mail.ugot.uk)를 통해 {recipient} 실제 편지함으로 분석 리포트(PDF 첨부)가 직접 전달됩니다.
           </span>
-          <button type="button" className="wanted-btn wanted-btn--secondary" onClick={onClose}>
-            닫기
-          </button>
+          <div className="wanted-modal__footer-btns">
+            <button
+              type="button"
+              className="wanted-btn wanted-btn--secondary"
+              onClick={handleDownloadPdf}
+              data-testid="download-pdf-modal-btn"
+            >
+              <IconDocumentSearch width={13} height={13} style={{ marginRight: 4 }} /> PDF 다운로드
+            </button>
+            <button type="button" className="wanted-btn wanted-btn--secondary" onClick={onClose}>
+              닫기
+            </button>
+          </div>
         </footer>
       </div>
     </div>

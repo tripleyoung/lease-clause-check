@@ -540,6 +540,7 @@ export function App() {
             riskCount={red}
             safeCount={green}
             cautionCount={amber}
+            defaultEmail={session?.email || 'dudnjsckrgo@gmail.com'}
             onSelectClauseForSpeech={handleSelectClauseForSpeech}
             onCopyAlternative={(key, text) => void copyText(key, text)}
             copiedKey={copiedKey}

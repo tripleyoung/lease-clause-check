@@ -2,6 +2,16 @@ import { useState, useRef } from 'react';
 import type { ItemResult } from '../../shared/types';
 import { HighlightText } from './HighlightText';
 import { EmailReportModal } from './EmailReportModal';
+import {
+  IconMail,
+  IconCopy,
+  IconCheck,
+  IconFull,
+  IconExternalLink,
+  IconTriangleExclamationFill,
+  IconCircleCheckFill,
+  IconCircleInfoFill,
+} from '@montage-ui/icon';
 
 export interface DocAnnotationBox {
   left: number; // percentage (0 - 100)
@@ -759,6 +769,7 @@ export function AnnotatedDocumentDeckCard({
   riskCount = 2,
   safeCount = 2,
   cautionCount = 1,
+  defaultEmail = 'dudnjsckrgo@gmail.com',
   onSelectClauseForSpeech,
   onCopyAlternative,
   copiedKey,
@@ -772,6 +783,7 @@ export function AnnotatedDocumentDeckCard({
   riskCount?: number;
   safeCount?: number;
   cautionCount?: number;
+  defaultEmail?: string;
   onSelectClauseForSpeech?: (speech: string, mood: 'worry' | 'joy' | 'thinking') => void;
   onCopyAlternative: (key: string, text: string) => void;
   copiedKey: string | null;
@@ -859,7 +871,9 @@ export function AnnotatedDocumentDeckCard({
               <span className="wanted-metric-card__label">위험 특약</span>
               <div className="wanted-metric-card__val-row">
                 <span className="wanted-metric-card__value text-risk">{riskCount}건</span>
-                <span className="wanted-badge wanted-badge--risk-subtle">독소 조항</span>
+                <span className="wanted-badge wanted-badge--risk-subtle">
+                  <IconTriangleExclamationFill width={12} height={12} style={{ marginRight: 3 }} /> 독소 조항
+                </span>
               </div>
             </div>
 
@@ -867,7 +881,9 @@ export function AnnotatedDocumentDeckCard({
               <span className="wanted-metric-card__label">보호 조항</span>
               <div className="wanted-metric-card__val-row">
                 <span className="wanted-metric-card__value text-safe">{safeCount}건</span>
-                <span className="wanted-badge wanted-badge--safe-subtle">권리 보장</span>
+                <span className="wanted-badge wanted-badge--safe-subtle">
+                  <IconCircleCheckFill width={12} height={12} style={{ marginRight: 3 }} /> 권리 보장
+                </span>
               </div>
             </div>
 
@@ -875,7 +891,9 @@ export function AnnotatedDocumentDeckCard({
               <span className="wanted-metric-card__label">법률 검토 기준</span>
               <div className="wanted-metric-card__val-row">
                 <span className="wanted-metric-card__value text-neutral">국가법령</span>
-                <span className="wanted-badge wanted-badge--mcp-subtle">실시간 대조</span>
+                <span className="wanted-badge wanted-badge--mcp-subtle">
+                  <IconCircleInfoFill width={12} height={12} style={{ marginRight: 3 }} /> 실시간 대조
+                </span>
               </div>
             </div>
           </div>
@@ -888,7 +906,7 @@ export function AnnotatedDocumentDeckCard({
               title="점검 리포트 및 대안 특약 이메일로 전달"
               data-testid="open-email-modal-btn"
             >
-              이메일로 전달
+              <IconMail width={15} height={15} style={{ marginRight: 6 }} /> 이메일로 전달
             </button>
             {doc?.scannedImageUrl && (
               <button
@@ -898,7 +916,7 @@ export function AnnotatedDocumentDeckCard({
                 title="스캔 계약서 고해상도 전체화면으로 크게 보기"
                 data-testid="annotated-doc-fullscreen-btn"
               >
-                문서 전체화면
+                <IconFull width={15} height={15} style={{ marginRight: 6 }} /> 문서 전체화면
               </button>
             )}
           </div>
@@ -1020,6 +1038,11 @@ export function AnnotatedDocumentDeckCard({
             <div className="wanted-inspector-panel__header">
               <div className="wanted-inspector-panel__tag-row">
                 <span className={`wanted-badge wanted-badge--${activeItem.verdict === '위험' ? 'risk' : 'safe'}`}>
+                  {activeItem.verdict === '위험' ? (
+                    <IconTriangleExclamationFill width={12} height={12} style={{ marginRight: 4 }} />
+                  ) : (
+                    <IconCircleCheckFill width={12} height={12} style={{ marginRight: 4 }} />
+                  )}
                   {activeItem.verdict === '위험' ? '위험 특약' : '보호 조항'} #{safeIdx + 1}
                 </span>
                 <span className="wanted-inspector-panel__subtag">임대차 표준계약서 기준</span>
@@ -1048,9 +1071,11 @@ export function AnnotatedDocumentDeckCard({
             {lawData?.statute && (
               <div className="wanted-card-box wanted-card-box--law">
                 <div className="wanted-card-box__header-row">
-                  <span className="wanted-card-box__label text-blue">법률 검토 근거 (국가법령정보센터)</span>
+                  <span className="wanted-card-box__label text-blue">
+                    <IconCircleInfoFill width={13} height={13} style={{ marginRight: 4 }} /> 법률 검토 근거 (국가법령정보센터)
+                  </span>
                   <a href={lawData.statute.officialUrl} target="_blank" rel="noreferrer" className="wanted-ext-link">
-                    {lawData.statute.lawName} {lawData.statute.article} ↗
+                    {lawData.statute.lawName} {lawData.statute.article} <IconExternalLink width={11} height={11} style={{ marginLeft: 2 }} />
                   </a>
                 </div>
                 <p className="wanted-card-box__content text-muted">{lawData.statute.articleText}</p>
@@ -1067,7 +1092,9 @@ export function AnnotatedDocumentDeckCard({
             {activeItem.fixText && (
               <div className="wanted-card-box wanted-card-box--fix">
                 <div className="wanted-card-box__header-row">
-                  <span className="wanted-card-box__label text-safe">수정 권장 대안 특약</span>
+                  <span className="wanted-card-box__label text-safe">
+                    <IconCircleCheckFill width={13} height={13} style={{ marginRight: 4 }} /> 수정 권장 대안 특약
+                  </span>
                   <button
                     type="button"
                     className="wanted-copy-btn"
@@ -1075,7 +1102,8 @@ export function AnnotatedDocumentDeckCard({
                       onCopyAlternative(`pin-${activeItem.itemId}-${safeIdx}`, activeItem.fixText)
                     }
                   >
-                    {copiedKey === `pin-${activeItem.itemId}-${safeIdx}` ? '복사 완료 ✓' : '대안 문구 복사'}
+                    <IconCopy width={13} height={13} style={{ marginRight: 4 }} />
+                    {copiedKey === `pin-${activeItem.itemId}-${safeIdx}` ? '복사 완료' : '대안 문구 복사'}
                   </button>
                 </div>
                 <p className="wanted-card-box__content font-medium">
@@ -1105,6 +1133,7 @@ export function AnnotatedDocumentDeckCard({
     <EmailReportModal
       isOpen={isEmailModalOpen}
       onClose={() => setIsEmailModalOpen(false)}
+      defaultEmail={defaultEmail}
       docTitle={doc?.title || '주택임대차 계약서'}
       items={items}
     />

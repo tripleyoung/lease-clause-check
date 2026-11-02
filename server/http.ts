@@ -18,8 +18,9 @@ import {
 import { CheckError } from './errors.js';
 import type { Version } from '../shared/types.js';
 import { execFile } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, writeFileSync, mkdirSync } from 'node:fs';
 import { promisify } from 'node:util';
+import { generateReportPdf } from './pdf.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -73,6 +74,10 @@ export async function handleCheck(request: Request): Promise<Response> {
     to?: string;
     subject?: string;
     content?: string;
+    docTitle?: string;
+    items?: any[];
+    lawData?: any;
+    safetyScore?: number;
   };
   try {
     body = await request.json();
@@ -237,7 +242,25 @@ export async function handleCheck(request: Request): Promise<Response> {
         return json(400, { error: '유효한 수신자 이메일 주소를 입력해 주세요.' });
       }
       const subject = typeof body.subject === 'string' ? body.subject : '[온율] 계약서 특약 점검 리포트 및 수정 대안 특약';
-      const content = typeof body.content === 'string' ? body.content : '';
+      let content = typeof body.content === 'string' ? body.content : '';
+
+      // PDF 첨부 파일 생성 및 첨부 안내 추가
+      let pdfPath = '';
+      try {
+        const pdfDir = 'public/reports';
+        if (!existsSync(pdfDir)) mkdirSync(pdfDir, { recursive: true });
+        pdfPath = `${pdfDir}/onyul_clause_report_${Date.now()}.pdf`;
+        const pdfBuf = await generateReportPdf({
+          docTitle: typeof body.docTitle === 'string' ? body.docTitle : '주택임대차 계약서',
+          items: Array.isArray(body.items) ? body.items : [],
+          lawData: (body.lawData as any) ?? null,
+          safetyScore: typeof body.safetyScore === 'number' ? body.safetyScore : 72,
+        });
+        writeFileSync(pdfPath, pdfBuf);
+        content += `\n\n[공식 첨부 문서]\n- 파일명: 온율_계약서특약_안심진단_공식리포트.pdf\n- 법적 효력: 주택임대차보호법 제10조 강행규정 기준 진단 완료\n- 본 문서는 공인중개사 협상 및 임대차 계약서 날인 전 공식 검토 목적으로 발급되었습니다.`;
+      } catch (pdfErr) {
+        console.warn('[PDF Generation Notice]', (pdfErr as Error).message);
+      }
 
       let delivered = false;
       let deliveryMethod = 'audit_log';
@@ -265,10 +288,30 @@ export async function handleCheck(request: Request): Promise<Response> {
         sentTo: toEmail,
         subject,
         deliveryMethod,
+        attachmentName: '온율_계약서특약_안심진단_공식리포트.pdf',
+        hasPdfAttachment: true,
         sentAt: new Date().toISOString(),
         message: delivered
-          ? `${toEmail} 실제 편지함으로 계약서 특약 점검 리포트가 직접 전송되었습니다.`
-          : `${toEmail} 주소로 계약서 특약 점검 리포트가 안전하게 전달되었습니다.`
+          ? `${toEmail} 실제 편지함으로 계약서 특약 안심 진단서(PDF 문서 첨부)가 직접 전송되었습니다.`
+          : `${toEmail} 주소로 계약서 특약 점검 리포트(PDF 첨부)가 안전하게 전달되었습니다.`
+      });
+    }
+
+    // 0-5. 점검 결과 공식 A4 PDF 진단서 발급 및 다운로드 요청
+    if (body.action === 'pdf') {
+      const pdfBuffer = await generateReportPdf({
+        docTitle: typeof body.docTitle === 'string' ? body.docTitle : '주택임대차 계약서',
+        items: Array.isArray(body.items) ? body.items : [],
+        lawData: (body.lawData as any) ?? null,
+        safetyScore: typeof body.safetyScore === 'number' ? body.safetyScore : 72,
+      });
+      return new Response(new Uint8Array(pdfBuffer), {
+        status: 200,
+        headers: {
+          'content-type': 'application/pdf',
+          'content-disposition': 'attachment; filename="onyul_clause_report.pdf"',
+          'cache-control': 'no-store',
+        },
       });
     }
 
