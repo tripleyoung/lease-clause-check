@@ -11,3 +11,4 @@ playwright-report/
 .vercel
 .env*.local
 mcp/law-mcp-rs/target/
+.art

@@ -23,6 +23,7 @@
     "@montage-ui/core": "^4.1.3",
     "@montage-ui/icon": "^4.1.3",
     "ai": "7.0.159",
+    "motion": "^12.4.7",
     "react": "19.2.1",
     "react-dom": "19.2.1",
     "zod": "4.1.12"

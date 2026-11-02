@@ -1,24 +1,61 @@
-import { Button, Chip, FlexBox, Typography } from '@montage-ui/core';
-import { IconCamera, IconCheck, IconCopy, IconImage } from '@montage-ui/icon';
-import { useEffect, useRef, useState } from 'react';
-import type { CheckResult, ItemResult } from '../shared/types.ts';
-import { ResultCard, type PackItemInfo } from './components/ResultCard.tsx';
-import { SAMPLES } from './samples.ts';
+import { IconArrowRight, IconArrowUp, IconChevronDown } from '@montage-ui/icon';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type ClipboardEvent,
+  type FormEvent,
+} from 'react';
+import type { CheckResult, ItemResult } from '../shared/types';
+import {
+  InsightCard,
+  Narrator,
+  ScoreRing,
+  VisualDeck,
+  type DeckItem,
+  type Mood,
+} from './packages/daon-stage';
+import { SAMPLES } from './samples';
 
-type PackInfo = { id: string; name: string; kinds: string[]; itemCount: number; items: PackItemInfo[] };
-type MaskResult = { masked: string; found: { kind: string; sample: string }[] };
-type OcrResult = { text: string; masked: string; found: { kind: string; sample: string }[] };
-type VerdictFilter = 'all' | '위험' | '언급 없음' | '보호됨';
-type RoutePage = 'home' | 'consult' | 'tax';
+type ContractType = 'lease' | 'gym';
+type TopicKey = 'lease' | 'gym' | 'tax';
 
-type MatchedCaseItem = {
+interface FoundPii {
+  kind: string;
+  sample: string;
+}
+
+interface LiveStatuteInfo {
+  lawName: string;
+  article: string;
+  ministry: string;
+  effectiveDate: string;
+  proclamationNo: string;
+  articleText: string;
+  officialUrl: string;
+  sourceType: 'law' | 'admrul';
+}
+
+interface LivePrecedentInfo {
   id: string;
-  label: string;
-  headline: string;
-  statuteRef: string;
-};
+  caseNumber: string;
+  caseName: string;
+  courtName: string;
+  decisionDate: string;
+  summary: string;
+  officialUrl: string;
+}
 
-type ConsultResult = {
+interface LawLookupResponse {
+  itemId: string;
+  fetchedAt: string;
+  liveConnected: boolean;
+  statute: LiveStatuteInfo;
+  precedents: LivePrecedentInfo[];
+}
+
+interface ConsultApiResponse {
   itemId: string;
   itemTitle: string;
   maskedQuestion: string;
@@ -26,33 +63,10 @@ type ConsultResult = {
   analysis: string;
   messageDraft: string;
   followups: string[];
-  law: {
-    statute: {
-      lawName: string;
-      article: string;
-      ministry: string;
-      effectiveDate: string;
-      proclamationNo: string;
-      officialUrl: string;
-    };
-    precedents: Array<{
-      id: string;
-      caseNumber: string;
-      caseName: string;
-      courtName: string;
-      decisionDate: string;
-      summary: string;
-      officialUrl: string;
-    }>;
-  };
-  graphRag?: {
-    subgraph: {
-      matchedCases: MatchedCaseItem[];
-    };
-  };
-};
+  law: LawLookupResponse;
+}
 
-type TaxCheckResult = {
+interface TaxApiResponse {
   taxLawItemId: string;
   maskedText: string;
   filerType: 'individual_biz' | 'wage_earner' | 'freelancer';
@@ -64,1100 +78,1124 @@ type TaxCheckResult = {
   analysis: string;
   hometaxGuide: string;
   followups: string[];
-  law: ConsultResult['law'];
-  graphRag?: {
-    subgraph: {
-      matchedCases: MatchedCaseItem[];
-    };
-  };
+  law: LawLookupResponse;
+}
+
+interface Turn {
+  id: string;
+  question: string;
+  speech: string;
+  mood: Mood;
+  deck: DeckItem[];
+  followups: string[];
+  maskedSummary?: string;
+}
+
+interface AttachedImage {
+  name: string;
+  dataUrl: string;
+}
+
+const TOPICS: Array<{ key: TopicKey; label: string; dotClass: string }> = [
+  { key: 'lease', label: '주택 전월세·특약', dotClass: 'profile-chip__dot--lease' },
+  { key: 'gym', label: '헬스장·PT 환불', dotClass: 'profile-chip__dot--gym' },
+  { key: 'tax', label: '월세·영수증 세무', dotClass: 'profile-chip__dot--tax' },
+];
+
+const STARTER_QUESTIONS: Record<
+  TopicKey,
+  Array<{ tag: string; label: string; prompt: string; mode?: 'check' | 'consult' | 'tax' }>
+> = {
+  lease: [
+    {
+      tag: '특약 점검',
+      label: '퇴거 시 도배·장판비 40만 원 공제 · 차임 연 8% 인상 특약 점검해 줘',
+      prompt: SAMPLES[0].text,
+      mode: 'check',
+    },
+    {
+      tag: '법령·판례',
+      label: '전입신고 다음 날 집주인이 근저당을 잡으면 내 보증금 대항력은 어떻게 되나요?',
+      prompt: '전입신고 다음 날 집주인이 근저당을 설정하면 내 보증금 대항력과 우선변제권 순위는 어떻게 되나요?',
+      mode: 'consult',
+    },
+    {
+      tag: '법령·판례',
+      label: '계약만료 때 다음 세입자가 들어와야 보증금을 준다는 특약, 효력이 있나요?',
+      prompt: '계약서에 다음 임차인이 입주한 후에 보증금을 반환한다고 적혀 있는데 만기일에 바로 돌려받을 수 있나요?',
+      mode: 'consult',
+    },
+    {
+      tag: '월세 공제',
+      label: '무주택 직장인 월세 75만 원, 연말정산 세액공제로 얼마나 돌려받나요?',
+      prompt: '무주택 직장인 총급여 5,800만 원인데 보증금 2,000만 원에 월세 75만 원 내고 있어요. 월세 세액공제 얼마나 받나요?',
+      mode: 'tax',
+    },
+  ],
+  gym: [
+    {
+      tag: '약관 점검',
+      label: '중도 해지 시 정상가 차감·위약금 20% 헬스장 계약서 점검해 주세요',
+      prompt: SAMPLES[2].text,
+      mode: 'check',
+    },
+    {
+      tag: '법령·판례',
+      label: 'PT 20회 140만 원 결제 후 5회만 받았는데 환불 불가라고 해요',
+      prompt: '헬스장 PT 20회 140만 원 결제 후 5회만 받았는데 계약서에 환불 불가라고 적혀 있다며 거부합니다. 법적으로 환불받을 수 있나요?',
+      mode: 'consult',
+    },
+    {
+      tag: '법령·판례',
+      label: '헬스장이 갑자기 폐업했을 때 남은 카드 할부금 안 내도 되나요?',
+      prompt: '헬스장 12개월권을 신용카드 6개월 할부로 끊었는데 두 달 만에 폐업했어요. 카드 할부 항변권은 어떻게 신청하나요?',
+      mode: 'consult',
+    },
+  ],
+  tax: [
+    {
+      tag: '연말정산',
+      label: '무주택 직장인 총급여 5,800만 원 · 월세 75만 원 세액공제 계산',
+      prompt: '무주택 세대주 직장인이고 총급여 5,800만 원입니다. 오피스텔 월세 75만 원을 매달 계좌이체 중인데 연말정산 세액공제율과 홈택스 신청 방법이 궁금해요.',
+      mode: 'tax',
+    },
+    {
+      tag: '부가세·종소세',
+      label: '프리랜서·개인사업자 업무용 노트북 220만 원 카드 영수증 경비 처리',
+      prompt: '프리랜서 디자이너인데 업무용 맥북 노트북 220만 원을 신용카드로 결제했습니다. 부가가치세 매입세액공제와 종합소득세 필요경비 처리가 모두 되나요?',
+      mode: 'tax',
+    },
+    {
+      tag: '부가세·종소세',
+      label: '거래처 결혼식 축의금 20만 원, 청첩장으로 비용 처리 되나요?',
+      prompt: '개인사업자인데 거래처 결혼식 축의금 20만 원을 현금으로 내고 모바일 청첩장을 보관 중입니다. 필요경비 인정 한도와 증빙 방법이 궁금해요.',
+      mode: 'tax',
+    },
+  ],
 };
 
-const CONSULT_PRESETS = [
-  {
-    label: '다음 세입자 들어와야 보증금 반환',
-    question: '집주인이 다음 세입자가 들어와야 보증금을 돌려준다고 특약에 넣자는데 서명해도 되나요?',
-  },
-  {
-    label: '보일러·배관 누수 수리비 전가',
-    question: '보일러 배관 누수 수리비를 모든 수선은 세입자 부담이라는 특약 때문에 제가 다 내야 하나요?',
-  },
-  {
-    label: '헬스장·PT 정상가 기준 환불 차감',
-    question: '헬스장 PT 20회 중 3회만 받고 환불하려는데 할인가가 아닌 정상가로 차감한다는데 맞나요?',
-  },
-];
+function detectIntent(
+  prompt: string,
+  topic: TopicKey,
+  explicitMode?: 'check' | 'consult' | 'tax',
+): 'check' | 'consult' | 'tax' {
+  if (explicitMode) return explicitMode;
+  const text = prompt.trim();
+  const taxPattern =
+    /세액공제|소득공제|연말정산|부가세|부가가치세|매입세액|종합소득세|종소세|필요경비|경비\s*처리|현금영수증|세금계산서|홈택스|원천징수|축의금|부의금|접대비/;
+  if (taxPattern.test(text)) return 'tax';
 
-const TAX_PRESETS = [
-  {
-    label: '무주택 직장인 월세 세액공제',
-    text: '무주택 세대주 직장인입니다. 매달 오피스텔 월세 85만원을 임대인 계좌로 무통장 입금하고 있는데 집주인 동의 없이 연말정산 세액공제가 되나요?',
-    filer: 'wage_earner' as const,
-  },
-  {
-    label: '업무용 노트북 구입 세금계산서',
-    text: '개인사업자입니다. 업무용 맥북 프로 1,760,000원(부가세 포함)을 구입하고 전자세금계산서를 발급받았습니다.',
-    filer: 'individual_biz' as const,
-  },
-  {
-    label: '거래처 식대 법인카드 결제',
-    text: '거래처 미팅 저녁 식사로 68,000원을 사업용 신용카드로 결제했습니다. 부가세 매입세액 공제와 종소세 경비 처리가 모두 가능한가요?',
-    filer: 'individual_biz' as const,
-  },
-  {
-    label: '가정용 생필품 사업용카드 결제',
-    text: '주말에 가족 식료품과 생필품 92,000원을 사업용 카드로 결제했습니다. 비용 처리가 가능한가요?',
-    filer: 'individual_biz' as const,
-  },
-];
+  const clausePattern =
+    /(?:제\s*\d+\s*조|특약\s*사항|회원\s*약관|12개월\s*회원권|^\s*[1-9][.)]\s+.+\n\s*[2-9][.)]\s+|일체\s*환불하지|전액을?\s*부담한다|반환한다\.|인상한다\.)/m;
+  if (clausePattern.test(text) || text.split('\n').length >= 3) return 'check';
 
-function parseRoutePage(pathname: string): RoutePage {
-  if (pathname.startsWith('/consult')) return 'consult';
-  if (pathname.startsWith('/tax')) return 'tax';
-  return 'home';
+  if (topic === 'tax') return 'tax';
+  return 'consult';
 }
 
-async function post<T>(body: unknown): Promise<T> {
-  const res = await fetch('/api/check', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json().catch(() => ({ error: '서버 응답을 읽지 못했어요.' }));
-  if (!res.ok) throw new Error(data.error ?? '점검 중 문제가 생겼어요.');
-  return data as T;
+function formatFoundPii(found: FoundPii[]): string | undefined {
+  if (!Array.isArray(found) || found.length === 0) return undefined;
+  const counts = new Map<string, number>();
+  for (const item of found) {
+    counts.set(item.kind, (counts.get(item.kind) ?? 0) + 1);
+  }
+  const detail = Array.from(counts.entries())
+    .map(([k, c]) => `${k} ${c}건`)
+    .join(', ');
+  return `개인정보 ${found.length}건(${detail})을 자동으로 가린 뒤 안전하게 점검했어요.`;
 }
 
-const ORDER: Record<string, number> = { 위험: 0, '언급 없음': 1, 보호됨: 2 };
-
-const LAYERS = [
-  [
-    '전송 전 개인정보 자동 가림',
-    '계약서에 적힌 주민등록번호, 전화번호, 계좌번호, 동·호수를 먼저 가리고, 가려진 전문을 눈으로 확인한 뒤에야 점검을 시작합니다.',
-  ],
-  [
-    '현행 법령 및 분쟁해결기준 대조',
-    '임대료 5% 초과 인상이나 위약금 10% 초과 같은 법정 기준과 주택임대차보호법·소비자분쟁해결기준 조문을 조항별로 대조합니다.',
-  ],
-  [
-    '원문 인용 확인과 수정 문구 제안',
-    '실제 계약서에 적힌 문구만 근거로 삼아 판정하며, 임대인이나 사업자에게 바로 요청할 수 있는 대안 특약 문구를 함께 드립니다.',
-  ],
-];
-
-const SOURCES = [
-  ['전월세 임대차 (11개 항목)', '법제처 국가법령정보센터 · 법무부', '주택임대차보호법 제3조·제4조·제6조의3·제7조·제10조, 민법 제623조, 주택임대차표준계약서'],
-  ['헬스장·PT 약관 (7개 항목)', '공정거래위원회 · 한국소비자원', '소비자분쟁해결기준(체력단련장업), 계속거래 해지·해제 산정기준, 약관규제법'],
-  ['세무·경비 증빙 기준', '기획재정부 · 국세청 · 대법원', '부가가치세법 제38조·제39조, 소득세법 제27조·제33조·제160조의2, 조세특례제한법 제95조의2'],
-  ['판례 및 해석 사례', '대법원 종합법률정보 · 법제처', '주택임대차·소비자 약관·세무 관련 대법원 판결 요지 및 유사 분쟁 해결 사례'],
-];
-
-function resizeImage(file: File, maxDim = 1600): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        let { width, height } = img;
-        if (width > maxDim || height > maxDim) {
-          if (width > height) {
-            height = Math.round((height * maxDim) / width);
-            width = maxDim;
-          } else {
-            width = Math.round((width * maxDim) / height);
-            height = maxDim;
-          }
-        }
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return resolve(e.target?.result as string);
-        ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/jpeg', 0.85));
-      };
-      img.onerror = reject;
-      img.src = e.target?.result as string;
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
+function taxBadgeTone(verdict: string): string {
+  if (/가능|세액공제/.test(verdict) && !/불공제|불산입/.test(verdict)) {
+    return 'tax-badge tax-badge--eligible';
+  }
+  if (/한도|조건부/.test(verdict)) {
+    return 'tax-badge tax-badge--partial';
+  }
+  return 'tax-badge tax-badge--ineligible';
 }
 
 export function App() {
-  const [routePage, setRoutePage] = useState<RoutePage>(() => parseRoutePage(window.location.pathname));
-  const [packs, setPacks] = useState<PackInfo[]>([]);
-  const [packId, setPackId] = useState('lease');
-  const [text, setText] = useState('');
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [preview, setPreview] = useState<MaskResult | null>(null);
-  const [result, setResult] = useState<CheckResult | null>(null);
-  const [busy, setBusy] = useState<'mask' | 'check' | 'ocr' | 'consult' | 'tax' | null>(null);
-  const [error, setError] = useState('');
-  const [filter, setFilter] = useState<VerdictFilter>('all');
+  const initialTopic = (): TopicKey => {
+    if (typeof window === 'undefined') return 'lease';
+    if (window.location.pathname.startsWith('/tax')) return 'tax';
+    return 'lease';
+  };
 
-  const [consultItemId, setConsultItemId] = useState<string | undefined>(undefined);
-  const [consultQuote, setConsultQuote] = useState('');
-  const [consultQuestion, setConsultQuestion] = useState(CONSULT_PRESETS[0].question);
-  const [consultResult, setConsultResult] = useState<ConsultResult | null>(null);
-  const [draftCopied, setDraftCopied] = useState(false);
-
-  const [filerType, setFilerType] = useState<'individual_biz' | 'wage_earner' | 'freelancer'>('wage_earner');
-  const [taxText, setTaxText] = useState(TAX_PRESETS[0].text);
-  const [taxResult, setTaxResult] = useState<TaxCheckResult | null>(null);
+  const [topic, setTopic] = useState<TopicKey>(initialTopic);
+  const [turns, setTurns] = useState<Turn[]>([]);
+  const [turnIndex, setTurnIndex] = useState(0);
+  const [input, setInput] = useState('');
+  const [attachedImage, setAttachedImage] = useState<AttachedImage | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [loadingLine, setLoadingLine] = useState('');
+  const [streamText, setStreamText] = useState('');
+  const [streaming, setStreaming] = useState(false);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
-  const previewRef = useRef<HTMLElement>(null);
-  const resultRef = useRef<HTMLElement>(null);
+  const followupRef = useRef<HTMLDetailsElement>(null);
 
-  function navigateTo(target: RoutePage) {
-    const path = target === 'consult' ? '/consult' : target === 'tax' ? '/tax' : '/';
-    if (window.location.pathname !== path) {
-      window.history.pushState({}, '', path);
+  const activeTurn = turns[turnIndex] ?? null;
+
+  useEffect(() => {
+    if (!activeTurn) {
+      setStreamText('');
+      setStreaming(false);
+      return;
     }
-    setRoutePage(target);
-    setError('');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
+    setStreamText(activeTurn.speech);
+    setStreaming(true);
+    const timer = setTimeout(() => {
+      setStreaming(false);
+    }, 1600);
+    return () => clearTimeout(timer);
+  }, [activeTurn?.id]);
 
-  useEffect(() => {
-    const onPop = () => setRoutePage(parseRoutePage(window.location.pathname));
-    window.addEventListener('popstate', onPop);
-    return () => window.removeEventListener('popstate', onPop);
-  }, []);
+  const copyText = async (key: string, value: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopiedKey(key);
+      setTimeout(() => setCopiedKey((prev) => (prev === key ? null : prev)), 1800);
+    } catch {
+      // ignore clipboard errors
+    }
+  };
 
-  useEffect(() => {
-    fetch('/api/packs')
-      .then((r) => r.json())
-      .then((d) => setPacks(d.packs))
-      .catch(() => setError('점검 종류를 불러오지 못했어요. 새로 고침해 주세요.'));
-  }, []);
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    readImageFile(file);
+    e.target.value = '';
+  };
 
-  useEffect(() => {
-    const handlePaste = (e: ClipboardEvent) => {
-      if (routePage !== 'home') return;
-      const items = e.clipboardData?.items;
-      if (!items) return;
-      for (let i = 0; i < items.length; i++) {
-        if (items[i].type.startsWith('image/')) {
-          const file = items[i].getAsFile();
-          if (file) {
-            handleImageFile(file);
-            break;
+  const readImageFile = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        setAttachedImage({
+          name: file.name || '계약서·영수증 사진.png',
+          dataUrl: reader.result,
+        });
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handlePaste = (e: ClipboardEvent<HTMLTextAreaElement>) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (const item of items) {
+      if (item.type.startsWith('image/')) {
+        const file = item.getAsFile();
+        if (file) {
+          e.preventDefault();
+          readImageFile(file);
+          return;
+        }
+      }
+    }
+  };
+
+  const buildCheckTurn = (
+    questionLabel: string,
+    result: CheckResult,
+    lawData: LawLookupResponse | null,
+    maskedSummary?: string,
+  ): Turn => {
+    const riskItems = result.items.filter((i) => i.verdict === '위험');
+    const protectItems = result.items.filter((i) => i.verdict === '보호됨');
+    const missingItems = result.items.filter((i) => i.verdict === '언급 없음');
+
+    const red = riskItems.length;
+    const green = protectItems.length;
+    const amber = missingItems.length;
+    const total = Math.max(1, result.items.length);
+    const safetyScore = Math.max(18, Math.min(100, Math.round(100 - red * 24 - amber * 4)));
+
+    const mood: Mood = red > 0 ? 'worry' : green > 0 ? 'joy' : 'thinking';
+    const firstRisk: ItemResult | undefined = riskItems[0];
+
+    const headline =
+      red > 0
+        ? `주의가 필요한 위험 특약 ${red}건이 발견되었어요`
+        : green > 0
+          ? `위험 특약 없이 보호 조항 ${green}건이 확인되었어요`
+          : `특약 원문을 점검해 보완할 조항을 정리했어요`;
+
+    const speechParts: string[] = [
+      `**${headline}.**`,
+      red > 0
+        ? `점검 항목 ${total}개 중 **수정 권장(위험) ${red}건**, **보호됨 ${green}건**, **특약 미기재 ${amber}건**이에요.`
+        : `점검 항목 ${total}개 중 **보호 조항 ${green}건**이 확인되었고 독소 조항은 발견되지 않았어요.`,
+    ];
+
+    if (firstRisk) {
+      speechParts.push(
+        `특히 **"${firstRisk.title ?? firstRisk.itemId}"** 항목("${firstRisk.quote}")은 ${firstRisk.riskReason ?? '법정 기준보다 불리할 수 있어요.'} 오른쪽 카드에서 **대안 특약 문구**를 바로 복사해 보세요.`,
+      );
+    }
+
+    const deck: DeckItem[] = [
+      {
+        key: 'summary',
+        label: '계약 안전도 · 요약',
+        node: (
+          <section className="visual-card" aria-label="계약서 특약 안전도 및 점검 요약">
+            <header>
+              <span className="visual-card__eyebrow">계약서 특약 점검 요약</span>
+              <h3 className="visual-card__title">{headline}</h3>
+            </header>
+            <div className="today">
+              <ScoreRing
+                value={safetyScore}
+                size="large"
+                label="계약 안전도"
+                tone={red > 0 ? 'negative' : 'positive'}
+              />
+              <div className="today__subs">
+                <ScoreRing
+                  value={red}
+                  max={total}
+                  size="small"
+                  label="위험 특약"
+                  tone="negative"
+                />
+                <ScoreRing
+                  value={green}
+                  max={total}
+                  size="small"
+                  label="보호 조항"
+                  tone="positive"
+                />
+                <ScoreRing
+                  value={amber}
+                  max={total}
+                  size="small"
+                  label="보완 가능"
+                  tone="caution"
+                />
+              </div>
+            </div>
+          </section>
+        ),
+      },
+    ];
+
+    riskItems.forEach((item, idx) => {
+      const copyKey = `clause-${item.itemId}-${idx}`;
+      deck.push({
+        key: copyKey,
+        label: `위험 특약 ${idx + 1} · ${item.title ?? item.itemId}`,
+        node: (
+          <section className="visual-card" aria-label={item.title ?? item.itemId}>
+            <header>
+              <span className="visual-card__eyebrow">🔴 수정 권장 특약</span>
+              <h3 className="visual-card__title">{item.title ?? item.itemId}</h3>
+            </header>
+            <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.55, color: 'var(--ink-soft)' }}>
+              {item.riskReason} {item.riskConsequence}
+            </p>
+            <div className="clause-compare">
+              <div className="clause-box clause-box--risk">
+                <span className="clause-box__label">계약서 원문 인용</span>
+                <p className="clause-box__text">{item.quote || '원문 특약 조항'}</p>
+              </div>
+              <div className="clause-box clause-box--safe">
+                <span className="clause-box__label">
+                  <span>권장 대안 특약 문구</span>
+                  <button
+                    type="button"
+                    className="copy-chip"
+                    onClick={() => void copyText(copyKey, item.fixText)}
+                  >
+                    {copiedKey === copyKey ? '복사됨 ✓' : '대안 문구 복사'}
+                  </button>
+                </span>
+                <p className="clause-box__text">{item.fixText}</p>
+              </div>
+            </div>
+            {idx === 0 && lawData && (
+              <div className="law-cite-list">
+                <div className="law-cite-item">
+                  <strong>
+                    <span>
+                      ⚖️ {lawData.statute.lawName} · {lawData.statute.article}
+                    </span>
+                    <a href={lawData.statute.officialUrl} target="_blank" rel="noreferrer">
+                      국가법령정보센터 ↗
+                    </a>
+                  </strong>
+                  <span>{lawData.statute.articleText}</span>
+                </div>
+                {lawData.precedents[0] && (
+                  <div className="law-cite-item">
+                    <strong>
+                      <span>
+                        🏛️ 대법원 {lawData.precedents[0].caseNumber}
+                      </span>
+                      <a href={lawData.precedents[0].officialUrl} target="_blank" rel="noreferrer">
+                        판례 원문 ↗
+                      </a>
+                    </strong>
+                    <span>{lawData.precedents[0].summary}</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </section>
+        ),
+      });
+    });
+
+    if (protectItems.length > 0 || missingItems.length > 0) {
+      deck.push({
+        key: 'checklist-card',
+        label: '서명 전 체크리스트',
+        node: (
+          <InsightCard
+            eyebrow="서명 전 확인 질문"
+            title="임대인·사업자에게 꼭 확인해 보세요"
+            content={{
+              kind: 'checklist',
+              items: [
+                ...riskItems.map((r) => `${r.title}: "${r.question}"`),
+                ...missingItems.slice(0, 3).map((m) => `${m.title}: "${m.fixText}" 특약 추가 권장`),
+              ].slice(0, 5),
+            }}
+          />
+        ),
+      });
+    }
+
+    const followups =
+      result.pack === 'gym'
+        ? [
+            '환불 불가 약관이 적혀 있어도 법적으로 무효로 주장할 수 있나요?',
+            '헬스장·PT 해지 시 위약금 10%와 이용일수 정산 기준은 어떻게 되나요?',
+            '사업자에게 보낼 정중한 해지·환불 요청 문자 초안을 써 주세요',
+          ]
+        : [
+            '집주인에게 이 독소 조항을 수정해 달라고 정중하게 보낼 문자 초안 써 줘',
+            '전입신고와 확정일자를 받으면 보증금 대항력은 언제부터 생기나요?',
+            '무주택 직장인인데 월세 세액공제는 얼마나 돌려받을 수 있나요?',
+          ];
+
+    return {
+      id: `turn-${Date.now()}`,
+      question: questionLabel,
+      speech: speechParts.join('\n\n'),
+      mood,
+      deck,
+      followups,
+      maskedSummary,
+    };
+  };
+
+  const buildConsultTurn = (
+    questionLabel: string,
+    result: ConsultApiResponse,
+    maskedSummary?: string,
+  ): Turn => {
+    const speechParts = [
+      `**${result.headline}**`,
+      result.analysis,
+      `오른쪽 카드에서 **${result.law.statute.lawName} ${result.law.statute.article}** 원문과 대법원 판례, 그리고 바로 복사해 보낼 수 있는 **협의 문자 초안**을 확인해 보세요.`,
+    ];
+
+    const msgCopyKey = `msg-${Date.now()}`;
+    const deck: DeckItem[] = [
+      {
+        key: 'statutes-precedents',
+        label: '법령·대법원 판례',
+        node: (
+          <section className="visual-card" aria-label="관련 법령 및 대법원 판례">
+            <header>
+              <span className="visual-card__eyebrow">국가법령정보센터 실시간 법령 · 대법원 판례</span>
+              <h3 className="visual-card__title">{result.headline}</h3>
+            </header>
+            <div className="law-cite-list">
+              <div className="law-cite-item">
+                <strong>
+                  <span>
+                    📘 {result.law.statute.lawName} ({result.law.statute.article})
+                  </span>
+                  <a href={result.law.statute.officialUrl} target="_blank" rel="noreferrer">
+                    법령 원문 ↗
+                  </a>
+                </strong>
+                <span>{result.law.statute.articleText}</span>
+              </div>
+              {result.law.precedents.map((pr, idx) => (
+                <div key={`pr-${idx}`} className="law-cite-item">
+                  <strong>
+                    <span>
+                      🏛️ {pr.courtName} {pr.caseNumber} · {pr.caseName}
+                    </span>
+                    <a href={pr.officialUrl} target="_blank" rel="noreferrer">
+                      판례 원문 ↗
+                    </a>
+                  </strong>
+                  <span>{pr.summary}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        ),
+      },
+      {
+        key: 'message-template',
+        label: '전달용 문자 초안',
+        node: (
+          <section className="visual-card" aria-label="전달용 문자 초안">
+            <header>
+              <span className="visual-card__eyebrow">임대인 · 중개사 · 사업자 협의용</span>
+              <h3 className="visual-card__title">바로 복사해 보낼 수 있는 문자·카톡 초안</h3>
+            </header>
+            <div className="clause-box clause-box--safe">
+              <span className="clause-box__label">
+                <span>권장 협의 메시지</span>
+                <button
+                  type="button"
+                  className="copy-chip"
+                  onClick={() => void copyText(msgCopyKey, result.messageDraft)}
+                >
+                  {copiedKey === msgCopyKey ? '복사됨 ✓' : '문자 초안 복사'}
+                </button>
+              </span>
+              <p className="clause-box__text">{result.messageDraft}</p>
+            </div>
+          </section>
+        ),
+      },
+    ];
+
+    return {
+      id: `turn-${Date.now()}`,
+      question: questionLabel,
+      speech: speechParts.join('\n\n'),
+      mood: 'calm',
+      deck,
+      followups: result.followups ?? [],
+      maskedSummary,
+    };
+  };
+
+  const buildTaxTurn = (
+    questionLabel: string,
+    result: TaxApiResponse,
+    maskedSummary?: string,
+  ): Turn => {
+    const speechParts = [
+      `**${result.headline}**`,
+      result.analysis,
+      `부가가치세는 **${result.vatVerdict}**, 종합소득세·연말정산은 **${result.incomeTaxVerdict}** 대상이에요. 오른쪽 카드에서 **홈택스 신청 경로**와 **적격증빙 기준**을 확인해 보세요.`,
+    ];
+
+    const deck: DeckItem[] = [
+      {
+        key: 'tax-verdict',
+        label: '세무·공제 판정표',
+        node: (
+          <section className="visual-card" aria-label="세무 및 공제 판정표">
+            <header>
+              <span className="visual-card__eyebrow">부가가치세 · 종합소득세 · 연말정산 판정</span>
+              <h3 className="visual-card__title">{result.headline}</h3>
+            </header>
+            <div className="tax-verdict-grid">
+              <div className="tax-verdict-item">
+                <span className={taxBadgeTone(result.vatVerdict)}>
+                  부가세 · {result.vatVerdict}
+                </span>
+                <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.5, color: 'var(--ink-soft)' }}>
+                  계정과목: {result.accountTitle}
+                </p>
+              </div>
+              <div className="tax-verdict-item">
+                <span className={taxBadgeTone(result.incomeTaxVerdict)}>
+                  소득세 · {result.incomeTaxVerdict}
+                </span>
+                <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.5, color: 'var(--ink-soft)' }}>
+                  증빙 상태: {result.evidenceStatus}
+                </p>
+              </div>
+              <div className="tax-verdict-item">
+                <span className="tax-badge tax-badge--eligible">홈택스 실무 가이드</span>
+                <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.5, color: 'var(--ink-soft)' }}>
+                  {result.hometaxGuide}
+                </p>
+              </div>
+            </div>
+          </section>
+        ),
+      },
+      {
+        key: 'tax-statutes',
+        label: '관련 세법·판례',
+        node: (
+          <section className="visual-card" aria-label="관련 세법 조문 및 판례">
+            <header>
+              <span className="visual-card__eyebrow">국가법령정보센터 세법 · 대법원 판례</span>
+              <h3 className="visual-card__title">
+                {result.law.statute.lawName} ({result.law.statute.article})
+              </h3>
+            </header>
+            <div className="law-cite-list">
+              <div className="law-cite-item">
+                <strong>
+                  <span>
+                    🧾 {result.law.statute.lawName} · {result.law.statute.article}
+                  </span>
+                  <a href={result.law.statute.officialUrl} target="_blank" rel="noreferrer">
+                    법령 원문 ↗
+                  </a>
+                </strong>
+                <span>{result.law.statute.articleText}</span>
+              </div>
+              {result.law.precedents[0] && (
+                <div className="law-cite-item">
+                  <strong>
+                    <span>
+                      🏛️ {result.law.precedents[0].courtName} {result.law.precedents[0].caseNumber}
+                    </span>
+                    <a href={result.law.precedents[0].officialUrl} target="_blank" rel="noreferrer">
+                      판례 원문 ↗
+                    </a>
+                  </strong>
+                  <span>{result.law.precedents[0].summary}</span>
+                </div>
+              )}
+            </div>
+          </section>
+        ),
+      },
+    ];
+
+    return {
+      id: `turn-${Date.now()}`,
+      question: questionLabel,
+      speech: speechParts.join('\n\n'),
+      mood: 'joy',
+      deck,
+      followups: result.followups ?? [],
+      maskedSummary,
+    };
+  };
+
+  const submitQuery = async (
+    rawText: string,
+    explicitMode?: 'check' | 'consult' | 'tax',
+    overrideImage?: AttachedImage | null,
+  ) => {
+    const imageToUse = overrideImage !== undefined ? overrideImage : attachedImage;
+    const trimmed = rawText.trim();
+    if ((!trimmed && !imageToUse) || busy) return;
+
+    setBusy(true);
+    setInput('');
+    if (overrideImage === undefined) {
+      setAttachedImage(null);
+    }
+
+    try {
+      let workingText = trimmed;
+      let maskedSummary: string | undefined;
+
+      if (imageToUse) {
+        setLoadingLine('사진에서 글자를 읽고 성명·주민번호·연락처 등 개인정보를 가리는 중이에요…');
+        const ocrRes = await fetch('/api/check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'ocr',
+            image: imageToUse.dataUrl,
+          }),
+        });
+        const ocrData = await ocrRes.json();
+        if (ocrData.masked) {
+          workingText = trimmed
+            ? `${trimmed}\n\n${ocrData.masked}`
+            : String(ocrData.masked);
+          if (Array.isArray(ocrData.found)) {
+            maskedSummary = formatFoundPii(ocrData.found);
+          }
+        }
+      } else {
+        const maskRes = await fetch('/api/check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'mask',
+            text: workingText,
+          }),
+        });
+        if (maskRes.ok) {
+          const maskData = await maskRes.json();
+          if (maskData.masked) {
+            workingText = String(maskData.masked);
+          }
+          if (Array.isArray(maskData.found)) {
+            maskedSummary = formatFoundPii(maskData.found);
           }
         }
       }
-    };
-    window.addEventListener('paste', handlePaste);
-    return () => window.removeEventListener('paste', handlePaste);
-  }, [packId, routePage]);
 
-  const pack = packs.find((p) => p.id === packId);
+      const mode = detectIntent(
+        workingText,
+        topic,
+        imageToUse && !explicitMode
+          ? /영수증|승인번호|부가세|공급가액|세액공제|세금계산서/.test(workingText)
+            ? 'tax'
+            : 'check'
+          : explicitMode,
+      );
 
-  function changeText(v: string) {
-    setText(v);
-    setPreview(null);
-    setResult(null);
-    setError('');
-  }
+      const questionTitle =
+        imageToUse && !trimmed
+          ? `📷 ${imageToUse.name} 점검`
+          : workingText.split('\n')[0].slice(0, 48);
 
-  async function handleImageFile(file: File) {
-    if (!file.type.startsWith('image/')) {
-      setError('이미지 파일(jpg, png, webp 등)만 지원해요.');
+      if (mode === 'tax') {
+        setLoadingLine('조세특례제한법·소득세법·부가가치세법 기준과 공제 요건을 계산하고 있어요…');
+        const filerType = /프리랜서/.test(workingText)
+          ? 'freelancer'
+          : /사업자|거래처|축의금|접대/.test(workingText)
+            ? 'individual_biz'
+            : 'wage_earner';
+        const res = await fetch('/api/check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'tax',
+            filerType,
+            text: workingText,
+          }),
+        });
+        const data = (await res.json()) as TaxApiResponse;
+        const nextTurn = buildTaxTurn(questionTitle, data, maskedSummary);
+        setTurns((prev) => {
+          const next = [...prev, nextTurn];
+          setTurnIndex(next.length - 1);
+          return next;
+        });
+      } else if (mode === 'check') {
+        setLoadingLine('계약서 조항을 한 줄씩 읽고 국가법령정보센터 법령·대법원 판례와 대조하고 있어요…');
+        const pack: ContractType =
+          topic === 'gym' || /헬스|PT|피트니스|회원권|트레이닝/.test(workingText) ? 'gym' : 'lease';
+        const res = await fetch('/api/check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'check',
+            pack,
+            text: workingText,
+            version: 'v2',
+          }),
+        });
+        const data = (await res.json()) as CheckResult;
+        const firstRisk = data.items.find((i) => i.verdict === '위험');
+        let lawData: LawLookupResponse | null = null;
+        if (firstRisk) {
+          try {
+            const lawRes = await fetch('/api/check', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'law', itemId: firstRisk.itemId }),
+            });
+            if (lawRes.ok) {
+              lawData = (await lawRes.json()) as LawLookupResponse;
+            }
+          } catch {
+            // ignore law lookup error
+          }
+        }
+        const nextTurn = buildCheckTurn(questionTitle, data, lawData, maskedSummary);
+        setTurns((prev) => {
+          const next = [...prev, nextTurn];
+          setTurnIndex(next.length - 1);
+          return next;
+        });
+      } else {
+        setLoadingLine('국가법령정보센터 실시간 법령과 대법원 판례를 찾아 답변을 정리하고 있어요…');
+        const pack =
+          topic === 'gym' || /헬스|PT|피트니스|회원권/.test(workingText) ? 'gym' : 'lease';
+        const res = await fetch('/api/check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'consult',
+            pack,
+            question: workingText,
+          }),
+        });
+        const data = (await res.json()) as ConsultApiResponse;
+        const nextTurn = buildConsultTurn(questionTitle, data, maskedSummary);
+        setTurns((prev) => {
+          const next = [...prev, nextTurn];
+          setTurnIndex(next.length - 1);
+          return next;
+        });
+      }
+    } catch {
+      const fallbackTurn: Turn = {
+        id: `turn-${Date.now()}`,
+        question: trimmed || '문의 내용',
+        speech:
+          '일시적으로 응답이 지연되었어요. 다시 한 번 질문해 주시거나 계약서·영수증 사진을 올려주시면 바로 살펴볼게요.',
+        mood: 'worry',
+        deck: [],
+        followups: [],
+      };
+      setTurns((prev) => {
+        const next = [...prev, fallbackTurn];
+        setTurnIndex(next.length - 1);
+        return next;
+      });
+    } finally {
+      setBusy(false);
+      setLoadingLine('');
+    }
+  };
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    void submitQuery(input);
+  };
+
+  const loadSampleContract = () => {
+    if (topic === 'tax') {
+      void submitQuery(
+        '무주택 세대주 직장인이고 총급여 5,800만 원입니다. 월세 75만 원 세액공제 한도와 홈택스 신청 방법을 알려주세요.',
+        'tax',
+      );
       return;
     }
-    setError('');
-    setBusy('ocr');
-    setPreview(null);
-    setResult(null);
+    const targetPack = topic === 'gym' ? 'gym' : 'lease';
+    const sample = SAMPLES.find((s) => s.pack === targetPack) ?? SAMPLES[0];
+    void submitQuery(sample.text, 'check');
+  };
 
-    try {
-      const dataUrl = await resizeImage(file);
-      setImagePreview(dataUrl);
-      const res = await post<OcrResult & MaskResult>({ action: 'ocr', image: dataUrl, pack: packId });
-      setText(res.text);
-      if (res.masked) {
-        setPreview({ masked: res.masked, found: res.found ?? [] });
-      }
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(null);
+  const mascotState = (() => {
+    if (busy) {
+      return {
+        mood: 'thinking' as Mood,
+        line: loadingLine || '법령과 대법원 판례를 꼼꼼히 살피고 있어요…',
+        text: loadingLine || '법령과 대법원 판례를 꼼꼼히 살피고 있어요…',
+        streaming: true,
+        messageId: 'loading',
+      };
     }
-  }
-
-  async function showPreview() {
-    setBusy('mask');
-    setError('');
-    setResult(null);
-    try {
-      setPreview(await post<MaskResult>({ action: 'mask', pack: packId, text }));
-      setTimeout(() => previewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(null);
+    if (activeTurn) {
+      return {
+        mood: activeTurn.mood,
+        line: activeTurn.speech,
+        text: streamText || activeTurn.speech,
+        streaming,
+        messageId: activeTurn.id,
+      };
     }
-  }
+    const welcomeByTopic: Record<TopicKey, string> = {
+      lease:
+        '안녕하세요, 법률·세무 도우미 **다온**이에요. **전월세 계약서 사진**을 찍어 올리거나 특약 문구·보증금 질문을 적어 주시면, 성명·주민번호 같은 개인정보는 먼저 가린 뒤 **관련 법령과 대법원 판례**로 알기 쉽게 풀이해 드릴게요.',
+      gym:
+        '안녕하세요, **다온**이에요. **헬스장·PT 계약서 사진**이나 환불 고민을 올려 주시면 **방문판매법·약관규제법** 기준에 맞는지, 얼마를 돌려받을 수 있는지 카드로 정리해 드릴게요.',
+      tax:
+        '안녕하세요, **다온**이에요. **월세 계약서나 카드 영수증 사진**을 올리거나 지출 내역을 물어보시면 **부가가치세·종합소득세·연말정산 세액공제** 여부를 한눈에 판정해 드릴게요.',
+    };
+    return {
+      mood: 'calm' as Mood,
+      line: welcomeByTopic[topic],
+      text: welcomeByTopic[topic],
+      streaming: false,
+      messageId: `welcome-${topic}`,
+    };
+  })();
 
-  async function runCheck() {
-    setBusy('check');
-    setError('');
-    setFilter('all');
-    try {
-      setResult(await post<CheckResult>({ action: 'check', pack: packId, text, version: 'v2' }));
-      setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function submitConsult(overrideQuestion?: string, overrideItemId?: string, overrideQuote?: string) {
-    const q = (overrideQuestion ?? consultQuestion).trim();
-    if (!q) return;
-    setBusy('consult');
-    setError('');
-    try {
-      const data = await post<ConsultResult>({
-        action: 'consult',
-        pack: packId,
-        itemId: overrideItemId ?? consultItemId,
-        question: q,
-        quote: overrideQuote ?? consultQuote,
-      });
-      setConsultResult(data);
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  function handleConsultFromCard(item: ItemResult, title: string) {
-    setConsultItemId(item.itemId);
-    setConsultQuote(item.quote ?? '');
-    const q = item.quote
-      ? `계약서에 "${item.quote}"라고 적혀 있는데 (${title}), 법적으로 불리한 이유와 상대방에게 수정을 요청할 방법이 궁금합니다.`
-      : `"${title}" 항목이 계약서에 빠져 있는데, 어떻게 특약 추가를 요청하면 좋을까요?`;
-    setConsultQuestion(q);
-    navigateTo('consult');
-    void submitConsult(q, item.itemId, item.quote ?? '');
-  }
-
-  async function copyDraft(draft: string) {
-    try {
-      await navigator.clipboard.writeText(draft);
-      setDraftCopied(true);
-      setTimeout(() => setDraftCopied(false), 1800);
-    } catch {
-      setDraftCopied(false);
-    }
-  }
-
-  async function submitTax(overrideText?: string, overrideFiler?: 'individual_biz' | 'wage_earner' | 'freelancer') {
-    const targetText = (overrideText ?? taxText).trim();
-    const targetFiler = overrideFiler ?? filerType;
-    if (!targetText) return;
-    setBusy('tax');
-    setError('');
-    try {
-      const data = await post<TaxCheckResult>({
-        action: 'tax',
-        text: targetText,
-        filerType: targetFiler,
-      });
-      setTaxResult(data);
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  const allItems = result ? [...result.items].sort((a, b) => ORDER[a.verdict] - ORDER[b.verdict]) : [];
-  const filteredItems = filter === 'all' ? allItems : allItems.filter((it) => it.verdict === filter);
-
-  const counts = result
-    ? {
-        위험: 0,
-        '언급 없음': 0,
-        보호됨: 0,
-        ...Object.fromEntries(['위험', '언급 없음', '보호됨'].map((v) => [v, result.items.filter((i) => i.verdict === v).length])),
-      }
-    : null;
+  const starters = STARTER_QUESTIONS[topic];
 
   return (
-    <FlexBox flexDirection="column" sx={{ minHeight: '100dvh' }}>
-      <FlexBox
-        as="header"
-        alignItems="center"
-        justifyContent="space-between"
-        sx={{ height: 56, padding: '0 20px', borderBottom: '1px solid rgba(112,115,124,0.22)', flex: 'none' }}
-      >
-        <a
-          href="/"
-          onClick={(e) => {
-            e.preventDefault();
-            navigateTo('home');
+    <div className="app app--chat">
+      <header className="topbar">
+        <button
+          type="button"
+          className="brand"
+          onClick={() => {
+            setTurns([]);
+            setTurnIndex(0);
           }}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}
         >
-          <span className="radar-mark" aria-hidden="true" />
-          <Typography as="h1" variant="headline1" weight="bold" color="semantic.foreground.neutral.strong" sx={{ margin: 0 }}>
-            계약서 특약 점검기
-          </Typography>
-        </a>
-        <nav aria-label="주 메뉴" style={{ display: 'flex', gap: 20, whiteSpace: 'nowrap', alignItems: 'center' }}>
-          <a
-            href="/"
-            onClick={(e) => {
-              e.preventDefault();
-              navigateTo('home');
-            }}
-            style={{ textDecoration: 'none' }}
-          >
-            <Typography
-              variant="label1"
-              weight={routePage === 'home' ? 'bold' : 'medium'}
-              color={routePage === 'home' ? 'semantic.foreground.neutral.strong' : 'semantic.foreground.neutral.tertiary'}
-            >
-              특약 점검
-            </Typography>
-          </a>
-          <a
-            href="/consult"
-            onClick={(e) => {
-              e.preventDefault();
-              navigateTo('consult');
-            }}
-            style={{ textDecoration: 'none' }}
-          >
-            <Typography
-              variant="label1"
-              weight={routePage === 'consult' ? 'bold' : 'medium'}
-              color={routePage === 'consult' ? 'semantic.foreground.neutral.strong' : 'semantic.foreground.neutral.tertiary'}
-            >
-              법률 상담
-            </Typography>
-          </a>
-          <a
-            href="/tax"
-            onClick={(e) => {
-              e.preventDefault();
-              navigateTo('tax');
-            }}
-            style={{ textDecoration: 'none' }}
-          >
-            <Typography
-              variant="label1"
-              weight={routePage === 'tax' ? 'bold' : 'medium'}
-              color={routePage === 'tax' ? 'semantic.foreground.neutral.strong' : 'semantic.foreground.neutral.tertiary'}
-            >
-              세무·경비 점검
-            </Typography>
-          </a>
-          <a href="/demo-contract.html" style={{ textDecoration: 'none' }}>
-            <Typography variant="label1" weight="medium" color="semantic.foreground.neutral.tertiary">
-              전자계약 체험
-            </Typography>
-          </a>
+          <span className="brand__seal" aria-hidden="true">
+            律
+          </span>
+          <span className="brand__title">다온 계약·법률·세무</span>
+        </button>
+
+        <nav className="profiles" aria-label="상담 분야 선택">
+          <ul className="profiles__list">
+            {TOPICS.map((t) => (
+              <li key={t.key}>
+                <button
+                  type="button"
+                  className={
+                    topic === t.key ? 'profile-chip profile-chip--active' : 'profile-chip'
+                  }
+                  onClick={() => setTopic(t.key)}
+                >
+                  <span className={`profile-chip__dot ${t.dotClass}`} aria-hidden="true" />
+                  <span>{t.label}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
         </nav>
-      </FlexBox>
+      </header>
 
-      <main className="page">
-        {routePage === 'home' && (
-          <>
-            <section className="hero">
-              <Typography variant="label2" color="semantic.foreground.neutral.tertiary">
-                주택임대차보호법 · 소비자분쟁해결기준 · 대법원 판례 대조
-              </Typography>
-              <Typography as="p" variant="display1" weight="bold" color="semantic.foreground.neutral.strong" sx={{ margin: '12px 0 16px' }}>
-                서명 전 계약서의 불리한 조항을
-                <br />
-                <span style={{ color: '#5b37ed' }}>근거 법령과 비교</span>해서 알려 드립니다.
-              </Typography>
-              <Typography variant="body1" color="semantic.foreground.neutral.secondary" sx={{ maxWidth: 660 }}>
-                전월세 특약이나 헬스장·PT 약관을 넣으면 주민등록번호·전화번호·계좌번호를 먼저 가린 뒤, 법정 점검 항목별로 위험한 문구와 누락된 보호 조항을 짚어 드립니다.
-              </Typography>
-              <FlexBox gap={12} alignItems="center" sx={{ marginTop: 24, flexWrap: 'wrap' }}>
-                <a href="#workspace" style={{ textDecoration: 'none' }}>
-                  <Button variant="solid" size="large">
-                    계약서 바로 점검하기
-                  </Button>
-                </a>
-                <Button variant="outlined" color="assistive" size="large" onClick={() => navigateTo('consult')}>
-                  법령·판례 상담하기
-                </Button>
-                <Button variant="outlined" color="assistive" size="large" onClick={() => navigateTo('tax')}>
-                  세무·경비 점검하기
-                </Button>
-              </FlexBox>
-            </section>
+      <div className="layout layout--chat">
+        <aside className="stage stage--chat" aria-label="다온의 풀이">
+          <Narrator
+            mood={mascotState.mood}
+            line={mascotState.line}
+            text={mascotState.text}
+            streaming={mascotState.streaming}
+            messageId={mascotState.messageId}
+          />
+        </aside>
 
-            <section aria-labelledby="layers-title">
-              <Typography id="layers-title" as="h2" variant="title3" weight="bold">
-                세 단계로 검증합니다
-              </Typography>
-              <ol className="cards">
-                {LAYERS.map(([title, body], i) => (
-                  <li key={title} className="card">
-                    <span className="num">{i + 1}</span>
-                    <Typography as="h3" variant="headline1" weight="bold">
-                      {title}
-                    </Typography>
-                    <Typography variant="body2" color="semantic.foreground.neutral.secondary">
-                      {body}
-                    </Typography>
-                  </li>
-                ))}
-              </ol>
-            </section>
+        <main className="main">
+          <div className="chat">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              style={{ display: 'none' }}
+              data-testid="file-input"
+            />
 
-            <section id="workspace" className="workspace-section" aria-labelledby="workspace-title">
-              <Typography id="workspace-title" as="h2" variant="title3" weight="bold">
-                계약서 점검 작업대
-              </Typography>
+            {!activeTurn && (
+              <section className="suggest" aria-label="시작 안내 및 추천 질문">
+                <div className="suggest__header">
+                  <span className="suggest__eyebrow">무엇이든 편하게 물어보세요</span>
+                  <h2 className="suggest__title">
+                    계약서·영수증 사진을 올리거나 궁금한 질문을 눌러보세요
+                  </h2>
+                </div>
 
-              <div className="pack-bar" role="radiogroup" aria-label="계약 종류">
-                {packs.map((p) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    role="radio"
-                    aria-checked={p.id === packId}
-                    className={p.id === packId ? 'pack-tab on' : 'pack-tab'}
-                    onClick={() => {
-                      setPackId(p.id);
-                      changeText('');
-                      setImagePreview(null);
-                    }}
-                  >
-                    <Typography
-                      variant="headline2"
-                      weight="bold"
-                      color={p.id === packId ? 'semantic.foreground.neutral.strong' : 'semantic.foreground.neutral.secondary'}
-                    >
-                      {p.name}
-                    </Typography>
-                    <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
-                      {p.kinds.join(' · ')} · {p.itemCount}개 항목
-                    </Typography>
-                  </button>
-                ))}
-              </div>
-
-              <div className="input-card">
-                <FlexBox alignItems="center" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
-                  <FlexBox alignItems="center" gap={8} sx={{ flexWrap: 'wrap' }}>
-                    <Typography variant="label2" color="semantic.foreground.neutral.tertiary">
-                      예시 넣기
-                    </Typography>
-                    {SAMPLES.filter((s) => s.pack === packId).map((s) => (
-                      <Chip key={s.label} variant="outlined" size="small" onClick={() => changeText(s.text)}>
-                        {s.label}
-                      </Chip>
-                    ))}
-                  </FlexBox>
-
-                  <FlexBox alignItems="center" gap={8}>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      capture="environment"
-                      ref={cameraInputRef}
-                      style={{ display: 'none' }}
-                      onChange={(e) => e.target.files?.[0] && handleImageFile(e.target.files[0])}
-                    />
-                    <Button
-                      variant="outlined"
-                      color="assistive"
-                      size="small"
-                      disabled={busy !== null}
-                      onClick={() => cameraInputRef.current?.click()}
-                      leadingContent={<IconCamera />}
-                    >
-                      사진 촬영
-                    </Button>
-
-                    <input
-                      type="file"
-                      accept="image/*"
-                      ref={fileInputRef}
-                      style={{ display: 'none' }}
-                      onChange={(e) => e.target.files?.[0] && handleImageFile(e.target.files[0])}
-                    />
-                    <Button
-                      variant="outlined"
-                      color="assistive"
-                      size="small"
-                      disabled={busy !== null}
-                      onClick={() => fileInputRef.current?.click()}
-                      leadingContent={<IconImage />}
-                    >
-                      이미지 파일
-                    </Button>
-                  </FlexBox>
-                </FlexBox>
-
-                {imagePreview && (
-                  <div className="image-strip">
-                    <img src={imagePreview} alt="업로드된 계약서 사진" className="image-thumb" />
-                    <div style={{ flex: 1 }}>
-                      <Typography variant="label2" weight="bold" color="semantic.foreground.neutral.strong">
-                        계약서 이미지에서 문구를 읽었습니다
-                      </Typography>
-                      <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
-                        아래 입력창에서 추출된 문구를 확인하거나 수정할 수 있습니다.
-                      </Typography>
-                    </div>
-                    <Button
-                      variant="outlined"
-                      color="assistive"
-                      size="small"
-                      onClick={() => {
-                        setImagePreview(null);
-                        setText('');
+                <div
+                  className="photo-dropcard"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => fileInputRef.current?.click()}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      fileInputRef.current?.click();
+                    }
+                  }}
+                >
+                  <div className="photo-dropcard__text">
+                    <strong>📷 계약서 · 영수증 사진 바로 첨부하기 (Ctrl+V 붙여넣기 지원)</strong>
+                    <span>
+                      성명·주민등록번호·연락처·계좌번호는 브라우저에서 자동으로 가린 뒤 안전하게 분석해요
+                    </span>
+                  </div>
+                  <div className="photo-dropcard__actions">
+                    <button
+                      type="button"
+                      className="pill-btn pill-btn--primary"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        fileInputRef.current?.click();
                       }}
                     >
-                      제거
-                    </Button>
-                  </div>
-                )}
-
-                {busy === 'ocr' && <p className="callout">계약서 사진에서 특약 조항을 읽고 있습니다…</p>}
-
-                <textarea
-                  aria-label="계약 문구"
-                  value={text}
-                  onChange={(e) => changeText(e.target.value)}
-                  placeholder={
-                    '계약서 특약사항이나 약관 문구를 붙여 넣으세요.\n\n예)\n특약사항\n1. 보증금은 다음 임차인이 들어오면 반환한다.\n2. 입주 후 모든 수선비는 임차인이 부담한다.'
-                  }
-                  rows={7}
-                />
-
-                <FlexBox alignItems="center" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
-                  <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
-                    {text.trim().length.toLocaleString('ko-KR')} / 4,000자 · 주민번호·전화번호·계좌번호는 자동으로 가려집니다
-                  </Typography>
-                  <Button variant="solid" size="medium" onClick={showPreview} disabled={busy !== null}>
-                    {busy === 'mask' ? '확인하는 중…' : '개인정보 가림 확인하기'}
-                  </Button>
-                </FlexBox>
-              </div>
-
-              {error && (
-                <p className="callout" data-level="error" role="alert">
-                  {error}
-                </p>
-              )}
-
-              {preview && (
-                <section ref={previewRef} className="preview-block" aria-labelledby="step3">
-                  <FlexBox alignItems="baseline" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
-                    <Typography id="step3" as="h3" variant="headline1" weight="bold">
-                      개인정보 가림 결과 확인
-                    </Typography>
-                    <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
-                      {preview.found.length
-                        ? `개인정보 ${preview.found.length}건 가림 완료 (${[...new Set(preview.found.map((f) => f.kind))].join(', ')})`
-                        : '감지된 개인정보 없음'}
-                    </Typography>
-                  </FlexBox>
-                  <pre className="masked" data-testid="masked-preview">
-                    {preview.masked}
-                  </pre>
-                  <FlexBox alignItems="center" justifyContent="flex-end" gap={12} sx={{ flexWrap: 'wrap' }}>
-                    <Button variant="solid" size="large" onClick={runCheck} disabled={busy !== null}>
-                      {busy === 'check' ? '법령 대조 및 점검 중…' : '이 내용으로 점검하기'}
-                    </Button>
-                  </FlexBox>
-                </section>
-              )}
-            </section>
-
-            {result && (
-              <section ref={resultRef} className="result-section" aria-labelledby="step4">
-                <FlexBox alignItems="baseline" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
-                  <Typography id="step4" as="h2" variant="title3" weight="bold">
-                    점검 결과
-                  </Typography>
-                  <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
-                    소요 시간 {Math.round(result.elapsedMs / 100) / 10}초 · 항목을 눌러 모아 볼 수 있습니다
-                  </Typography>
-                </FlexBox>
-
-                {counts && (
-                  <div className="stats" role="status">
-                    <button type="button" className={`stat ${filter === 'all' ? 'on' : ''}`} onClick={() => setFilter('all')}>
-                      <Typography variant="caption2" color="semantic.foreground.neutral.tertiary">
-                        전체 점검 항목
-                      </Typography>
-                      <Typography variant="heading2" weight="bold" color="semantic.foreground.neutral.strong">
-                        {allItems.length}건
-                      </Typography>
+                      사진 고르기
                     </button>
                     <button
                       type="button"
-                      className={`stat ${filter === '위험' ? 'on' : ''}`}
-                      onClick={() => setFilter(filter === '위험' ? 'all' : '위험')}
+                      className="pill-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        loadSampleContract();
+                      }}
+                      data-testid="sample-btn"
                     >
-                      <Typography variant="caption2" color="semantic.foreground.neutral.tertiary">
-                        위험
-                      </Typography>
-                      <Typography variant="heading2" weight="bold" sx={{ color: '#e52222' }}>
-                        {counts.위험}건
-                      </Typography>
-                    </button>
-                    <button
-                      type="button"
-                      className={`stat ${filter === '언급 없음' ? 'on' : ''}`}
-                      onClick={() => setFilter(filter === '언급 없음' ? 'all' : '언급 없음')}
-                    >
-                      <Typography variant="caption2" color="semantic.foreground.neutral.tertiary">
-                        언급 없음 · 확인 필요
-                      </Typography>
-                      <Typography variant="heading2" weight="bold" sx={{ color: '#9c5800' }}>
-                        {counts['언급 없음']}건
-                      </Typography>
-                    </button>
-                    <button
-                      type="button"
-                      className={`stat ${filter === '보호됨' ? 'on' : ''}`}
-                      onClick={() => setFilter(filter === '보호됨' ? 'all' : '보호됨')}
-                    >
-                      <Typography variant="caption2" color="semantic.foreground.neutral.tertiary">
-                        보호됨
-                      </Typography>
-                      <Typography variant="heading2" weight="bold" sx={{ color: '#0066ff' }}>
-                        {counts.보호됨}건
-                      </Typography>
+                      샘플 넣어보기
                     </button>
                   </div>
-                )}
-
-                {result.referenceOnly && (
-                  <p className="callout">
-                    <strong>전용 점검 항목이 없는 계약입니다.</strong> 일반 원칙에 비추어 주의해야 할 조항을 안내해 드립니다.
-                    {result.note && <span style={{ display: 'block', marginTop: 6 }}>{result.note}</span>}
-                  </p>
-                )}
-
-                <div className="clause-list">
-                  {filteredItems.map((it) => (
-                    <ResultCard
-                      key={it.itemId}
-                      item={it}
-                      info={pack?.items.find((i) => i.id === it.itemId)}
-                      onConsult={handleConsultFromCard}
-                    />
-                  ))}
                 </div>
+
+                <ul>
+                  {starters.map((s) => (
+                    <li key={s.label}>
+                      <button
+                        type="button"
+                        className="suggest__item"
+                        disabled={busy}
+                        onClick={() => void submitQuery(s.prompt, s.mode)}
+                      >
+                        <span>
+                          <span className="suggest__item-tag">{s.tag}</span>
+                          {s.label}
+                        </span>
+                        <IconArrowRight />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               </section>
             )}
 
-            <section id="sources" aria-labelledby="sources-title">
-              <Typography id="sources-title" as="h2" variant="title3" weight="bold">
-                법령 및 기준 출처
-              </Typography>
-              <Typography variant="body2" color="semantic.foreground.neutral.secondary">
-                모든 판정은 공식 법령과 행정 규칙, 대법원 판례 원문을 바탕으로 이루어집니다.
-              </Typography>
-              <table className="sources">
-                <thead>
-                  <tr>
-                    <th scope="col">대상 영역</th>
-                    <th scope="col">근거 기관</th>
-                    <th scope="col">적용 법령 및 기준</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {SOURCES.map(([field, org, use]) => (
-                    <tr key={field}>
-                      <td>{field}</td>
-                      <td>{org}</td>
-                      <td>{use}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </section>
-
-            <section id="principles" aria-labelledby="principles-title">
-              <Typography id="principles-title" as="h2" variant="title3" weight="bold">
-                지키는 원칙
-              </Typography>
-              <ul className="principles">
-                <li>
-                  <strong>개인정보를 외부로 보내지 않습니다.</strong> 주민등록번호, 전화번호, 계좌번호, 동·호수는 전송 전에 먼저 가려지며, 가려진 전문을 직접 확인한 뒤에야 점검이 실행됩니다.
-                </li>
-                <li>
-                  <strong>계약서에 없는 문구를 지어내지 않습니다.</strong> 근거로 삼은 문장이 실제 계약서 원문에 존재하지 않으면 즉시 제외하여 잘못된 경고를 막습니다.
-                </li>
-                <li>
-                  <strong>법률 자문을 대체하지 않습니다.</strong> 본 서비스는 서명 전 위험 신호를 빠르게 짚어 주는 점검 도구이며, 중요한 계약 체결 전에는 공인중개사나 법률·세무 전문가와 상의하시기 바랍니다.
-                </li>
-              </ul>
-            </section>
-          </>
-        )}
-
-        {routePage === 'consult' && (
-          <section className="workspace-section" aria-labelledby="consult-page-title">
-            <div>
-              <Typography variant="label2" color="semantic.foreground.neutral.tertiary">
-                주택임대차 · 소비자 약관 맞춤 상담
-              </Typography>
-              <Typography id="consult-page-title" as="h2" variant="title2" weight="bold" sx={{ marginTop: 4 }}>
-                법령 · 대법원 판례 기반 법률 상담
-              </Typography>
-              <Typography variant="body2" color="semantic.foreground.neutral.secondary" sx={{ marginTop: 6 }}>
-                계약서에서 걸리는 문구나 분쟁 상황을 적어 주시면, 관련 법령 조문과 대법원 판례를 근거로 해결 방법과 상대방에게 보낼 정중한 문자 초안을 정리해 드립니다.
-              </Typography>
-            </div>
-
-            {error && (
-              <p className="callout" data-level="error" role="alert">
-                {error}
-              </p>
-            )}
-
-            <div className="input-card" data-testid="consult-panel">
-              <FlexBox alignItems="center" gap={8} sx={{ flexWrap: 'wrap' }}>
-                <Typography variant="label2" color="semantic.foreground.neutral.tertiary">
-                  자주 묻는 상황
-                </Typography>
-                {CONSULT_PRESETS.map((preset) => (
-                  <Chip
-                    key={preset.label}
-                    variant="outlined"
-                    size="small"
+            {activeTurn && (
+              <section className="turn" aria-label="현재 풀이 및 시각화 카드">
+                <header className="turn__question">
+                  <button
+                    type="button"
+                    className="turn__step"
+                    onClick={() => setTurnIndex((i) => Math.max(0, i - 1))}
+                    disabled={turnIndex === 0}
+                    aria-label="이전 질문"
+                  >
+                    ◀
+                  </button>
+                  <p title={activeTurn.question}>
+                    {turns.length > 1 && (
+                      <span className="turn__count">
+                        {turnIndex + 1}/{turns.length}
+                      </span>
+                    )}
+                    {activeTurn.question}
+                  </p>
+                  <button
+                    type="button"
+                    className="turn__step"
+                    onClick={() => setTurnIndex((i) => Math.min(turns.length - 1, i + 1))}
+                    disabled={turnIndex >= turns.length - 1}
+                    aria-label="다음 질문"
+                  >
+                    ▶
+                  </button>
+                  <button
+                    type="button"
+                    className="turn__reset"
                     onClick={() => {
-                      setConsultItemId(undefined);
-                      setConsultQuote('');
-                      setConsultQuestion(preset.question);
-                      void submitConsult(preset.question, undefined, '');
+                      setTurns([]);
+                      setTurnIndex(0);
                     }}
                   >
-                    {preset.label}
-                  </Chip>
-                ))}
-              </FlexBox>
+                    처음으로
+                  </button>
+                </header>
 
-              <textarea
-                aria-label="법률 상담 질문"
-                value={consultQuestion}
-                onChange={(e) => setConsultQuestion(e.target.value)}
-                rows={4}
-                placeholder="특약 조항이나 계약 분쟁 상황을 입력해 주세요. (주민번호·전화번호·계좌번호는 자동으로 가려집니다)"
-              />
-
-              <FlexBox alignItems="center" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
-                <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
-                  현행 법령 조문 · 대법원 판례 · 소비자분쟁해결기준 대조
-                </Typography>
-                <Button variant="solid" size="medium" disabled={busy !== null} onClick={() => void submitConsult()}>
-                  {busy === 'consult' ? '법령과 판례를 확인하는 중…' : '상담 결과 보기'}
-                </Button>
-              </FlexBox>
-
-              {consultResult && (
-                <div className="advisor-result" data-testid="consult-result">
-                  <div className="advisor-headline-box">
-                    <div className="advisor-meta-row">
-                      <span className="verdict-chip safe">{consultResult.itemTitle}</span>
-                      <span className="advisor-law-tag">
-                        {consultResult.law.statute.lawName} · {consultResult.law.statute.article}
-                      </span>
-                      <a
-                        href={consultResult.law.statute.officialUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="law-ext-link"
-                      >
-                        법령 원문 보기 ↗
-                      </a>
-                    </div>
-                    <Typography as="h3" variant="headline1" weight="bold" color="semantic.foreground.neutral.strong" sx={{ marginTop: 8 }}>
-                      {consultResult.headline}
-                    </Typography>
-                    <Typography variant="body2" color="semantic.foreground.neutral.secondary" sx={{ marginTop: 8 }}>
-                      {consultResult.analysis}
-                    </Typography>
+                {activeTurn.maskedSummary && (
+                  <div className="mask-banner" role="status">
+                    <span>🔒 {activeTurn.maskedSummary}</span>
                   </div>
+                )}
 
-                  <div className="advisor-draft-box">
-                    <FlexBox alignItems="center" justifyContent="space-between" gap={8} sx={{ marginBottom: 8 }}>
-                      <Typography variant="label2" weight="bold" color="semantic.foreground.neutral.strong">
-                        임대인·중개사·사업자에게 보낼 문자 초안
-                      </Typography>
-                      <Button
-                        variant="outlined"
-                        color="assistive"
-                        size="small"
-                        onClick={() => void copyDraft(consultResult.messageDraft)}
-                        leadingContent={draftCopied ? <IconCheck /> : <IconCopy />}
-                      >
-                        {draftCopied ? '복사했어요' : '문자 초안 복사'}
-                      </Button>
-                    </FlexBox>
-                    <pre className="advisor-draft-text">{consultResult.messageDraft}</pre>
-                  </div>
-
-                  {consultResult.law.precedents.length > 0 && (
-                    <div className="prec-block">
-                      <div className="prec-head">참고 대법원 판례</div>
-                      <ul className="prec-list">
-                        {consultResult.law.precedents.slice(0, 2).map((p) => (
-                          <li key={p.id || p.caseNumber} className="prec-item">
-                            <div className="prec-title-row">
-                              <span className="prec-case">
-                                {p.courtName} {p.decisionDate} 선고 <strong>{p.caseNumber}</strong>
-                              </span>
-                              <a href={p.officialUrl} target="_blank" rel="noreferrer" className="law-ext-link">
-                                판례 전문 ↗
-                              </a>
-                            </div>
-                            {p.caseName && <div className="prec-name">{p.caseName}</div>}
-                            {p.summary && <p className="prec-summary">{p.summary}</p>}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {consultResult.graphRag && consultResult.graphRag.subgraph.matchedCases.length > 0 && (
-                    <div className="prec-block">
-                      <div className="prec-head">유사 분쟁 해결 사례</div>
-                      <ul className="prec-list">
-                        {consultResult.graphRag.subgraph.matchedCases.slice(0, 2).map((c) => (
-                          <li key={c.id} className="prec-item">
-                            <div className="prec-title-row">
-                              <span className="prec-name">{c.label}</span>
-                              <span className="advisor-law-tag">{c.statuteRef}</span>
-                            </div>
-                            <p className="prec-summary">{c.headline}</p>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  <div className="followup-block">
-                    <Typography variant="label2" weight="bold" color="semantic.foreground.neutral.secondary">
-                      이어서 궁금한 점 물어보기
-                    </Typography>
-                    <div className="followup-list">
-                      {consultResult.followups.map((fq, i) => (
-                        <button
-                          key={i}
-                          type="button"
-                          className="followup-chip"
-                          onClick={() => {
-                            setConsultQuestion(fq);
-                            void submitConsult(fq, consultResult.itemId, '');
-                          }}
-                        >
-                          <span>{fq}</span>
-                          <span aria-hidden="true">→</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </section>
-        )}
-
-        {routePage === 'tax' && (
-          <section className="workspace-section" aria-labelledby="tax-page-title">
-            <div>
-              <Typography variant="label2" color="semantic.foreground.neutral.tertiary">
-                부가가치세 · 종합소득세 · 연말정산 월세 세액공제
-              </Typography>
-              <Typography id="tax-page-title" as="h2" variant="title2" weight="bold" sx={{ marginTop: 4 }}>
-                영수증 · 임대차 계약 세무·경비 점검
-              </Typography>
-              <Typography variant="body2" color="semantic.foreground.neutral.secondary" sx={{ marginTop: 6 }}>
-                월세 이체 내역이나 영수증·거래 내역을 입력하시면 세법 조문과 판례를 바탕으로 세액공제·필요경비 인정 여부와 홈택스 신청 방법을 알려 드립니다.
-              </Typography>
-            </div>
-
-            {error && (
-              <p className="callout" data-level="error" role="alert">
-                {error}
-              </p>
+                <VisualDeck items={activeTurn.deck} />
+              </section>
             )}
 
-            <div className="input-card" data-testid="tax-panel">
-              <FlexBox alignItems="center" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
-                <FlexBox alignItems="center" gap={8} sx={{ flexWrap: 'wrap' }}>
-                  <Typography variant="label2" color="semantic.foreground.neutral.tertiary">
-                    신고 유형
-                  </Typography>
-                  {([
-                    ['wage_earner', '직장인 (연말정산·월세공제)'],
-                    ['individual_biz', '개인사업자 (부가세·종소세)'],
-                    ['freelancer', '프리랜서 (3.3% 사업소득)'],
-                  ] as const).map(([id, label]) => (
-                    <Chip
-                      key={id}
-                      variant={filerType === id ? 'solid' : 'outlined'}
-                      size="small"
-                      onClick={() => setFilerType(id)}
-                    >
-                      {label}
-                    </Chip>
-                  ))}
-                </FlexBox>
-              </FlexBox>
-
-              <FlexBox alignItems="center" gap={8} sx={{ flexWrap: 'wrap' }}>
-                <Typography variant="label2" color="semantic.foreground.neutral.tertiary">
-                  자주 찾는 사례
-                </Typography>
-                {TAX_PRESETS.map((preset) => (
-                  <Chip
-                    key={preset.label}
-                    variant="outlined"
-                    size="small"
-                    onClick={() => {
-                      setFilerType(preset.filer);
-                      setTaxText(preset.text);
-                      void submitTax(preset.text, preset.filer);
-                    }}
-                  >
-                    {preset.label}
-                  </Chip>
-                ))}
-              </FlexBox>
-
-              <textarea
-                aria-label="세무 점검 대상 문구"
-                value={taxText}
-                onChange={(e) => setTaxText(e.target.value)}
-                rows={4}
-                placeholder="월세 입금 내역이나 영수증·거래명세서 지출 내역을 입력해 주세요."
-              />
-
-              <FlexBox alignItems="center" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
-                <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
-                  부가가치세법 · 소득세법 · 조세특례제한법 기준 대조
-                </Typography>
-                <Button variant="solid" size="medium" disabled={busy !== null} onClick={() => void submitTax()}>
-                  {busy === 'tax' ? '세법 기준을 확인하는 중…' : '공제·경비 가능 여부 확인하기'}
-                </Button>
-              </FlexBox>
-
-              {taxResult && (
-                <div className="advisor-result" data-testid="tax-result">
-                  <div className="tax-grid">
-                    <div className="tax-metric">
-                      <span className="tax-metric-label">부가가치세</span>
-                      <strong className="tax-metric-val">{taxResult.vatVerdict}</strong>
-                    </div>
-                    <div className="tax-metric">
-                      <span className="tax-metric-label">종합소득세 · 연말정산</span>
-                      <strong className="tax-metric-val">{taxResult.incomeTaxVerdict}</strong>
-                    </div>
-                    <div className="tax-metric">
-                      <span className="tax-metric-label">회계 계정과목</span>
-                      <strong className="tax-metric-val">{taxResult.accountTitle}</strong>
-                    </div>
-                  </div>
-
-                  <div className="advisor-headline-box">
-                    <div className="advisor-meta-row">
-                      <span className="advisor-law-tag">
-                        {taxResult.law.statute.lawName} · {taxResult.law.statute.article}
-                      </span>
-                      <a
-                        href={taxResult.law.statute.officialUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="law-ext-link"
-                      >
-                        세법 조문 보기 ↗
-                      </a>
-                    </div>
-                    <Typography as="h3" variant="headline1" weight="bold" color="semantic.foreground.neutral.strong" sx={{ marginTop: 8 }}>
-                      {taxResult.headline}
-                    </Typography>
-                    <Typography variant="body2" color="semantic.foreground.neutral.secondary" sx={{ marginTop: 8 }}>
-                      {taxResult.analysis}
-                    </Typography>
-                  </div>
-
-                  <div className="advisor-draft-box">
-                    <Typography variant="label2" weight="bold" color="semantic.foreground.neutral.strong">
-                      필요 증빙 및 홈택스 신청 방법
-                    </Typography>
-                    <p style={{ margin: '6px 0 4px', fontSize: 13, color: '#171719', fontWeight: 600 }}>
-                      · 증빙 서류: {taxResult.evidenceStatus}
-                    </p>
-                    <p style={{ margin: 0, fontSize: 13, color: 'rgba(46,47,51,0.88)', lineHeight: 1.6 }}>
-                      · 신청 경로: {taxResult.hometaxGuide}
-                    </p>
-                  </div>
-
-                  {taxResult.law.precedents.length > 0 && (
-                    <div className="prec-block">
-                      <div className="prec-head">참고 대법원 판례</div>
-                      <ul className="prec-list">
-                        {taxResult.law.precedents.slice(0, 2).map((p) => (
-                          <li key={p.id || p.caseNumber} className="prec-item">
-                            <div className="prec-title-row">
-                              <span className="prec-case">
-                                {p.courtName} {p.decisionDate} 선고 <strong>{p.caseNumber}</strong>
-                              </span>
-                              <a href={p.officialUrl} target="_blank" rel="noreferrer" className="law-ext-link">
-                                판례 전문 ↗
-                              </a>
-                            </div>
-                            {p.caseName && <div className="prec-name">{p.caseName}</div>}
-                            {p.summary && <p className="prec-summary">{p.summary}</p>}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  <div className="followup-block">
-                    <Typography variant="label2" weight="bold" color="semantic.foreground.neutral.secondary">
-                      이어서 궁금한 점 물어보기
-                    </Typography>
-                    <div className="followup-list">
-                      {taxResult.followups.map((fq, i) => (
+            <div className="dock">
+              {activeTurn && activeTurn.followups.length > 0 && !busy && (
+                <details ref={followupRef} className="followup">
+                  <summary className="followup__toggle">
+                    <span>이어서 물어보기</span>
+                    <IconChevronDown />
+                  </summary>
+                  <ul className="next-questions" aria-label="이어서 물어볼 만한 질문">
+                    {activeTurn.followups.map((q) => (
+                      <li key={q}>
                         <button
-                          key={i}
                           type="button"
-                          className="followup-chip"
                           onClick={() => {
-                            setTaxText(fq);
-                            void submitTax(fq, filerType);
+                            followupRef.current?.removeAttribute('open');
+                            void submitQuery(q);
                           }}
                         >
-                          <span>{fq}</span>
-                          <span aria-hidden="true">→</span>
+                          {q}
                         </button>
-                      ))}
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+
+              {attachedImage && (
+                <div className="attachment-bar" data-testid="attachment-preview">
+                  <div className="attachment-bar__left">
+                    <img
+                      src={attachedImage.dataUrl}
+                      alt={attachedImage.name}
+                      className="attachment-bar__thumb"
+                    />
+                    <div className="attachment-bar__meta">
+                      <strong>{attachedImage.name}</strong>
+                      <span>전송 버튼을 누르면 개인정보를 자동으로 가린 뒤 바로 점검해요</span>
                     </div>
                   </div>
+                  <button
+                    type="button"
+                    className="attachment-bar__remove"
+                    onClick={() => setAttachedImage(null)}
+                    aria-label="첨부 이미지 지우기"
+                  >
+                    ×
+                  </button>
                 </div>
               )}
-            </div>
-          </section>
-        )}
 
-        <footer className="footer">
-          <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
-            계약서 특약 점검기 · 주택임대차보호법 및 소비자분쟁해결기준 기반
-          </Typography>
-        </footer>
-      </main>
-    </FlexBox>
+              <form className="composer" onSubmit={handleSubmit}>
+                <button
+                  type="button"
+                  className="composer__attach"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={busy}
+                  aria-label="계약서 또는 영수증 사진 첨부"
+                  data-testid="composer-attach"
+                >
+                  <span aria-hidden="true">📷</span>
+                  <span>사진 첨부</span>
+                </button>
+                <textarea
+                  rows={1}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onPaste={handlePaste}
+                  onKeyDown={(e) => {
+                    if (
+                      e.key === 'Enter' &&
+                      !e.shiftKey &&
+                      !e.nativeEvent.isComposing &&
+                      (input.trim() || attachedImage)
+                    ) {
+                      e.preventDefault();
+                      void submitQuery(input);
+                    }
+                  }}
+                  placeholder={
+                    attachedImage
+                      ? '사진과 함께 물어볼 내용을 적거나 바로 전송을 눌러주세요'
+                      : '계약서·영수증 사진을 첨부하거나 특약·법률·세금 질문을 적어보세요'
+                  }
+                  disabled={busy}
+                  aria-label="다온에게 질문하기"
+                  data-testid="composer-input"
+                />
+                <button
+                  className="composer__send"
+                  type="submit"
+                  disabled={busy || (!input.trim() && !attachedImage)}
+                  aria-label="보내기"
+                  data-testid="composer-send"
+                >
+                  <IconArrowUp />
+                </button>
+              </form>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
   );
 }
