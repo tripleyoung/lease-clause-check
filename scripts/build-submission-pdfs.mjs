@@ -12,7 +12,6 @@ async function generateSubmissionPdfs() {
     const guidePage = await browser.newPage();
     const mdContent = fs.readFileSync('submission/00_과제제출_최종안내문.md', 'utf-8');
 
-    // Simple markdown formatting helper
     let bodyHtml = mdContent
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
@@ -27,7 +26,6 @@ async function generateSubmissionPdfs() {
       .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
       .replace(/\n\n/g, '<br><br>');
 
-    // Wrap in standard clean styled document
     const guideHtml = `<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -114,23 +112,68 @@ ${bodyHtml}
     });
     console.log('✓ 00_과제제출_최종안내문.pdf successfully generated.');
 
-    // 2. 01_발표자료_계약서특약점검기.pdf
-    console.log('Generating 01_발표자료_계약서특약점검기.pdf...');
-    const slidePage = await browser.newPage();
+    // 2. 01_발표자료_계약서특약점검기.pdf (Exactly 6 pages, 1 slide per page, 16:9 ratio)
+    console.log('Generating pixel-perfect 6-page 01_발표자료_계약서특약점검기.pdf...');
+    const slidePage = await browser.newPage({ viewport: { width: 1440, height: 810 } });
     const slideHtmlPath = path.resolve('submission/01_발표자료_계약서특약점검기.html');
     await slidePage.goto(`file://${slideHtmlPath}`, { waitUntil: 'networkidle' });
 
-    // Emulate screen media to preserve high-contrast dark theme or clean presentation theme
-    await slidePage.emulateMedia({ media: 'screen' });
+    // Capture each slide at 2x resolution
+    const slideCount = await slidePage.locator('.slide').count();
+    console.log(`Found ${slideCount} slides in deck.`);
+    const slideImages = [];
 
-    await slidePage.pdf({
+    for (let i = 0; i < slideCount; i++) {
+      const slide = slidePage.locator('.slide').nth(i);
+      const buffer = await slide.screenshot({ scale: 'device' });
+      slideImages.push(buffer.toString('base64'));
+    }
+
+    // Compose a perfect 6-page presentation print document
+    const pdfComposeHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    @page {
+      size: 16in 9in;
+      margin: 0;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0f172a; }
+    .page {
+      width: 16in;
+      height: 9in;
+      page-break-after: always;
+      break-after: page;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background: #0f172a;
+    }
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+  </style>
+</head>
+<body>
+  ${slideImages.map((b64, idx) => `<div class="page"><img src="data:image/png;base64,${b64}" alt="Slide ${idx+1}"></div>`).join('\n')}
+</body>
+</html>`;
+
+    const printPage = await browser.newPage();
+    await printPage.setContent(pdfComposeHtml, { waitUntil: 'networkidle' });
+    await printPage.pdf({
       path: 'submission/01_발표자료_계약서특약점검기.pdf',
-      format: 'A4',
-      landscape: true,
+      width: '16in',
+      height: '9in',
       printBackground: true,
-      margin: { top: '10mm', bottom: '10mm', left: '10mm', right: '10mm' }
+      margin: { top: '0', bottom: '0', left: '0', right: '0' }
     });
-    console.log('✓ 01_발표자료_계약서특약점검기.pdf successfully generated.');
+    console.log('✓ 01_발표자료_계약서특약점검기.pdf successfully generated (exact 6 pages, 16:9).');
 
   } finally {
     await browser.close();
