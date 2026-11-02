@@ -49,29 +49,24 @@ export async function extractTextFromImage(imageDataUrl: string): Promise<string
     });
   };
 
-  try {
-    let res;
+  const models = ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.1-flash-lite', 'gemini-flash-lite-latest'];
+  let res;
+  for (const m of models) {
     try {
-      // 1순위: Gemini 3.8 Flash (6초 제한, 지연/쿼터초과 시 즉시 fallback)
-      res = await tryCall('gemini-3.8-flash', 6_000);
-    } catch (primaryErr) {
-      console.warn('[OCR] gemini-3.8-flash delayed or failed, falling back immediately to gemini-3.6-flash:', (primaryErr as Error)?.message);
-      // 2순위 Fallback: Gemini 3.6 Flash (18초)
-      res = await tryCall('gemini-3.6-flash', 18_000);
+      res = await tryCall(m, m.includes('lite') ? 12_000 : 4_000);
+      if (res?.text?.trim()) break;
+    } catch (err) {
+      console.warn(`[OCR] ${m} delayed/failed, trying next fallback:`, (err as Error)?.message);
     }
-
-    const text = res.text.trim();
-    if (!text || text.length < 5) {
-      throw new CheckError(422, '사진에서 계약서 특약 조항 문구를 식별하지 못했어요. 조항 부분이 잘 보이도록 다시 찍어 주세요.');
-    }
-    return text;
-  } catch (err) {
-    if (err instanceof CheckError) throw err;
-    const msg = String((err as Error)?.message ?? '');
-    if (/timeout|aborted/i.test(msg)) {
-      throw new CheckError(504, '사진 분석 시간이 초과되었어요. 이미지 용량을 줄이거나 잠시 후 다시 시도해 주세요.');
-    }
-    console.error('[OCR] Error extracting text from image:', (err as Error)?.message, (err as Error)?.stack);
-    throw new CheckError(502, `사진 분석 오류: ${(err as Error)?.message || '알 수 없는 오류'}`);
   }
+
+  if (!res?.text?.trim()) {
+    throw new CheckError(502, '사진을 분석하는 중 일시적인 오류가 발생했어요. 잠시 후 다시 시도해 주세요.');
+  }
+
+  const text = res.text.trim();
+  if (text.length < 5) {
+    throw new CheckError(422, '사진에서 계약서 특약 조항 문구를 식별하지 못했어요. 조항 부분이 잘 보이도록 다시 찍어 주세요.');
+  }
+  return text;
 }

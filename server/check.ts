@@ -79,13 +79,16 @@ export async function check(input: CheckInput, deps: { model?: LanguageModel } =
     raw = res.output.items;
   } catch (e) {
     if (!deps.model) {
-      try {
-        const fallback = await resolveModel(process.env, 'gemini-3.6-flash');
-        const res = await call(() => generateText({ ...opts(fallback.model, 18_000), ...p, output: Output.object({ schema: schemaFor(pack) }) }), true);
-        raw = res.output.items;
-      } catch (e2) {
-        if (e2 instanceof CheckError) throw e2;
-        raw = null;
+      const fallbackModels = ['gemini-3.6-flash', 'gemini-3.1-flash-lite', 'gemini-flash-lite-latest'];
+      for (const m of fallbackModels) {
+        try {
+          const fallback = await resolveModel(process.env, m);
+          const res = await call(() => generateText({ ...opts(fallback.model, m.includes('lite') ? 14_000 : 5_000), ...p, output: Output.object({ schema: schemaFor(pack) }) }), false);
+          raw = res.output.items;
+          if (raw) break;
+        } catch (e2) {
+          console.warn(`[CHECK] ${m} fallback failed:`, (e2 as Error)?.message);
+        }
       }
     } else {
       if (e instanceof CheckError) throw e;
