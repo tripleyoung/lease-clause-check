@@ -1,13 +1,12 @@
 /**
- * 온율(溫律) PC 환경 정밀 시연 영상 녹화 스크립트 (1440x900 MacBook/PC 해상도)
+ * 온율(溫律) PC 환경 실제 사진 업로드 & AI 정밀 점검 시연 영상 (1440x900)
  * 
  * 사용자 피드백 100% 반영:
- * 1. 실제 계약서 사진 파일 직접 첨부(업로드) 및 개인정보 가림 안내바 테스트
- * 2. 1:1 스캔 서식에서 3번 독소 조항 핀포인트 클릭 시 형광펜 하이라이트 반응 명확화 (기본 1번 -> 3번 클릭)
- * 3. 전체화면 모달 내부에서 위아래로 부드럽게 스크롤하여 하단 특약 핀과 형광펜 문구 정밀 검증
- * 4. 가상 마우스 커서 + 클릭 시 시각적 파동(Ripple) 효과
- * 5. 상단 안내 자막 배너 실시간 표출
- * 6. 약 1분 35초~1분 45초의 넉넉한 호흡으로 쾌적한 가독성 확보
+ * 1. 실제 계약서 사진(scanned_lease_contract.png)을 직접 업로드하고 전송하여 AI 실시간 OCR & 법령 대조 실행
+ * 2. 업로드된 문서 위에서 2번/3번 독소 조항 핀 클릭 ➔ 단청 빨강 형광펜 하이라이트 실시간 연동
+ * 3. 스캔문서 고해상도 전체화면 모달 오픈 ➔ 내부 스크롤로 계약서 전체 및 하단 특약사항 핀 정밀 검증
+ * 4. 공인중개사용 대체 특약 복사 & 대법원 판례 해설 정독
+ * 5. 가상 마우스 커서 + 클릭 시 시각적 파동(Ripple) 효과 + 상단 안내 자막 배너
  */
 import { chromium } from 'playwright';
 import { execSync } from 'child_process';
@@ -24,7 +23,7 @@ const RAW_VIDEO_DIR = path.resolve(ROOT_DIR, 'temp-recordings');
 if (!fs.existsSync(SUBMISSION_DIR)) fs.mkdirSync(SUBMISSION_DIR, { recursive: true });
 if (!fs.existsSync(RAW_VIDEO_DIR)) fs.mkdirSync(RAW_VIDEO_DIR, { recursive: true });
 
-async function recordComprehensivePCDemo() {
+async function recordLiveUploadDemo() {
   console.log('1. Starting Playwright with 1440x900 PC Viewport & Virtual Cursor...');
   
   const browser = await chromium.launch({
@@ -96,7 +95,7 @@ async function recordComprehensivePCDemo() {
     `;
     document.body.appendChild(cursor);
 
-    // 3) 상단 고정 설명 자막 배너 (가독성 높은 짙은 슬레이트 + 블루/레드 뱃지)
+    // 3) 상단 고정 설명 자막 배너
     const caption = document.createElement('div');
     caption.id = 'demo-caption-overlay';
     caption.style.position = 'fixed';
@@ -183,7 +182,7 @@ async function recordComprehensivePCDemo() {
   };
 
   // ========================================================
-  // 시연 시나리오 시작 (총 약 95~105초 정밀 구성)
+  // 시연 시나리오: 실제 파일 업로드 ➔ 실시간 점검 파이프라인
   // ========================================================
 
   // [00:00 ~ 00:15] STEP 1: 빅데이터 위험률 도넛 차트 둘러보기 & 빠른 체험 진입
@@ -209,9 +208,9 @@ async function recordComprehensivePCDemo() {
     await page.waitForTimeout(1800);
   }
 
-  // [00:15 ~ 00:32] STEP 2: 실제 계약서 사진 파일 직접 첨부(업로드) 테스트!
-  await setCaption('STEP 2 · 실제 파일 첨부', '계약서 사진 직접 첨부 테스트 ➔ 개인정보 자동 마스킹 및 첨부 상태 실시간 확인', 'green');
-  console.log('STEP 2: Real file upload test');
+  // [00:15 ~ 00:40] STEP 2: 실제 계약서 사진 직접 첨부(업로드) & AI 분석 전송!
+  await setCaption('STEP 2 · 실제 파일 첨부', '계약서 사진 직접 첨부(scanned_lease_contract.png) ➔ 개인정보 자동 마스킹 준비', 'green');
+  console.log('STEP 2: Real file upload and send');
   await page.waitForTimeout(1000);
 
   const photoDropCard = page.locator('.photo-dropcard').first();
@@ -224,125 +223,104 @@ async function recordComprehensivePCDemo() {
   const sampleFilePath = path.resolve(ROOT_DIR, 'public/samples/scanned_lease_contract.png');
   const fileInput = page.locator('[data-testid="file-input"]');
   await fileInput.setInputFiles(sampleFilePath);
-  await page.waitForTimeout(1200);
+  await page.waitForTimeout(1500);
 
   // 첨부 바 확인 & 마우스로 첨부 바 둘러보기
   const attachmentBar = page.locator('[data-testid="attachment-preview"]');
   if (await attachmentBar.isVisible()) {
-    await setCaption('STEP 2 · 개인정보 보호', 'scanned_lease_contract.png 첨부 완료 ➔ 이름·주민번호 브라우저 자동 가림 준비', 'green');
     await moveCursorTo(attachmentBar);
-    await page.waitForTimeout(3000); // 사용자가 첨부 바를 충분히 인지할 수 있도록 머무름
+    await page.waitForTimeout(2500);
+  }
 
-    // 공식 표준 서식 1:1 대조 및 전체화면 시연을 위해 첨부 파일 닫기 클릭
-    const removeBtn = page.locator('.attachment-bar__remove');
-    if (await removeBtn.isVisible()) {
-      await clickWithCursor(removeBtn);
-      await page.waitForTimeout(1200);
+  // ★ 전송 버튼 클릭하여 실제 업로드 분석 시작!
+  await setCaption('STEP 2 · AI 실시간 분석', '전송 버튼 클릭 ➔ Gemini Vision 실시간 OCR 특약 추출 & 개인정보 자동 마스킹 가동', 'green');
+  const sendBtn = page.locator('[data-testid="composer-send"]');
+  await clickWithCursor(sendBtn);
+
+  // AI OCR 분석 및 법령 대조 완료 대기
+  await page.waitForSelector('.turn', { timeout: 45000 });
+  await page.waitForTimeout(3000);
+
+  // [00:40 ~ 01:05] STEP 3: 업로드된 계약서 실물 1:1 대조 & 2번/3번 독소 조항 핀포인팅
+  await setCaption('STEP 3 · 업로드 계약서 대조', '업로드된 계약서 원본 위 조항 핀포인팅 ➔ 2번 독소 조항 클릭으로 위험 식별', 'red');
+  console.log('STEP 3: Uploaded document pinpoint check');
+
+  // 시각화 카드로 스크롤
+  await page.evaluate(() => {
+    const deck = document.querySelector('.annotated-deck') || document.querySelector('.turn');
+    if (deck) deck.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+  await page.waitForTimeout(2000);
+
+  // 2번 핀(특약 1항: 다음 세입자 입주 후 반환) 클릭
+  const pin2 = page.locator('[data-testid="result-pin-2"]');
+  if (await pin2.isVisible()) {
+    await clickWithCursor(pin2);
+    await setCaption('STEP 3 · 2번 핀 클릭', '2번 핀 클릭 ➔ "다음 임차인이 입주한 후에 반환" 불법 지연 독소 조항 단청 빨강 형광펜 확인', 'red');
+    await page.waitForTimeout(4000); // 사용자가 형광펜 문구를 충분히 읽을 수 있도록 머무름
+  }
+
+  // 3번 핀(특약 3항: 차임 매년 8% 인상) 클릭
+  const pin3 = page.locator('[data-testid="result-pin-3"]');
+  if (await pin3.isVisible()) {
+    await clickWithCursor(pin3);
+    await setCaption('STEP 3 · 3번 핀 클릭', '3번 핀 클릭 ➔ "차임 매년 8%씩 인상" 법정 5% 상한 초과 무효 조항 형광펜 확인', 'red');
+    await page.waitForTimeout(4000);
+  }
+
+  // [01:05 ~ 01:30] STEP 4: 업로드 문서 고해상도 전체화면 열람 & 내부 스크롤
+  await setCaption('STEP 4 · 전체화면 스크롤', '스캔문서 전체화면 모드 ➔ 1:1 고해상도 대화면에서 계약서 전체 조항 스크롤 열람');
+  console.log('STEP 4: Fullscreen modal with scrolling on uploaded contract');
+  const fsBtn = page.locator('[data-testid="annotated-doc-fullscreen-btn"]').first();
+  if (await fsBtn.isVisible()) {
+    await clickWithCursor(fsBtn);
+    await page.waitForTimeout(2000);
+
+    // 줌 115%로 확대
+    const zoomInBtn = page.locator('button:has-text("➕ 확대")');
+    if (await zoomInBtn.isVisible()) {
+      await clickWithCursor(zoomInBtn);
+      await page.waitForTimeout(1500);
+    }
+
+    // 마우스 휠로 전체화면 내부 스크롤 다운!
+    await setCaption('STEP 4 · 문서 정밀 스크롤', '마우스 휠로 계약서 하단으로 스크롤하여 2번·3번 특약사항 위치 정밀 확인');
+    await page.evaluate(() => window.moveVirtualCursor(720, 480));
+    await page.waitForTimeout(800);
+
+    await page.evaluate(() => {
+      const el = document.querySelector('.doc-fullscreen-body');
+      if (el) el.scrollBy({ top: 380, behavior: 'smooth' });
+    });
+    await page.waitForTimeout(3500);
+
+    // 전체화면 닫기
+    const closeBtn = page.locator('[data-testid="close-doc-fullscreen"]');
+    if (await closeBtn.isVisible()) {
+      await clickWithCursor(closeBtn);
+      await page.waitForTimeout(1500);
     }
   }
 
-  // [00:32 ~ 00:52] STEP 3: 공식 표준 서식 1:1 대조 & 3번 독소 조항 핀포인팅
-  await setCaption('STEP 3 · 공식 서식 대조', '법무부·국토부 표준계약서 원본 위 조항 위치 핀(①~⑤) 매핑으로 사전 검토');
-  console.log('STEP 3: Standard doc preview and pin 3 pinpointing');
-  const sampleCard = page.locator('[data-testid="sample-card-lease_sample"]');
-  await clickWithCursor(sampleCard);
-  await page.waitForTimeout(2000);
+  // [01:30 ~ 01:50] STEP 5: 정밀 점검 결과 화면 & 형광펜 독소 조항 & 대체 특약 복사
+  await setCaption('STEP 5 · 독소 조항 판정', 'AI 법령 점검 ➔ 주택임대차보호법 제10조 강행규정 위반 판정 & 대체 특약 복사', 'red');
+  console.log('STEP 5: Results & copy alternative');
 
-  // 현재 기본 선택은 1번(안심) 조항!
-  // 이제 가상 마우스가 스캔본 위 3번 핀(보증금 반환 지연)으로 이동하여 찰칵 클릭!
-  await setCaption('STEP 3 · 3번 핀 클릭', '스캔 계약서 3번 핀 클릭 ➔ "다음 임차인 입주 후 반환" 불법 지연 특약 위치 짚기 & 형광펜 확인', 'red');
-  const pin3 = page.locator('[data-testid="scan-overlay-pin-3"]');
-  if (await pin3.isVisible()) {
-    await clickWithCursor(pin3);
-    await page.waitForTimeout(3500); // 3번 핀 툴팁과 하단 요약 바의 단청 빨강 형광펜을 정독할 수 있도록 충분히 머무름
-  }
-
-  // 4번 핀(원상복구 과다 전가)도 클릭하여 하이라이트 전환 확인
-  await setCaption('STEP 3 · 4번 핀 클릭', '스캔 계약서 4번 핀 클릭 ➔ "퇴실 시 도배비 40만원 보증금 공제" 부당 특약 짚기', 'red');
-  const pin4 = page.locator('[data-testid="scan-overlay-pin-4"]');
-  if (await pin4.isVisible()) {
-    await clickWithCursor(pin4);
-    await page.waitForTimeout(3000);
-  }
-
-  // [00:52 ~ 01:20] STEP 4: 고해상도 전체화면 열람 & 문서 내부 스크롤 & 하이라이트 확인
-  await setCaption('STEP 4 · 전체화면 스크롤', '스캔문서 전체화면 모드 ➔ 1:1 고해상도 대화면에서 계약서 전체 조항 스크롤 열람');
-  console.log('STEP 4: Fullscreen modal with scrolling and pin check');
-  const fsBtn = page.locator('[data-testid="open-doc-fullscreen-btn"]').first();
-  await clickWithCursor(fsBtn);
-  await page.waitForTimeout(2000);
-
-  // 줌 115%로 확대하여 가독성 극대화
-  const zoomInBtn = page.locator('button:has-text("➕ 확대")');
-  if (await zoomInBtn.isVisible()) {
-    await clickWithCursor(zoomInBtn);
-    await page.waitForTimeout(1500);
-  }
-
-  // ★ 사용자 요청 핵심 반영: 전체화면 모달 내부(.doc-fullscreen-body)를 위에서 아래로 스무스하게 스크롤 다운!
-  await setCaption('STEP 4 · 문서 정밀 스크롤', '마우스 휠로 계약서 하단으로 스크롤하여 3번·4번·5번 특약사항 위치 정밀 확인');
-  
-  // 마우스 커서를 전체화면 문서 중앙으로 이동
-  await page.evaluate(() => window.moveVirtualCursor(720, 480));
-  await page.waitForTimeout(800);
-
-  // 문서 상단 -> 하단 특약사항 영역으로 1차 스크롤
-  await page.evaluate(() => {
-    const el = document.querySelector('.doc-fullscreen-body');
-    if (el) el.scrollBy({ top: 380, behavior: 'smooth' });
-  });
-  await page.waitForTimeout(3000);
-
-  // 전체화면 안에서 3번 핀(fs-pin-3)을 직접 클릭!
-  await setCaption('STEP 4 · 전체화면 핀 검증', '전체화면에서 3번 핀 클릭 ➔ 하단 플로팅 바에 형광펜 쳐진 독소 조항 텍스트 실시간 연동', 'red');
-  const fsPin3 = page.locator('[data-testid="fs-pin-3"]');
-  if (await fsPin3.isVisible()) {
-    await clickWithCursor(fsPin3);
-    await page.waitForTimeout(3500); // 하단 플로팅 바의 단청 빨강 형광펜 문구 정독
-  }
-
-  // 전체화면 하단 "이 스캔 문서로 정밀 점검 시작하기" 버튼 클릭!
-  await setCaption('STEP 4 · 정밀 점검 실행', '이 스캔 문서로 정밀 점검 시작하기 클릭 ➔ AI 법령 대조 분석 프로세스 가동');
-  const fsStartCheckBtn = page.locator('[data-testid="fs-start-check-btn"]');
-  await clickWithCursor(fsStartCheckBtn);
-
-  // 점검 완료 대기
-  await page.waitForSelector('.turn', { timeout: 35000 });
-  await page.waitForTimeout(2500);
-
-  // [01:20 ~ 01:45] STEP 5: 정밀 점검 결과 화면 & 형광펜 독소 조항 & 대체 특약 복사
-  await setCaption('STEP 5 · 독소 조항 검출', 'AI 법령 점검 완료 ➔ 주임법 제10조 강행규정 위반 판정 & 형광펜 단청 빨강 하이라이트', 'red');
-  console.log('STEP 5: Precision results & fluorescent highlight check');
-
-  // 시각화 덱 카드로 스크롤
-  await page.evaluate(() => {
-    const deck = document.querySelector('.annotated-deck') || document.querySelector('.result-card');
-    if (deck) deck.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  });
-  await page.waitForTimeout(3500);
-
-  // 형광펜으로 강조된 독소 문구로 마우스 이동
-  const kwEl = page.locator('.kw-highlight--risk').first();
-  if (await kwEl.isVisible()) {
-    await moveCursorTo(kwEl);
-    await page.waitForTimeout(3000);
-  }
-
-  // 공인중개사용 대체 특약 복사 버튼 클릭
-  await setCaption('STEP 5 · 대체 특약 복사', '공인중개사 협상용 안심 대체 특약 원클릭 복사 ➔ 임대인 분쟁 방지 표준 문구', 'green');
-  const copyBtn = page.locator('.action-card__copy-btn, .pill-btn:has-text("대체 특약 복사")').first();
+  // 대안 문구 복사 버튼 클릭
+  const copyBtn = page.locator('button:has-text("대안 문구 복사"), .action-card__copy-btn').first();
   if (await copyBtn.isVisible()) {
     await clickWithCursor(copyBtn);
-    await page.waitForTimeout(3000); // '복사 완료' 토스트 노출 대기
+    await setCaption('STEP 5 · 대체 특약 복사', '공인중개사 협상용 안심 대체 특약 원클릭 복사 ➔ 클립보드 저장 완료', 'green');
+    await page.waitForTimeout(3000);
   }
 
-  // 하단 대법원 판례 및 법적 근거 해설로 스크롤
+  // 하단 판례 해설로 스크롤
   await setCaption('STEP 5 · 대법원 판례 근거', '국가법령정보센터 주택임대차보호법 제10조 및 대법원 2005다51389 판례 근거 제시');
-  await page.evaluate(() => window.scrollBy({ top: 350, behavior: 'smooth' }));
+  await page.evaluate(() => window.scrollBy({ top: 400, behavior: 'smooth' }));
   await page.waitForTimeout(4000);
 
   // 최종 안내 배너
-  await setCaption('온율(律) 점검 완료', '국가법령·판례 기반 임대차 계약서 안심 점검 완료 — 공모전 출품작 온율', 'green');
+  await setCaption('온율(律) 점검 완료', '실제 계약서 사진 업로드 ➔ 실시간 AI 법령 점검 완료 — 공모전 출품작 온율', 'green');
   await page.waitForTimeout(3500);
 
   console.log('Finished scenario. Closing context to flush video file...');
@@ -370,10 +348,10 @@ async function recordComprehensivePCDemo() {
   execSync(ffmpegCmd, { stdio: 'inherit' });
   console.log('Saved comprehensive MP4 to:', destMp4);
 
-  console.log('Comprehensive PC demo recording finished successfully!');
+  console.log('Live Upload PC demo recording finished successfully!');
 }
 
-recordComprehensivePCDemo().catch(err => {
+recordLiveUploadDemo().catch(err => {
   console.error('Recording failed:', err);
   process.exit(1);
 });
