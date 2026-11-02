@@ -264,10 +264,25 @@ export async function handleCheck(request: Request): Promise<Response> {
 
       let delivered = false;
       let deliveryMethod = 'audit_log';
+      const sendPy = 'server/send-email.py';
       const emailBin = process.env.EMAIL_BIN || '/Users/yun-yeowon/.cargo/bin/email';
 
       try {
-        if (existsSync(emailBin)) {
+        if (existsSync(sendPy)) {
+          const args = [
+            sendPy,
+            '--to', toEmail,
+            '--subject', subject,
+            '--body', content,
+          ];
+          if (pdfPath && existsSync(pdfPath)) {
+            args.push('--pdf', pdfPath);
+          }
+          const { stdout } = await execFileAsync('python3', args, { timeout: 20000 });
+          console.log(`[Email Service - Direct Gmail SMTP with PDF] Delivered: ${stdout.trim()}`);
+          delivered = true;
+          deliveryMethod = 'gmail_smtp_with_pdf';
+        } else if (existsSync(emailBin)) {
           const { stdout } = await execFileAsync(emailBin, [
             'send',
             '--to', toEmail,
@@ -279,7 +294,16 @@ export async function handleCheck(request: Request): Promise<Response> {
           deliveryMethod = 'direct_smtp_daemon';
         }
       } catch (err) {
-        console.warn(`[Email Service] Direct SMTP dispatch notice (fallback to audit log):`, (err as Error).message);
+        console.warn(`[Email Service] Direct SMTP dispatch notice (fallback):`, (err as Error).message);
+        if (!delivered && existsSync(emailBin)) {
+          try {
+            await execFileAsync(emailBin, ['send', '--to', toEmail, '--subject', subject, '--body', content], { timeout: 10000 });
+            delivered = true;
+            deliveryMethod = 'direct_smtp_daemon';
+          } catch {
+            // fallback to audit log
+          }
+        }
       }
 
       console.log(`[Email Service] Sent report to: ${toEmail}, Subject: ${subject}, Method: ${deliveryMethod}`);

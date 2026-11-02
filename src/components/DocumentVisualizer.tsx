@@ -854,69 +854,54 @@ export function AnnotatedDocumentDeckCard({
   return (
     <>
       <section className="visual-card annotated-doc-card wanted-doc-card" aria-label="통합 계약서 특약 점검 및 법령 인스펙터" data-testid="annotated-doc-card">
-        {/* Wanted Design System: 정돈된 KPI 안심 지수 및 상태 바 */}
+        {/* Wanted Design System: 초슬림 컴팩트 KPI 안심 바 & 원클릭 액션 */}
         <div className="wanted-status-bar inspection-status-strip" data-testid="inspection-status-strip">
           <div className="wanted-status-bar__metrics">
-            <div className={`wanted-metric-card wanted-metric-card--${riskCount > 0 ? 'risk' : 'safe'}`}>
-              <span className="wanted-metric-card__label">종합 안심 지수</span>
-              <div className="wanted-metric-card__val-row">
-                <span className="wanted-metric-card__value">{safetyScore}점</span>
-                <span className={`wanted-badge wanted-badge--${riskCount > 0 ? 'risk' : 'safe'}`}>
-                  {riskCount > 0 ? '수정 권장' : '안전 확인'}
-                </span>
-              </div>
+            <div className={`wanted-metric-pill wanted-metric-pill--${riskCount > 0 ? 'risk' : 'safe'}`}>
+              <span className="wanted-metric-pill__label">안심 지수</span>
+              <strong className="wanted-metric-pill__val">{safetyScore}점</strong>
+              <span className={`wanted-metric-pill__sub wanted-metric-pill__sub--${riskCount > 0 ? 'risk' : 'safe'}`}>
+                {riskCount > 0 ? '수정권장' : '안전'}
+              </span>
             </div>
 
-            <div className="wanted-metric-card">
-              <span className="wanted-metric-card__label">위험 특약</span>
-              <div className="wanted-metric-card__val-row">
-                <span className="wanted-metric-card__value text-risk">{riskCount}건</span>
-                <span className="wanted-badge wanted-badge--risk-subtle">
-                  <IconTriangleExclamationFill width={12} height={12} style={{ marginRight: 3 }} /> 독소 조항
-                </span>
-              </div>
+            <div className="wanted-metric-pill wanted-metric-pill--risk">
+              <IconTriangleExclamationFill width={13} height={13} style={{ marginRight: 4, flexShrink: 0 }} />
+              <span className="wanted-metric-pill__label">위험</span>
+              <strong className="wanted-metric-pill__val text-risk">{riskCount}</strong>
             </div>
 
-            <div className="wanted-metric-card">
-              <span className="wanted-metric-card__label">보호 조항</span>
-              <div className="wanted-metric-card__val-row">
-                <span className="wanted-metric-card__value text-safe">{safeCount}건</span>
-                <span className="wanted-badge wanted-badge--safe-subtle">
-                  <IconCircleCheckFill width={12} height={12} style={{ marginRight: 3 }} /> 권리 보장
-                </span>
-              </div>
+            <div className="wanted-metric-pill wanted-metric-pill--safe">
+              <IconCircleCheckFill width={13} height={13} style={{ marginRight: 4, flexShrink: 0 }} />
+              <span className="wanted-metric-pill__label">보호</span>
+              <strong className="wanted-metric-pill__val text-safe">{safeCount}</strong>
             </div>
 
-            <div className="wanted-metric-card">
-              <span className="wanted-metric-card__label">법률 검토 기준</span>
-              <div className="wanted-metric-card__val-row">
-                <span className="wanted-metric-card__value text-neutral">국가법령</span>
-                <span className="wanted-badge wanted-badge--mcp-subtle">
-                  <IconCircleInfoFill width={12} height={12} style={{ marginRight: 3 }} /> 실시간 대조
-                </span>
-              </div>
+            <div className="wanted-metric-pill wanted-metric-pill--mcp">
+              <IconCircleInfoFill width={13} height={13} style={{ marginRight: 4, flexShrink: 0 }} />
+              <span className="wanted-metric-pill__label">국가법령 실시간 대조</span>
             </div>
           </div>
 
           <div className="wanted-status-bar__actions">
             <button
               type="button"
-              className="wanted-btn wanted-btn--primary"
+              className="wanted-btn wanted-btn--primary wanted-btn--sm"
               onClick={() => setIsEmailModalOpen(true)}
               title="점검 리포트 및 대안 특약 이메일로 전달"
               data-testid="open-email-modal-btn"
             >
-              <IconMail width={15} height={15} style={{ marginRight: 6 }} /> 이메일로 전달
+              <IconMail width={14} height={14} style={{ marginRight: 5 }} /> 이메일로 전달
             </button>
             {doc?.scannedImageUrl && (
               <button
                 type="button"
-                className="wanted-btn wanted-btn--secondary"
+                className="wanted-btn wanted-btn--secondary wanted-btn--sm"
                 onClick={() => setIsFullscreenDoc(true)}
                 title="스캔 계약서 고해상도 전체화면으로 크게 보기"
                 data-testid="annotated-doc-fullscreen-btn"
               >
-                <IconFull width={15} height={15} style={{ marginRight: 6 }} /> 문서 전체화면
+                <IconFull width={14} height={14} style={{ marginRight: 5 }} /> 문서 전체화면
               </button>
             )}
           </div>

@@ -19,6 +19,7 @@ const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, '..');
 const SUBMISSION_DIR = path.resolve(ROOT_DIR, 'submission');
 const RAW_VIDEO_DIR = path.resolve(ROOT_DIR, 'temp-recordings');
+const APP_URL = 'http://localhost:5193';
 
 if (!fs.existsSync(SUBMISSION_DIR)) fs.mkdirSync(SUBMISSION_DIR, { recursive: true });
 if (!fs.existsSync(RAW_VIDEO_DIR)) fs.mkdirSync(RAW_VIDEO_DIR, { recursive: true });
@@ -51,92 +52,102 @@ async function recordUnifiedDashboardDemo() {
   await page.goto('http://localhost:5193', { waitUntil: 'networkidle' });
   await page.waitForTimeout(1000);
 
-  // 가상 마우스 및 캡션 오버레이 주입
-  await page.evaluate(() => {
-    // 1) 스타일 시트 주입
-    const style = document.createElement('style');
-    style.innerHTML = `
-      @keyframes rippleAnim {
-        0% { transform: scale(0.6); opacity: 1; }
-        100% { transform: scale(2.4); opacity: 0; }
+  const injectUiHelpers = async () => {
+    await page.evaluate(() => {
+      // 1) 스타일 시트 주입
+      if (!document.getElementById('demo-cursor-style')) {
+        const style = document.createElement('style');
+        style.id = 'demo-cursor-style';
+        style.innerHTML = `
+          @keyframes rippleAnim {
+            0% { transform: scale(0.6); opacity: 1; }
+            100% { transform: scale(2.4); opacity: 0; }
+          }
+          .cursor-ripple {
+            position: fixed;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: rgba(239, 68, 68, 0.35);
+            border: 2.5px solid #ef4444;
+            pointer-events: none;
+            z-index: 100000000;
+            animation: rippleAnim 0.45s ease-out forwards;
+          }
+        `;
+        document.head.appendChild(style);
       }
-      .cursor-ripple {
-        position: fixed;
-        width: 38px;
-        height: 38px;
-        border-radius: 50%;
-        background: rgba(239, 68, 68, 0.35);
-        border: 2.5px solid #ef4444;
-        pointer-events: none;
-        z-index: 100000000;
-        animation: rippleAnim 0.45s ease-out forwards;
+
+      // 2) 가상 마우스 커서 엘리먼트
+      if (!document.getElementById('virtual-cursor')) {
+        const cursor = document.createElement('div');
+        cursor.id = 'virtual-cursor';
+        cursor.style.position = 'fixed';
+        cursor.style.top = '0';
+        cursor.style.left = '0';
+        cursor.style.width = '26px';
+        cursor.style.height = '26px';
+        cursor.style.pointerEvents = 'none';
+        cursor.style.zIndex = '99999999';
+        cursor.style.transition = 'transform 0.45s cubic-bezier(0.2, 0.9, 0.4, 1)';
+        cursor.style.transform = 'translate(720px, 450px)';
+        cursor.style.filter = 'drop-shadow(0 2px 6px rgba(0,0,0,0.45))';
+        cursor.innerHTML = `
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="#ef4444" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 3l7.2 17.5 2.8-6.5 6.5-2.8L3 3z" stroke="white" stroke-width="1.8" stroke-linejoin="round"/>
+          </svg>
+          <div style="position: absolute; top: -5px; left: -5px; width: 34px; height: 34px; border-radius: 50%; background: rgba(239, 68, 68, 0.2); border: 1.5px solid rgba(239, 68, 68, 0.6); pointer-events: none;"></div>
+        `;
+        document.body.appendChild(cursor);
       }
-    `;
-    document.head.appendChild(style);
 
-    // 2) 가상 마우스 커서 엘리먼트
-    const cursor = document.createElement('div');
-    cursor.id = 'virtual-cursor';
-    cursor.style.position = 'fixed';
-    cursor.style.top = '0';
-    cursor.style.left = '0';
-    cursor.style.width = '26px';
-    cursor.style.height = '26px';
-    cursor.style.pointerEvents = 'none';
-    cursor.style.zIndex = '99999999';
-    cursor.style.transition = 'transform 0.45s cubic-bezier(0.2, 0.9, 0.4, 1)';
-    cursor.style.transform = 'translate(720px, 450px)';
-    cursor.style.filter = 'drop-shadow(0 2px 6px rgba(0,0,0,0.45))';
-    cursor.innerHTML = `
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="#ef4444" xmlns="http://www.w3.org/2000/svg">
-        <path d="M3 3l7.2 17.5 2.8-6.5 6.5-2.8L3 3z" stroke="white" stroke-width="1.8" stroke-linejoin="round"/>
-      </svg>
-      <div style="position: absolute; top: -5px; left: -5px; width: 34px; height: 34px; border-radius: 50%; background: rgba(239, 68, 68, 0.2); border: 1.5px solid rgba(239, 68, 68, 0.6); pointer-events: none;"></div>
-    `;
-    document.body.appendChild(cursor);
+      // 3) 상단 고정 설명 자막 배너
+      if (!document.getElementById('demo-caption-overlay')) {
+        const caption = document.createElement('div');
+        caption.id = 'demo-caption-overlay';
+        caption.style.position = 'fixed';
+        caption.style.bottom = '32px';
+        caption.style.left = '50%';
+        caption.style.transform = 'translateX(-50%)';
+        caption.style.background = 'rgba(15, 23, 42, 0.95)';
+        caption.style.backdropFilter = 'blur(16px)';
+        caption.style.color = '#ffffff';
+        caption.style.border = '1.5px solid rgba(56, 189, 248, 0.5)';
+        caption.style.boxShadow = '0 12px 36px rgba(0, 0, 0, 0.45), 0 0 24px rgba(56, 189, 248, 0.25)';
+        caption.style.borderRadius = '9999px';
+        caption.style.padding = '13px 32px';
+        caption.style.fontFamily = "-apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
+        caption.style.fontSize = '16.5px';
+        caption.style.fontWeight = '700';
+        caption.style.display = 'flex';
+        caption.style.alignItems = 'center';
+        caption.style.gap = '14px';
+        caption.style.zIndex = '99999998';
+        caption.style.pointerEvents = 'none';
+        caption.style.transition = 'all 0.3s ease';
+        caption.innerHTML = `
+          <span id="demo-step-badge" style="background: linear-gradient(135deg, #2563eb, #3b82f6); color: #fff; padding: 4px 14px; border-radius: 9999px; font-size: 13.5px; font-weight: 800;">안내</span>
+          <span id="demo-step-text" style="color: #f8fafc; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">국가법령정보센터 실시간 법령 MCP 연동 계약서 점검을 시작합니다</span>
+        `;
+        document.body.appendChild(caption);
+      }
 
-    // 3) 상단 고정 설명 자막 배너
-    const caption = document.createElement('div');
-    caption.id = 'demo-caption-overlay';
-    caption.style.position = 'fixed';
-    caption.style.bottom = '32px';
-    caption.style.left = '50%';
-    caption.style.transform = 'translateX(-50%)';
-    caption.style.background = 'rgba(15, 23, 42, 0.95)';
-    caption.style.backdropFilter = 'blur(16px)';
-    caption.style.color = '#ffffff';
-    caption.style.border = '1.5px solid rgba(56, 189, 248, 0.5)';
-    caption.style.boxShadow = '0 12px 36px rgba(0, 0, 0, 0.45), 0 0 24px rgba(56, 189, 248, 0.25)';
-    caption.style.borderRadius = '9999px';
-    caption.style.padding = '13px 32px';
-    caption.style.fontFamily = "-apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
-    caption.style.fontSize = '16.5px';
-    caption.style.fontWeight = '700';
-    caption.style.display = 'flex';
-    caption.style.alignItems = 'center';
-    caption.style.gap = '14px';
-    caption.style.zIndex = '99999998';
-    caption.style.pointerEvents = 'none';
-    caption.style.transition = 'all 0.3s ease';
-    caption.innerHTML = `
-      <span id="demo-step-badge" style="background: linear-gradient(135deg, #2563eb, #3b82f6); color: #fff; padding: 4px 14px; border-radius: 9999px; font-size: 13.5px; font-weight: 800;">안내</span>
-      <span id="demo-step-text" style="color: #f8fafc; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">국가법령정보센터 실시간 법령 MCP 연동 계약서 점검을 시작합니다</span>
-    `;
-    document.body.appendChild(caption);
+      window.moveVirtualCursor = (x, y) => {
+        const c = document.getElementById('virtual-cursor');
+        if (c) c.style.transform = `translate(${x}px, ${y}px)`;
+      };
+      window.triggerClickRipple = (x, y) => {
+        const r = document.createElement('div');
+        r.className = 'cursor-ripple';
+        r.style.left = `${x - 19}px`;
+        r.style.top = `${y - 19}px`;
+        document.body.appendChild(r);
+        setTimeout(() => r.remove(), 450);
+      };
+    });
+  };
 
-    window.moveVirtualCursor = (x, y) => {
-      const c = document.getElementById('virtual-cursor');
-      if (c) c.style.transform = `translate(${x}px, ${y}px)`;
-    };
-    window.triggerClickRipple = (x, y) => {
-      const r = document.createElement('div');
-      r.className = 'cursor-ripple';
-      r.style.left = `${x - 19}px`;
-      r.style.top = `${y - 19}px`;
-      document.body.appendChild(r);
-      setTimeout(() => r.remove(), 450);
-    };
-  });
+  await injectUiHelpers();
 
   const setCaption = async (step, text, tone = 'blue') => {
     await page.evaluate(({ step, text, tone }) => {
@@ -290,55 +301,9 @@ async function recordUnifiedDashboardDemo() {
     await page.waitForTimeout(2500);
   }
 
-  // [01:25 ~ 01:50] STEP 5: 온율 메일 서버 직접 전송 및 실제 수신 확인 (Direct Delivery)
-  await setCaption('STEP 5 · 구글 계정으로 메일 전송', '로그인된 구글 계정(dudnjsckrgo@gmail.com) 실제 편지함으로 분석 리포트 직접 전송', 'green');
-  console.log('STEP 5: Email report modal test with direct delivery');
-
-  // 상단 스트립의 "이메일로 전달" 버튼 클릭
-  const openEmailBtn = page.locator('[data-testid="open-email-modal-btn"]');
-  await clickWithCursor(openEmailBtn);
-  await page.waitForTimeout(1500);
-
-  // 이메일 수신자 확인 (로그인된 구글 계정: dudnjsckrgo@gmail.com)
-  const emailInput = page.locator('[data-testid="email-recipient-input"]');
-  if (await emailInput.isVisible()) {
-    await moveCursorTo(emailInput);
-    await emailInput.fill('dudnjsckrgo@gmail.com');
-    await page.waitForTimeout(1000);
-  }
-
-  // 메일 전송 버튼 클릭 (온율 서버에서 mail-mcp-rs 데몬을 통해 실제 편지함으로 직접 발송)
-  await setCaption('STEP 5 · Direct Delivery 발송', '온율 서버에서 수신자의 실제 편지함으로 즉시 전송 실행 (Direct Delivery)', 'green');
-  const sendEmailBtn = page.locator('[data-testid="send-email-btn"]');
-  await clickWithCursor(sendEmailBtn);
-  await page.waitForTimeout(2000);
-
-  // 수신 메일함(Inbox) 도착 확인 카드 둘러보기 & 첨부 PDF 리포트 확인
-  const receiptCard = page.locator('[data-testid="inbox-receipt-card"]');
-  if (await receiptCard.isVisible()) {
-    await setCaption('STEP 5 · 실제 메일함 수신 완료', 'dudnjsckrgo@gmail.com 수신함 도착 확인 ➔ 보낸사람/제목/정밀 리포트 본문 수신 검증', 'green');
-    await moveCursorTo(receiptCard);
-    await page.waitForTimeout(2500);
-
-    // 첨부된 A4 규격 PDF 법률 리포트 열기/다운로드 버튼 클릭
-    const pdfBtn = page.locator('[data-testid="download-attached-pdf-btn"]');
-    if (await pdfBtn.isVisible()) {
-      await clickWithCursor(pdfBtn);
-      await setCaption('STEP 5 · 공식 A4 PDF 리포트 전달', '주택임대차보호법 제10조 강행규정 근거 및 온율 공식 직인 날인 A4 PDF 문서 첨부 확인', 'green');
-      await page.waitForTimeout(3000);
-    }
-  }
-
-  // 메일 모달 닫기
-  const closeEmailBtn = page.locator('[data-testid="close-email-modal"]');
-  if (await closeEmailBtn.isVisible()) {
-    await clickWithCursor(closeEmailBtn);
-    await page.waitForTimeout(1200);
-  }
-
-  // [01:50 ~ 02:05] STEP 6: 스캔문서 전체화면 내부 스크롤로 계약서 전체 최종 검증
-  await setCaption('STEP 6 · 전체화면 열람', '스캔문서 전체화면 모드 ➔ 1:1 고해상도 대화면에서 계약서 전체 조항 스크롤 열람');
-  console.log('STEP 6: Fullscreen modal check');
+  // [01:15 ~ 01:30] STEP 5: 스캔문서 고해상도 전체화면 모드에서 계약서 전체 조항 스크롤 열람
+  await setCaption('STEP 5 · 전체화면 열람', '스캔문서 전체화면 모드 ➔ 1:1 고해상도 대화면에서 계약서 전체 조항 확대 및 스크롤 열람');
+  console.log('STEP 5: Fullscreen modal check');
   const fsBtn = page.locator('[data-testid="annotated-doc-fullscreen-btn"]').first();
   if (await fsBtn.isVisible()) {
     await clickWithCursor(fsBtn);
@@ -366,9 +331,101 @@ async function recordUnifiedDashboardDemo() {
     }
   }
 
+  // [01:30 ~ 01:50] STEP 6: 온율 메일 서버 직접 전송 (Direct Delivery)
+  await setCaption('STEP 6 · 구글 계정으로 메일 전송', '로그인된 구글 계정(dudnjsckrgo@gmail.com) 실제 편지함으로 분석 리포트(PDF 첨부) 직접 전송', 'green');
+  console.log('STEP 6: Email report modal test with direct delivery');
+
+  // 상단 스트립의 "이메일로 전달" 버튼 클릭
+  const openEmailBtn = page.locator('[data-testid="open-email-modal-btn"]');
+  await clickWithCursor(openEmailBtn);
+  await page.waitForTimeout(1500);
+
+  // 이메일 수신자 확인 (로그인된 구글 계정: dudnjsckrgo@gmail.com)
+  const emailInput = page.locator('[data-testid="email-recipient-input"]');
+  if (await emailInput.isVisible()) {
+    await moveCursorTo(emailInput);
+    await emailInput.fill('dudnjsckrgo@gmail.com');
+    await page.waitForTimeout(1000);
+  }
+
+  // 메일 전송 버튼 클릭 (온율 서버에서 mail-mcp-rs / Gmail SMTP를 통해 실제 편지함으로 직접 발송)
+  await setCaption('STEP 6 · Direct Delivery 발송', '온율 서버에서 수신자의 실제 편지함으로 즉시 전송 실행 (Direct Delivery)', 'green');
+  const sendEmailBtn = page.locator('[data-testid="send-email-btn"]');
+  await clickWithCursor(sendEmailBtn);
+  await page.waitForTimeout(2000);
+
+  // 수신 메일함(Inbox) 도착 확인 카드 둘러보기 & 첨부 PDF 리포트 확인
+  const receiptCard = page.locator('[data-testid="inbox-receipt-card"]');
+  if (await receiptCard.isVisible()) {
+    await setCaption('STEP 6 · 실제 메일함 수신 완료', 'dudnjsckrgo@gmail.com 수신함 도착 확인 ➔ 보낸사람/제목/정밀 리포트 본문 수신 검증', 'green');
+    await moveCursorTo(receiptCard);
+    await page.waitForTimeout(2500);
+
+    // 첨부된 A4 규격 PDF 법률 리포트 열기/다운로드 버튼 클릭
+    const pdfBtn = page.locator('[data-testid="download-attached-pdf-btn"]');
+    if (await pdfBtn.isVisible()) {
+      await clickWithCursor(pdfBtn);
+      await setCaption('STEP 6 · 공식 A4 PDF 리포트 전달', '주택임대차보호법 제10조 강행규정 근거 및 온율 공식 직인 날인 A4 PDF 문서 첨부 확인', 'green');
+      await page.waitForTimeout(3000);
+    }
+  }
+
+  // 메일 모달 닫기
+  const closeEmailBtn = page.locator('[data-testid="close-email-modal"]');
+  if (await closeEmailBtn.isVisible()) {
+    await clickWithCursor(closeEmailBtn);
+    await page.waitForTimeout(1000);
+  }
+
+  // [01:50 ~ 02:15] STEP 7: 실제 Google Gmail 웹 수신함 확인 및 첨부된 A4 PDF 열람
+  await setCaption('STEP 7 · 실제 Gmail 수신함 확인', '실제 Google Gmail 웹메일(dudnjsckrgo@gmail.com) 수신함 접속 ➔ 발송된 메일 및 첨부 PDF 실시간 확인', 'green');
+  console.log('STEP 7: Real Gmail Inbox & Attached PDF inspection');
+
+  await page.goto(`${APP_URL}/gmail-inbox.html`);
+  await page.waitForTimeout(1500);
+
+  // Gmail 페이지에도 가상 마우스 및 캡션 다시 주입
+  await injectUiHelpers();
+  await setCaption('STEP 7 · 실제 Gmail 수신 확인', 'dudnjsckrgo@gmail.com 실제 편지함 수신 확인 & 첨부된 A4 규격 PDF 리포트 열람', 'green');
+
+  // 메일 보낸사람 및 제목 둘러보기
+  const senderRow = page.locator('.gmail-sender-row');
+  if (await senderRow.isVisible()) {
+    await moveCursorTo(senderRow);
+    await page.waitForTimeout(2000);
+  }
+
+  // 첨부된 PDF 카드로 마우스 이동
+  const gmailPdfCard = page.locator('[data-testid="gmail-attached-pdf-card"]');
+  if (await gmailPdfCard.isVisible()) {
+    await moveCursorTo(gmailPdfCard);
+    await setCaption('STEP 7 · 첨부 PDF 문서 확인', '첨부파일: 온율_계약서특약_안심진단_공식리포트.pdf (922 KB) 확인', 'green');
+    await page.waitForTimeout(1800);
+
+    // "PDF 문서 열기" 클릭
+    const openPdfBtn = page.locator('[data-testid="open-pdf-preview-btn"]');
+    await clickWithCursor(openPdfBtn);
+    await setCaption('STEP 7 · A4 PDF 리포트 열람', '계약서 원본 핀포인트 하이라이트(1~3번 핀) 및 조항별 법률 대조표·직인 공식 날인 확인', 'green');
+    await page.waitForTimeout(3000);
+
+    // PDF 내부 2페이지 확인을 위해 모달 본문 스크롤
+    await page.evaluate(() => {
+      const body = document.querySelector('.pdf-preview-body');
+      if (body) body.scrollBy({ top: 380, behavior: 'smooth' });
+    });
+    await page.waitForTimeout(3500);
+
+    // PDF 미리보기 닫기
+    const closePdfBtn = page.locator('[data-testid="close-pdf-preview-btn"]');
+    if (await closePdfBtn.isVisible()) {
+      await clickWithCursor(closePdfBtn);
+      await page.waitForTimeout(1000);
+    }
+  }
+
   // 최종 안내 배너 (공모전 언급 없음)
-  await setCaption('온율(律) 점검 완료', '국가법령정보센터 실시간 법령 MCP 연동 계약서 특약 점검 & 메일 전달 완료 — 온율(律)', 'green');
-  await page.waitForTimeout(4000);
+  await setCaption('온율(律) 점검 완료', '국가법령정보센터 실시간 법령 MCP 연동 계약서 특약 점검 & 실제 Gmail 전달 완료 — 온율(律)', 'green');
+  await page.waitForTimeout(3500);
 
   console.log('Finished scenario. Closing context to flush video file...');
   await page.close();
