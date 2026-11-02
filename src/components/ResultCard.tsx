@@ -5,6 +5,36 @@ import type { ItemResult } from '../../shared/types.ts';
 
 export type PackItemInfo = { id: string; title: string; knowledge: string; knowledgeText: string };
 
+interface LiveStatuteInfo {
+  lawName: string;
+  article: string;
+  ministry: string;
+  effectiveDate: string;
+  proclamationNo: string;
+  articleText: string;
+  officialUrl: string;
+  sourceType: 'law' | 'admrul';
+}
+
+interface LivePrecedentInfo {
+  id: string;
+  caseNumber: string;
+  caseName: string;
+  courtName: string;
+  decisionDate: string;
+  summary: string;
+  officialUrl: string;
+}
+
+interface LawLookupResponse {
+  itemId: string;
+  fetchedAt: string;
+  oc: string;
+  liveConnected: boolean;
+  statute: LiveStatuteInfo;
+  precedents: LivePrecedentInfo[];
+}
+
 const STATUS_META: Record<string, { cls: string; label: string }> = {
   위험: { cls: 'risk', label: '위험' },
   '언급 없음': { cls: 'none', label: '언급 없음 · 확인 필요' },
@@ -13,6 +43,9 @@ const STATUS_META: Record<string, { cls: string; label: string }> = {
 
 export function ResultCard({ item, info }: { item: ItemResult; info?: PackItemInfo }) {
   const [copied, setCopied] = useState(false);
+  const [lawData, setLawData] = useState<LawLookupResponse | null>(null);
+  const [lawLoading, setLawLoading] = useState(false);
+
   const meta = STATUS_META[item.verdict] ?? { cls: 'none', label: item.verdict };
   const source = item.knowledge.replace(/^knowledge\/[^/]+\//, '').replace('.md#', ' · ');
 
@@ -23,6 +56,26 @@ export function ResultCard({ item, info }: { item: ItemResult; info?: PackItemIn
       setTimeout(() => setCopied(false), 1800);
     } catch {
       setCopied(false);
+    }
+  }
+
+  async function loadLiveLaw(open: boolean) {
+    if (!open || lawData || lawLoading) return;
+    setLawLoading(true);
+    try {
+      const res = await fetch('/api/check', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ action: 'law', itemId: item.itemId }),
+      });
+      if (res.ok) {
+        const data = (await res.json()) as LawLookupResponse;
+        setLawData(data);
+      }
+    } catch {
+      // 오프라인 또는 조회 실패 시 기본 내장 법령만 표시
+    } finally {
+      setLawLoading(false);
     }
   }
 
@@ -90,9 +143,63 @@ export function ResultCard({ item, info }: { item: ItemResult; info?: PackItemIn
         </dl>
       )}
 
-      <details className="law-details">
-        <summary>근거 법령 원문 ({source})</summary>
-        <p className="law">{info?.knowledgeText}</p>
+      <details
+        className="law-details"
+        onToggle={(e) => loadLiveLaw((e.currentTarget as HTMLDetailsElement).open)}
+      >
+        <summary>근거 법령 원문 및 대법원 판례 ({source})</summary>
+        <div className="law-panel">
+          {lawData?.statute && (
+            <div className="law-meta-bar">
+              <span>
+                <strong>{lawData.statute.lawName}</strong> · {lawData.statute.ministry}
+                {lawData.statute.proclamationNo ? ` · ${lawData.statute.proclamationNo}` : ''}
+                {lawData.statute.effectiveDate ? ` (시행 ${lawData.statute.effectiveDate})` : ''}
+              </span>
+              <a
+                href={lawData.statute.officialUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="law-ext-link"
+              >
+                국가법령정보센터 원문 ↗
+              </a>
+            </div>
+          )}
+
+          <p className="law">{lawData?.statute?.articleText || info?.knowledgeText}</p>
+
+          {lawLoading && (
+            <p className="law-loading">법제처 국가법령정보센터(OpenAPI)에서 현행 조문과 대법원 판례를 조회하고 있습니다…</p>
+          )}
+
+          {lawData && lawData.precedents.length > 0 && (
+            <div className="prec-block" data-testid={`prec-${item.itemId}`}>
+              <div className="prec-head">관련 대법원 판례 (국가법령정보센터 실시간 연동)</div>
+              <ul className="prec-list">
+                {lawData.precedents.map((p) => (
+                  <li key={p.id || p.caseNumber} className="prec-item">
+                    <div className="prec-title-row">
+                      <span className="prec-case">
+                        {p.courtName} {p.decisionDate} 선고 <strong>{p.caseNumber}</strong>
+                      </span>
+                      <a
+                        href={p.officialUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="law-ext-link"
+                      >
+                        판례 전문 ↗
+                      </a>
+                    </div>
+                    {p.caseName && <div className="prec-name">{p.caseName}</div>}
+                    {p.summary && <p className="prec-summary">{p.summary}</p>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
       </details>
     </article>
   );

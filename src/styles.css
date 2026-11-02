@@ -373,16 +373,123 @@ textarea:focus {
 .law-details summary {
   cursor: pointer;
   user-select: none;
+  font-weight: 500;
+}
+
+.law-panel {
+  margin-top: 8px;
+  padding: 14px 16px;
+  background: #f7f7f8;
+  border-radius: 10px;
+  border: 1px solid var(--line-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.law-meta-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 12px;
+  color: #5a5c63;
+}
+
+.law-meta-bar strong {
+  color: #171719;
+}
+
+.law-ext-link {
+  color: #0066ff;
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.law-ext-link:hover {
+  text-decoration: underline;
 }
 
 .law {
   white-space: pre-wrap;
-  margin: 8px 0 0;
-  padding: 12px 14px;
-  background: #f7f7f8;
+  margin: 0;
+  color: #37383c;
+  line-height: 1.65;
+}
+
+.law-loading {
+  margin: 0;
+  font-size: 12px;
+  color: #70737c;
+}
+
+.prec-block {
+  border-top: 1px solid var(--line-soft);
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.prec-head {
+  font-size: 12px;
+  font-weight: 700;
+  color: #171719;
+}
+
+.prec-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.prec-item {
+  background: #ffffff;
+  border: 1px solid var(--line-soft);
   border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.prec-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.prec-case {
+  font-size: 12px;
   color: #46474c;
-  line-height: 1.6;
+}
+
+.prec-case strong {
+  color: #171719;
+}
+
+.prec-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #171719;
+}
+
+.prec-summary {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #5a5c63;
+  line-height: 1.55;
+  white-space: pre-wrap;
 }
 
 /* SafeRadar 와 동일한 출처 표 & 원칙 리스트 */

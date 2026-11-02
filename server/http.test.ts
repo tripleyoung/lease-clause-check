@@ -46,3 +46,12 @@ test('api rejects ocr without image (400)', async () => {
   assert.equal(res.status, 400);
   assert.ok((await res.json()).error.includes('사진'));
 });
+
+test('api law lookup returns statute and precedents from open.law.go.kr', async () => {
+  const res = await handleCheck(post({ action: 'law', itemId: 'repair_duty' }));
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.itemId, 'repair_duty');
+  assert.equal(body.statute.lawName, '민법');
+  assert.ok(body.statute.article.includes('제623조'));
+});

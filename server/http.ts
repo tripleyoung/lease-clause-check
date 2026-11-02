@@ -4,6 +4,7 @@ import { maskPii } from './pii.js';
 import { validateInput } from './validate.js';
 import { check } from './check.js';
 import { extractTextFromImage } from './ocr.js';
+import { lookupLawByItemId } from './law-api.js';
 import { CheckError } from './errors.js';
 import type { Version } from '../shared/types.js';
 
@@ -24,7 +25,7 @@ export function handlePacks(): Response {
 
 export async function handleCheck(request: Request): Promise<Response> {
   if (request.method !== 'POST') return json(405, { error: 'POST 요청만 받아요.' });
-  let body: { action?: string; pack?: string; text?: string; image?: string; version?: string };
+  let body: { action?: string; pack?: string; text?: string; image?: string; version?: string; itemId?: string };
   try {
     body = await request.json();
   } catch {
@@ -35,6 +36,11 @@ export async function handleCheck(request: Request): Promise<Response> {
   const pack = typeof body.pack === 'string' ? body.pack : '';
 
   try {
+    // 0. 국가법령정보센터 실시간 법령·대법원 판례 조회 요청
+    if (body.action === 'law') {
+      const itemId = typeof body.itemId === 'string' && body.itemId.trim() ? body.itemId.trim() : 'no_new_mortgage';
+      return json(200, await lookupLawByItemId(itemId));
+    }
     // 1. 사진(OCR) 텍스트 추출 요청
     if (body.action === 'ocr') {
       if (!body.image) return json(400, { error: '분석할 계약서 사진(image)을 전송해 주세요.' });
