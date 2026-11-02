@@ -9,6 +9,10 @@ export type CheckItem = {
   title: string;
   /** 무엇을 보는지 한 문장 (AI에게도 그대로 준다) */
   whatToCheck: string;
+  /** 왜 위험한지 (법적·구조적 원인) */
+  riskReason: string;
+  /** 이 특약에 서명했을 때 나에게 생기는 구체적인 결과와 피해 */
+  riskConsequence: string;
   /** 이런 표현이 있으면 위험 쪽 (규칙 검사용 정규식 원문) */
   riskHints: string[];
   /** 이런 표현이 있으면 보호됨 쪽 */
@@ -25,12 +29,17 @@ export type Pack = { id: string; name: string; kinds: string[]; items: CheckItem
 
 export type ItemResult = {
   itemId: string;
+  title?: string;
   verdict: Verdict;
   /** 원문에서 그대로 옮긴 문장 (언급 없음이면 빈 문자열) */
   quote: string;
   knowledge: string;
   question: string;
   fixText: string;
+  /** 왜 위험한지 */
+  riskReason?: string;
+  /** 서명 시 발생할 구체적인 피해 결과 */
+  riskConsequence?: string;
   /** AI 결과가 빠졌거나 원문에 없는 인용이라 자동 판정에 실패한 항목 */
   autoFailed: boolean;
 };

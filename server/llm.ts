@@ -15,7 +15,7 @@ export const CALL_TIMEOUT_MS = 25_000;
 export const MAX_RETRIES = 1;
 
 const PROVIDERS = {
-  gemini: { keyEnv: 'GEMINI_API_KEY', modelEnv: 'GEMINI_MODEL', defaultModel: 'gemini-3.6-flash' },
+  gemini: { keyEnv: 'GEMINI_API_KEY', modelEnv: 'GEMINI_MODEL', defaultModel: 'gemini-3.8-flash' },
   openai: { keyEnv: 'OPENAI_API_KEY', modelEnv: 'OPENAI_MODEL', defaultModel: 'gpt-4o-mini' },
 } as const;
 

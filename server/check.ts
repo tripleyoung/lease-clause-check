@@ -33,7 +33,15 @@ export function repair(pack: Pack, version: Version, maskedText: string, raw: { 
   const byId = new Map((raw ?? []).map((r) => [r.itemId, r]));
   return pack.items.map((item) => {
     const got = byId.get(item.id);
-    const base = { itemId: item.id, knowledge: item.knowledge, question: item.question, fixText: item.fixText };
+    const base = {
+      itemId: item.id,
+      title: item.title,
+      knowledge: item.knowledge,
+      question: item.question,
+      fixText: item.fixText,
+      riskReason: item.riskReason,
+      riskConsequence: item.riskConsequence,
+    };
     if (!got) return { ...base, verdict: '언급 없음', quote: '', autoFailed: true };
     if (version === 'v2' && got.verdict !== '언급 없음' && (!got.quote.trim() || !norm(maskedText).includes(norm(got.quote)))) {
       return { ...base, verdict: '언급 없음', quote: '', autoFailed: true };

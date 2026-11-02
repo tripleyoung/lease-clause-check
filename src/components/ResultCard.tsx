@@ -33,6 +33,12 @@ export function ResultCard({ item, info }: { item: ItemResult; info?: PackItemIn
       </header>
       {item.autoFailed && <p className="warn">자동 판정에 실패했어요. 이 항목은 직접 확인해 주세요.</p>}
       {item.quote && <blockquote>“{item.quote}”</blockquote>}
+      {item.verdict === '위험' && (item.riskReason || item.riskConsequence) && (
+        <div className="risk-detail-box">
+          {item.riskReason && <p className="risk-reason"><strong>⚠️ 왜 위험한가요?</strong> {item.riskReason}</p>}
+          {item.riskConsequence && <p className="risk-consequence"><strong>💥 서명 시 발생할 실제 피해:</strong> {item.riskConsequence}</p>}
+        </div>
+      )}
       <details>
         <summary>근거: {source}</summary>
         <p className="law">{info?.knowledgeText}</p>
