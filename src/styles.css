@@ -1778,9 +1778,11 @@ ol.rt-list {
 }
 
 .doc-annotation-box--risk.is-selected {
-  background: rgba(201, 54, 54, 0.32);
-  border-color: #c93636;
-  box-shadow: 0 0 0 2px rgba(201, 54, 54, 0.4), 0 0 16px rgba(201, 54, 54, 0.5);
+  background: rgba(220, 38, 38, 0.38) !important;
+  border: 2px solid #dc2626 !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.4), 0 0 20px rgba(220, 38, 38, 0.6) !important;
+  animation: docHighlightPulseRisk 1.8s infinite ease-in-out !important;
+  z-index: 25 !important;
 }
 
 /* 권리 보호 조항 하이라이트 박스 */
@@ -1796,9 +1798,33 @@ ol.rt-list {
 }
 
 .doc-annotation-box--safe.is-selected {
-  background: rgba(35, 66, 110, 0.28);
-  border-color: #23426e;
-  box-shadow: 0 0 0 2px rgba(35, 66, 110, 0.35), 0 0 14px rgba(35, 66, 110, 0.45);
+  background: rgba(16, 185, 129, 0.38) !important;
+  border: 2px solid #059669 !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.4), 0 0 20px rgba(16, 185, 129, 0.6) !important;
+  animation: docHighlightPulseSafe 1.8s infinite ease-in-out !important;
+  z-index: 25 !important;
+}
+
+@keyframes docHighlightPulseRisk {
+  0%, 100% {
+    box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.4), 0 0 14px rgba(220, 38, 38, 0.5);
+    opacity: 0.92;
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(220, 38, 38, 0.7), 0 0 26px rgba(220, 38, 38, 0.85);
+    opacity: 1;
+  }
+}
+
+@keyframes docHighlightPulseSafe {
+  0%, 100% {
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.4), 0 0 14px rgba(16, 185, 129, 0.5);
+    opacity: 0.92;
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.7), 0 0 26px rgba(16, 185, 129, 0.85);
+    opacity: 1;
+  }
 }
 
 /* 주의 조항 하이라이트 박스 */
@@ -3315,6 +3341,44 @@ button.paper-doc__clause:hover {
   }
   .hint-mobile {
     display: inline;
+  }
+
+  /* 모바일 상단 바 여백 및 프로필 이름 잘림 방지 */
+  .topbar {
+    padding: 0 4px;
+    gap: 6px;
+  }
+
+  .brand__tagline {
+    display: none;
+  }
+
+  .brand__name {
+    font-size: 15px;
+    font-weight: 800;
+  }
+
+  .topbar__btn-label {
+    display: none;
+  }
+
+  .topbar__btn {
+    height: 32px;
+    padding: 0 8px;
+    font-size: 11.5px;
+  }
+
+  .topbar__user-name {
+    max-width: 90px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  .profiles {
+    display: none; /* 모바일 상단 바에서는 가로 여백 확보를 위해 칩 숨김 (하단 추천 및 도넛에서 선택 가능) */
   }
 
   /* 문서 미리보기/풀이 중일 때 모바일 상단 한결 브리핑 컴팩트 축소 */

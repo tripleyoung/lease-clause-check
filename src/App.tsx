@@ -1378,7 +1378,10 @@ export function App() {
           <span className="brand__seal" aria-hidden="true">
             律
           </span>
-          <span className="brand__title">온율 · 계약·법률·세무</span>
+          <span className="brand__title">
+            <span className="brand__name">온율</span>
+            <span className="brand__tagline"> · 계약·법률·세무</span>
+          </span>
         </button>
 
         <nav className="profiles" aria-label="상담 분야 및 맞춤 프로필 선택">
@@ -1638,18 +1641,6 @@ export function App() {
                   </div>
                 </header>
 
-                {(activeTurn.maskedSummary || activeTurn.cached) && (
-                  <div className="mask-banner" role="status">
-                    <span>
-                      {activeTurn.maskedSummary
-                        ? `🔒 ${activeTurn.maskedSummary}`
-                        : '🔒 개인정보 보호 점검 완료'}
-                    </span>
-                    {activeTurn.cached && (
-                      <span className="cache-pill">⚡ 캐시에서 즉시 불러옴</span>
-                    )}
-                  </div>
-                )}
 
                 <VisualDeck items={activeTurn.deck} />
               </section>

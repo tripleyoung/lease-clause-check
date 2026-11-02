@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import type { ItemResult } from '../../shared/types';
 
 export interface DocAnnotationBox {
@@ -264,6 +264,27 @@ export function DocumentFullscreenModal({
 
   const activeClause = doc.clauses.find((c) => c.num === selectedClauseNum) ?? doc.clauses[0];
 
+  const handleContainerClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if ((e.target as HTMLElement).closest('.doc-annotation-box')) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickY = ((e.clientY - rect.top) / rect.height) * 100;
+    let closestClause = doc.clauses[0];
+    let minDiff = 9999;
+    for (const c of doc.clauses) {
+      if (c.annotationBox) {
+        const midY = c.annotationBox.top + c.annotationBox.height / 2;
+        const diff = Math.abs(midY - clickY);
+        if (diff < minDiff) {
+          minDiff = diff;
+          closestClause = c;
+        }
+      }
+    }
+    if (closestClause) {
+      onSelectClause(closestClause.num);
+    }
+  };
+
   return (
     <div
       className="doc-fullscreen-backdrop"
@@ -331,7 +352,9 @@ export function DocumentFullscreenModal({
             aspectRatio: doc.aspectRatio,
             width: `${Math.round(860 * (zoom / 100))}px`,
             maxWidth: 'none',
+            cursor: 'pointer',
           }}
+          onClick={handleContainerClick}
         >
           <img
             src={doc.scannedImageUrl}
@@ -428,6 +451,28 @@ export function SamplePreviewCard({
 
   const activeClause = doc.clauses.find((c) => c.num === selectedClauseNum) ?? doc.clauses[0];
 
+  const handleContainerClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if ((e.target as HTMLElement).closest('.doc-annotation-box')) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickY = ((e.clientY - rect.top) / rect.height) * 100;
+    let closestClause = doc.clauses[0];
+    let minDiff = 9999;
+    for (const c of doc.clauses) {
+      if (c.annotationBox) {
+        const midY = c.annotationBox.top + c.annotationBox.height / 2;
+        const diff = Math.abs(midY - clickY);
+        if (diff < minDiff) {
+          minDiff = diff;
+          closestClause = c;
+        }
+      }
+    }
+    if (closestClause) {
+      setSelectedClauseNum(closestClause.num);
+      setShowPinsOnScan(true);
+    }
+  };
+
   return (
     <>
       <section className="doc-preview-shell" aria-label={`${doc.title} 미리보기`} data-testid="sample-preview-card">
@@ -504,7 +549,8 @@ export function SamplePreviewCard({
           {/* 원본 해상도와 100% 일치하는 종횡비 컨테이너 (Zero-Letterbox Pixel-Perfect 바인딩) */}
           <div
             className="paper-doc-scanned-container"
-            style={{ aspectRatio: doc.aspectRatio }}
+            style={{ aspectRatio: doc.aspectRatio, cursor: 'pointer' }}
+            onClick={handleContainerClick}
             data-testid="scanned-a4-container"
           >
             <img
@@ -683,6 +729,39 @@ export function AnnotatedDocumentDeckCard({
     }
   };
 
+  const detailRef = useRef<HTMLDivElement>(null);
+
+  const handleSelectWithScroll = (idx: number) => {
+    handleSelect(idx);
+    if (typeof window !== 'undefined' && window.innerWidth <= 768) {
+      detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  };
+
+  const handleContainerClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if ((e.target as HTMLElement).closest('.doc-annotation-box')) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickY = ((e.clientY - rect.top) / rect.height) * 100;
+    let closestIdx = 0;
+    let minDiff = 9999;
+    displayItems.forEach((item, idx) => {
+      const matchedClause = doc?.clauses[idx] ?? doc?.clauses.find((c) =>
+        c.text.includes(item.quote?.slice(0, 8) || '') || c.num === idx + 1
+      );
+      const box = matchedClause?.annotationBox ?? {
+        top: 55 + idx * 3.5,
+        height: 2.1,
+      };
+      const midY = box.top + box.height / 2;
+      const diff = Math.abs(midY - clickY);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestIdx = idx;
+      }
+    });
+    handleSelectWithScroll(closestIdx);
+  };
+
   // 스캔본 이미지가 있고 doc의 clauses에 annotationBox가 있으면 핀 오버레이 제공
   const hasScannedDoc = Boolean(doc?.scannedImageUrl || uploadedImageUrl);
   const effectiveImageUrl = uploadedImageUrl || doc?.scannedImageUrl;
@@ -716,7 +795,8 @@ export function AnnotatedDocumentDeckCard({
           {hasScannedDoc ? (
             <div
               className="paper-doc-scanned-container is-result-mode"
-              style={{ aspectRatio: doc?.aspectRatio || '824 / 1089' }}
+              style={{ aspectRatio: doc?.aspectRatio || '824 / 1089', cursor: 'pointer' }}
+              onClick={handleContainerClick}
               data-testid="result-scanned-container"
             >
               <img
@@ -814,7 +894,7 @@ export function AnnotatedDocumentDeckCard({
 
         {/* 오른쪽: 현재 가리키고 있는 핀(조항)의 상세 진단 & 대안 문구 복사 */}
         {activeItem && (
-          <div className="pointed-detail">
+          <div className="pointed-detail" ref={detailRef}>
             <div className="pointed-detail__badge-row">
               <span className={`pointed-detail__pin-pill pointed-detail__pin-pill--${activeItem.verdict === '위험' ? 'risk' : 'safe'}`}>
                 문서 위치 #{safeIdx + 1} · {activeItem.verdict === '위험' ? '위험 특약' : '보호 조항'}

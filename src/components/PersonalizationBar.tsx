@@ -629,20 +629,15 @@ export function TopbarActions({
 }) {
   return (
     <div className="topbar__actions">
-      {cacheHits > 0 && (
-        <span className="cache-pill" title="동일한 법령·계약 점검 결과를 캐시에서 0초 만에 불러왔어요">
-          ⚡ 캐시 {cacheHits}
-        </span>
-      )}
       <button
         type="button"
-        className="topbar__btn"
+        className="topbar__btn topbar__btn--history"
         onClick={onOpenHistory}
         aria-label="지난 대화 보관함 열기"
         data-testid="open-history-btn"
       >
         <IconHistory aria-hidden="true" />
-        <span>지난 대화</span>
+        <span className="topbar__btn-label">지난 대화</span>
         {convCount > 0 && <em className="topbar__badge">{convCount}</em>}
       </button>
       <button
@@ -652,7 +647,7 @@ export function TopbarActions({
         aria-label="로그인 및 맞춤 프로필 설정"
         data-testid="open-personalization-btn"
       >
-        <span>{session ? `👤 ${session.name}` : '로그인 · 맞춤설정'}</span>
+        <span className="topbar__user-name">{session ? `👤 ${session.name}` : '로그인 · 맞춤설정'}</span>
       </button>
     </div>
   );
