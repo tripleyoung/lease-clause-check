@@ -5,6 +5,8 @@
  * - 대법원 판례(target=prec) 검색 및 판시사항·판결요지 조회
  */
 
+import { LAW_OPENAPI_SNAPSHOT } from './law-snapshot.js';
+
 export interface LiveStatuteInfo {
   lawName: string;
   article: string;
@@ -383,24 +385,26 @@ export async function lookupLawByItemId(itemId: string): Promise<LawLookupRespon
 
   const oc = process.env.LAW_API_OC || 'tripleyoung';
   const mapping = ITEM_LAW_MAP[itemId] ?? ITEM_LAW_MAP.no_new_mortgage;
+  const snapshot = LAW_OPENAPI_SNAPSHOT[itemId] ?? LAW_OPENAPI_SNAPSHOT.no_new_mortgage;
 
   const [{ statute, connected }, precedents] = await Promise.all([
     fetchStatute(oc, mapping),
     fetchPrecedents(oc, mapping.precQuery),
   ]);
 
+  const finalStatute = connected ? statute : snapshot?.statute ?? statute;
+  const finalPrecedents = precedents.length > 0 ? precedents : snapshot?.precedents ?? [];
+
   const response: LawLookupResponse = {
     itemId,
     fetchedAt: new Date().toISOString(),
     oc,
     liveConnected: connected || precedents.length > 0,
-    statute,
-    precedents,
+    statute: finalStatute,
+    precedents: finalPrecedents,
   };
 
-  if (response.liveConnected) {
-    CACHE.set(itemId, { expiresAt: Date.now() + CACHE_TTL_MS, data: response });
-  }
+  CACHE.set(itemId, { expiresAt: Date.now() + CACHE_TTL_MS, data: response });
 
   return response;
 }
