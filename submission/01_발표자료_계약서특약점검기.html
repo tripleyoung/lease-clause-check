@@ -257,7 +257,7 @@
     </div>
     <div class="slide-body">
       <h1 class="slide-title">왜 우리는 "계약서 특약"에 주목했는가?</h1>
-      <p class="slide-subtitle">사회초년생의 주거 위기와 기존 범용 LLM의 구조적 4대 한계</p>
+      <p class="slide-subtitle">사회초년생의 주거 위기와 범용 AI 챗봇 단독 사용의 4대 구조적 한계</p>
       
       <div class="grid-2">
         <div class="card-box" style="border-left: 4px solid var(--danger);">
@@ -272,26 +272,26 @@
           <div class="evidence-box">
             <strong>🔍 팩트 검증 소스 (Ground Truth):</strong><br>
             • 국토교통부 실거래가 공개시스템 전국 전월세 통계 (README.md:11)<br>
-            • 주택임대차보호법 제3조(대항력), 제3조의2(우선변제권)
+            • 주택임대차보호법 제3조(대항력), 제3조의2(우선변제권), 제10조(강행규정)
           </div>
         </div>
         <div class="card-box" style="border-left: 4px solid var(--warning);">
           <div>
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
-              <h3 style="margin:0; color: var(--warning);">⚠️ 범용 AI 질의 시 발생하는 4대 한계</h3>
-              <span class="badge badge-danger" style="font-size:10.5px;">스탠퍼드 실측 환각률 58~82%</span>
+              <h3 style="margin:0; color: var(--warning);">⚠️ 범용 AI 챗봇 단독 사용의 4대 한계</h3>
+              <span class="badge badge-danger" style="font-size:10.5px;">시스템 가드레일 필수</span>
             </div>
             <ul>
-              <li><strong>비결정론적 누락 & 조항 왜곡</strong>: 질문마다 판정이 달라지고, 실제 문맥을 오독하는 'Misgrounding' 발생.</li>
-              <li><strong>지어낸 법령 조문(환각)</strong>: 실재하지 않는 법령 번호나 조항을 권위적인 어조로 날조 인용.</li>
-              <li><strong>개인정보 무방비 외부 노출</strong>: 주민등록번호, 계좌번호, 주소, 연락처가 외부 AI 서버로 전송.</li>
-              <li><strong>정량 숫자 연산 오류</strong>: 5% 증액 상한선, 10% 위약금 등 엄밀한 법정 한도 계산 실패.</li>
+              <li><strong>질문 격차(Prompt Gap)와 누락</strong>: 법을 모르는 초년생은 '무엇이 빠졌는지' 질문하지 못해 핵심 방어 특약을 놓침.</li>
+              <li><strong>비결정론적 판정 & 문맥 왜곡</strong>: 프롬프트마다 점검 기준이 흔들리고, 독소 문맥 오독(Misgrounding) 위험이 상존함.</li>
+              <li><strong>개인정보(PII) 무방비 외부 노출</strong>: 주민등록번호, 계좌번호, 주소, 연락처가 외부 AI 서버로 그대로 전송.</li>
+              <li><strong>현장 워크플로 부재 & 연산 비효율</strong>: 줄글 답변만으로는 현장 협상이 불가하며, 단순 수치 계산도 매번 무거운 추론을 거침.</li>
             </ul>
           </div>
           <div class="evidence-box">
-            <strong>🔍 스탠퍼드 실측 연구 & 온율 극복 아키텍처:</strong><br>
-            • <em>Stanford RegLab & HAI (2024)</em>: 상용 LLM 법률 질의 58%~82% 환각 및 Misgrounding 위험 실증<br>
-            • <strong>온율 3계층 하이브리드</strong>: 188건 벤치마크 정밀도 100%, PII 사전 가림(유출 0%), 결정론적 규칙 엔진(오차 0%)
+            <strong>🔍 온율(溫律)의 엔지니어링 해법 (초지능 + 결정론적 가드레일):</strong><br>
+            • <strong>전문가 기준 전수 강제</strong>: 임대차 11개·헬스장 7개 강행규정 자동 대조 + 실물 서식 핀 매핑 UX<br>
+            • <strong>코드와 AI의 역할 분리</strong>: 규칙·PII 마스킹(rules.ts, pii.ts) + LLM 추론 결합 ➔ 0.6초 응답 · 정밀도 100%
           </div>
         </div>
       </div>
