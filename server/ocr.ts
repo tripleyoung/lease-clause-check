@@ -71,7 +71,7 @@ export async function extractTextFromImage(imageDataUrl: string): Promise<string
     if (/timeout|aborted/i.test(msg)) {
       throw new CheckError(504, '사진 분석 시간이 초과되었어요. 이미지 용량을 줄이거나 잠시 후 다시 시도해 주세요.');
     }
-    console.error('[OCR] Error extracting text from image:', err);
-    throw new CheckError(502, '사진을 분석하는 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.');
+    console.error('[OCR] Error extracting text from image:', (err as Error)?.message, (err as Error)?.stack);
+    throw new CheckError(502, `사진 분석 오류: ${(err as Error)?.message || '알 수 없는 오류'}`);
   }
 }
