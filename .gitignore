@@ -12,3 +12,4 @@ playwright-report/
 .env*.local
 mcp/law-mcp-rs/target/
 .art
+scripts/*.png

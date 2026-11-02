@@ -2160,6 +2160,54 @@ button.paper-doc__clause:hover {
   color: var(--positive-text);
 }
 
+/* 키워드 형광펜 하이라이트 (원문 독소 조항 핵심 식별용) */
+.kw-highlight {
+  display: inline;
+  padding: 1.5px 5px;
+  margin: 0 1.5px;
+  border-radius: 4px;
+  font-weight: 800;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  line-height: 1.35;
+  transition: all 0.15s ease-in-out;
+}
+
+.kw-highlight--risk {
+  background: rgba(239, 68, 68, 0.22);
+  color: #c92a2a;
+  border-bottom: 2.5px solid #ef4444;
+  box-shadow: 0 1px 2px rgba(239, 68, 68, 0.12);
+}
+
+.kw-highlight--safe {
+  background: rgba(16, 185, 129, 0.22);
+  color: #047857;
+  border-bottom: 2.5px solid #10b981;
+  box-shadow: 0 1px 2px rgba(16, 185, 129, 0.12);
+}
+
+.kw-highlight--caution {
+  background: rgba(245, 158, 11, 0.24);
+  color: #b45309;
+  border-bottom: 2.5px solid #f59e0b;
+  box-shadow: 0 1px 2px rgba(245, 158, 11, 0.12);
+}
+
+.paper-doc__clause.is-pointed .kw-highlight--risk {
+  background: rgba(239, 68, 68, 0.32);
+  color: #b91c1c;
+  border-bottom-width: 3px;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.3);
+}
+
+.paper-doc__clause.is-pointed .kw-highlight--safe {
+  background: rgba(16, 185, 129, 0.3);
+  color: #065f46;
+  border-bottom-width: 3px;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.3);
+}
+
 /* 점검 결과 인터랙티브 문서 포인터 (AnnotatedDocumentDeckCard) */
 .annotated-doc-grid {
   display: grid;

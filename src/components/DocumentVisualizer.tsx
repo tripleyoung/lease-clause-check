@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import type { ItemResult } from '../../shared/types';
+import { HighlightText } from './HighlightText';
 
 export interface DocAnnotationBox {
   left: number; // percentage (0 - 100)
@@ -25,6 +26,7 @@ export interface SampleDocSpec {
     tone: 'risk' | 'safe' | 'caution';
     tag: string;
     shortPoint: string;
+    highlightWords?: string[];
     annotationBox?: DocAnnotationBox;
   }>;
   rawText: string;
@@ -72,6 +74,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'safe',
         tag: '보호 · 최우선 권리 확보 (법무부 권고)',
         shortPoint: '전입신고 대항력이 생길 때까지 내 보증금 순위를 지켜주는 필수 보호 조항이에요.',
+        highlightWords: ['담보물권을 설정하지 아니한다'],
         annotationBox: { left: 8.34, top: 55.83, width: 83.38, height: 2.1 },
       },
       {
@@ -80,6 +83,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'safe',
         tag: '보호 · 통상 마모 면책 (대법원 2005다51389)',
         shortPoint: '대법원 판례 기준에 따라 일상적인 생활 마모 책임을 면책해 주는 표준 조항이에요.',
+        highlightWords: ['통상의 사용에 따른 마모', '원상복구 대상에서 제외한다'],
         annotationBox: { left: 8.34, top: 58.28, width: 83.38, height: 4.0 },
       },
       {
@@ -88,6 +92,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'risk',
         tag: '위험 · 보증금 반환 지연 (주임법 위반)',
         shortPoint: '새 세입자가 안 구해지면 보증금을 제때 못 돌려받는 대표적 불법 독소 조항이에요.',
+        highlightWords: ['다음 임차인이 입주한 후에 반환'],
         annotationBox: { left: 8.36, top: 62.63, width: 83.38, height: 2.1 },
       },
       {
@@ -96,6 +101,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'risk',
         tag: '위험 · 원상복구 과다 전가 (약관규제법 위반)',
         shortPoint: '자연 노후화까지 세입자에게 물려 보증금을 부당 차감하는 불리한 특약이에요.',
+        highlightWords: ['40만원을 보증금에서 공제'],
         annotationBox: { left: 8.37, top: 65.08, width: 83.38, height: 2.1 },
       },
       {
@@ -104,6 +110,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'risk',
         tag: '위험 · 법정 5% 상한 초과 (주임법 제7조)',
         shortPoint: '주택임대차보호법상 법정 증액 상한(5%)을 초과하여 법적 효력이 없는 무효 조항이에요.',
+        highlightWords: ['매년 8% 인상'],
         annotationBox: { left: 8.38, top: 67.53, width: 83.38, height: 2.1 },
       },
     ],
@@ -145,6 +152,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'safe',
         tag: '보호 · 법정 환불 기준 (공정위 표준약관)',
         shortPoint: '실제 결제 금액 기준으로 10% 위약금만 공제하고 남은 금액을 돌려받는 표준 권리예요.',
+        highlightWords: ['소비자분쟁해결기준에 따라', '위약금 10%를 공제한 후 환급'],
         annotationBox: { left: 8.2, top: 58.2, width: 83.6, height: 3.4 },
       },
       {
@@ -153,6 +161,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'risk',
         tag: '위험 · 정상가 꼼수 차감 및 위약금 10% 초과',
         shortPoint: '실제 결제한 할인가가 아닌 부풀린 정상가로 계산해 환불금을 0원으로 만드는 대표적 꼼수예요.',
+        highlightWords: ['정상가(월 15만원) 기준', '위약금 20%를 공제'],
         annotationBox: { left: 8.2, top: 61.9, width: 83.6, height: 5.3 },
       },
       {
@@ -161,6 +170,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'risk',
         tag: '위험 · 환불 일체 불가 및 사업자 귀책 면책',
         shortPoint: '센터 사정으로 운동을 못 하게 되었는데도 환불을 전면 거부하는 원천 무효 조항이에요.',
+        highlightWords: ['어떠한 경우에도 환불되지 않습니다'],
         annotationBox: { left: 8.2, top: 67.6, width: 83.6, height: 3.2 },
       },
       {
@@ -169,6 +179,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'risk',
         tag: '위험 · 사은품 과다 위약금 전가',
         shortPoint: '공짜 사은품 명목으로 정가의 몇 배를 청구해 환불금을 대폭 깎는 부당 조항이에요.',
+        highlightWords: ['정가 12만원을 차감'],
         annotationBox: { left: 8.2, top: 71.1, width: 83.6, height: 3.2 },
       },
     ],
@@ -216,6 +227,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'safe',
         tag: '공제 요건 충족 · 연 1,000만 원 한도',
         shortPoint: '총급여 8,000만 원 이하 무주택 세대주 요건을 충족해 조세특례제한법상 월세 세액공제 대상이에요.',
+        highlightWords: ['월세 750,000원', '연간 총 9,000,000원'],
         annotationBox: { left: 8.25, top: 57.9, width: 83.54, height: 3.8 },
       },
       {
@@ -224,6 +236,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'safe',
         tag: '환급 예상액 · 연 135만 원 (지방세 포함 148.5만 원)',
         shortPoint: '연 900만 원 × 15% = 지방소득세 포함 총 148.5만 원을 연말정산에서 돌려받아요.',
+        highlightWords: ['15% 세액공제', '연 135만 원', '148.5만 원'],
         annotationBox: { left: 8.26, top: 62.0, width: 83.53, height: 2.6 },
       },
       {
@@ -232,6 +245,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'caution',
         tag: '주의 · 전입신고 필수 (집주인 동의 불필요)',
         shortPoint: '임대인의 동의나 서명 없이도 국세청 홈택스 또는 회사 연말정산 간소화에서 직접 신청할 수 있어요.',
+        highlightWords: ['전입신고 필수', '집주인 동의 불필요'],
         annotationBox: { left: 8.27, top: 64.8, width: 83.54, height: 3.8 },
       },
     ],
@@ -407,7 +421,13 @@ export function DocumentFullscreenModal({
             </span>
             <div className="doc-fullscreen-clause-text">
               <strong>{activeClause.tag}</strong>
-              <p>{activeClause.text}</p>
+              <p>
+                <HighlightText
+                  text={activeClause.text}
+                  customKeywords={activeClause.highlightWords}
+                  tone={activeClause.tone}
+                />
+              </p>
             </div>
           </div>
         )}
@@ -604,7 +624,13 @@ export function SamplePreviewCard({
               </span>
               <div className="scan-pin-summary-body">
                 <strong>{activeClause.tag}</strong>
-                <p>{activeClause.text}</p>
+                <p>
+                  <HighlightText
+                    text={activeClause.text}
+                    customKeywords={activeClause.highlightWords}
+                    tone={activeClause.tone}
+                  />
+                </p>
                 <span className="scan-pin-summary-point">💡 {activeClause.shortPoint}</span>
               </div>
             </div>
@@ -638,7 +664,13 @@ export function SamplePreviewCard({
               <div key={c.num} className={`paper-doc__clause paper-doc__clause--${c.tone}`}>
                 <span className={`paper-doc__pin paper-doc__pin--${c.tone}`}>{c.num}</span>
                 <div className="paper-doc__clause-body">
-                  <p className="paper-doc__clause-text">{c.text}</p>
+                  <p className="paper-doc__clause-text">
+                    <HighlightText
+                      text={c.text}
+                      customKeywords={c.highlightWords}
+                      tone={c.tone}
+                    />
+                  </p>
                   <span className={`paper-doc__clause-badge paper-doc__clause-badge--${c.tone}`}>
                     {c.tag} · {c.shortPoint}
                   </span>
@@ -880,7 +912,12 @@ export function AnnotatedDocumentDeckCard({
                 >
                   <span className={`paper-doc__pin paper-doc__pin--${tone}`}>{idx + 1}</span>
                   <div className="paper-doc__clause-body">
-                    <p className="paper-doc__clause-text">{item.quote || item.title}</p>
+                    <p className="paper-doc__clause-text">
+                      <HighlightText
+                        text={item.quote || item.title || ''}
+                        tone={tone}
+                      />
+                    </p>
                     <span className={`paper-doc__clause-badge paper-doc__clause-badge--${tone}`}>
                       {isRisk ? '🔴 수정 권장' : '🟢 보호 조항'} · {item.title}
                       {isSelected ? ' 👈 한결이 설명 중' : ''}
@@ -910,7 +947,12 @@ export function AnnotatedDocumentDeckCard({
 
             <div className="clause-box clause-box--risk">
               <span className="clause-box__label">문서에서 짚은 원문 (#{safeIdx + 1})</span>
-              <p className="clause-box__text">{activeItem.quote || activeItem.title}</p>
+              <p className="clause-box__text">
+                <HighlightText
+                  text={activeItem.quote || activeItem.title || ''}
+                  tone={activeItem.verdict === '위험' ? 'risk' : 'safe'}
+                />
+              </p>
             </div>
 
             {activeItem.fixText && (
@@ -927,7 +969,12 @@ export function AnnotatedDocumentDeckCard({
                     {copiedKey === `pin-${activeItem.itemId}-${safeIdx}` ? '복사됨 ✓' : '대안 문구 복사'}
                   </button>
                 </span>
-                <p className="clause-box__text">{activeItem.fixText}</p>
+                <p className="clause-box__text">
+                  <HighlightText
+                    text={activeItem.fixText}
+                    tone="safe"
+                  />
+                </p>
               </div>
             )}
           </div>

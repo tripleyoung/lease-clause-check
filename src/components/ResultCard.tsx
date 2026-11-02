@@ -2,6 +2,7 @@ import { Button, FlexBox, Typography } from '@montage-ui/core';
 import { IconCheck, IconCopy } from '@montage-ui/icon';
 import { useState } from 'react';
 import type { ItemResult } from '../../shared/types.ts';
+import { HighlightText } from './HighlightText';
 
 export type PackItemInfo = { id: string; title: string; knowledge: string; knowledgeText: string };
 
@@ -110,7 +111,7 @@ export function ResultCard({
 
       {item.quote && (
         <blockquote className="clause-quote">
-          “{item.quote}”
+          “<HighlightText text={item.quote} tone={item.verdict === '위험' ? 'risk' : 'safe'} />”
         </blockquote>
       )}
 
@@ -135,7 +136,7 @@ export function ResultCard({
           <div className="spec-item">
             <dt>대안 문구</dt>
             <dd className="fix">
-              <span>{item.fixText}</span>
+              <span><HighlightText text={item.fixText} tone="safe" /></span>
               <FlexBox gap={8} sx={{ flexShrink: 0, flexWrap: 'wrap' }}>
                 <Button
                   variant="outlined"
