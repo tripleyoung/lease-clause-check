@@ -1,7 +1,7 @@
 import { Button, Chip, FlexBox, Typography } from '@montage-ui/core';
 import { IconCamera, IconCheck, IconCopy, IconImage } from '@montage-ui/icon';
 import { useEffect, useRef, useState } from 'react';
-import type { CheckResult, ItemResult, Version } from '../shared/types.ts';
+import type { CheckResult, ItemResult } from '../shared/types.ts';
 import { ResultCard, type PackItemInfo } from './components/ResultCard.tsx';
 import { SAMPLES } from './samples.ts';
 
@@ -11,43 +11,11 @@ type OcrResult = { text: string; masked: string; found: { kind: string; sample: 
 type VerdictFilter = 'all' | '위험' | '언급 없음' | '보호됨';
 type RoutePage = 'home' | 'consult' | 'tax';
 
-type LawGraphStats = {
-  nodeCount: number;
-  edgeCount: number;
-  statuteCount: number;
-  precedentCount: number;
-  casebookCount: number;
-  writebackCount: number;
-  citationHitCount: number;
-  learnedCaseCount: number;
-};
-
-type LawGraphBundle = {
-  subgraph: {
-    domain: string;
-    seedItemId: string;
-    seeds: Array<{ nodeId: string; reason: string }>;
-    nodes: Array<{ id: string; kind: string; label: string }>;
-    edges: Array<{ id: string; source: string; target: string; relation: string }>;
-    matchedCases: Array<{
-      id: string;
-      label: string;
-      headline: string;
-      statuteRef: string;
-      precedentRef: string;
-      citations: number;
-      learned: boolean;
-      score: number;
-    }>;
-    stats: LawGraphStats;
-  };
-  writeback: {
-    recorded: boolean;
-    signatureId: string;
-    citedCaseIds: string[];
-    learnedCaseId: string | null;
-    stats: LawGraphStats;
-  };
+type MatchedCaseItem = {
+  id: string;
+  label: string;
+  headline: string;
+  statuteRef: string;
 };
 
 type ConsultResult = {
@@ -59,9 +27,6 @@ type ConsultResult = {
   messageDraft: string;
   followups: string[];
   law: {
-    engine?: string;
-    mcpEndpoint?: string;
-    liveConnected: boolean;
     statute: {
       lawName: string;
       article: string;
@@ -80,7 +45,11 @@ type ConsultResult = {
       officialUrl: string;
     }>;
   };
-  graphRag?: LawGraphBundle;
+  graphRag?: {
+    subgraph: {
+      matchedCases: MatchedCaseItem[];
+    };
+  };
 };
 
 type TaxCheckResult = {
@@ -96,33 +65,46 @@ type TaxCheckResult = {
   hometaxGuide: string;
   followups: string[];
   law: ConsultResult['law'];
-  graphRag?: LawGraphBundle;
+  graphRag?: {
+    subgraph: {
+      matchedCases: MatchedCaseItem[];
+    };
+  };
 };
 
 const CONSULT_PRESETS = [
-  '집주인이 다음 세입자가 들어와야 보증금을 돌려준다고 특약에 넣자는데 서명해도 되나요?',
-  '보일러 배관 누수 수리비를 모든 수선은 세입자 부담이라는 특약 때문에 제가 다 내야 하나요?',
-  '헬스장 PT 20회 중 3회만 받고 환불하려는데 할인가가 아닌 정상가로 차감한다는데 맞나요?',
+  {
+    label: '다음 세입자 들어와야 보증금 반환',
+    question: '집주인이 다음 세입자가 들어와야 보증금을 돌려준다고 특약에 넣자는데 서명해도 되나요?',
+  },
+  {
+    label: '보일러·배관 누수 수리비 전가',
+    question: '보일러 배관 누수 수리비를 모든 수선은 세입자 부담이라는 특약 때문에 제가 다 내야 하나요?',
+  },
+  {
+    label: '헬스장·PT 정상가 기준 환불 차감',
+    question: '헬스장 PT 20회 중 3회만 받고 환불하려는데 할인가가 아닌 정상가로 차감한다는데 맞나요?',
+  },
 ];
 
 const TAX_PRESETS = [
   {
-    label: '무주택 근로자 월세 85만원 이체',
+    label: '무주택 직장인 월세 세액공제',
     text: '무주택 세대주 직장인입니다. 매달 오피스텔 월세 85만원을 임대인 계좌로 무통장 입금하고 있는데 집주인 동의 없이 연말정산 세액공제가 되나요?',
     filer: 'wage_earner' as const,
   },
   {
-    label: '업무용 노트북 176만원 세금계산서',
+    label: '업무용 노트북 구입 세금계산서',
     text: '개인사업자입니다. 업무용 맥북 프로 1,760,000원(부가세 포함)을 구입하고 전자세금계산서를 발급받았습니다.',
     filer: 'individual_biz' as const,
   },
   {
-    label: '거래처 식대 68,000원 법인카드',
+    label: '거래처 식대 법인카드 결제',
     text: '거래처 미팅 저녁 식사로 68,000원을 사업용 신용카드로 결제했습니다. 부가세 매입세액 공제와 종소세 경비 처리가 모두 가능한가요?',
     filer: 'individual_biz' as const,
   },
   {
-    label: '가정용 마트 생필품 92,000원 결제',
+    label: '가정용 생필품 사업용카드 결제',
     text: '주말에 가족 식료품과 생필품 92,000원을 사업용 카드로 결제했습니다. 비용 처리가 가능한가요?',
     filer: 'individual_biz' as const,
   },
@@ -149,25 +131,24 @@ const ORDER: Record<string, number> = { 위험: 0, '언급 없음': 1, 보호됨
 
 const LAYERS = [
   [
-    '전송 전 개인정보 가림',
-    '계약서에 적힌 주민등록번호, 전화번호, 계좌번호, 동·호수를 정규식으로 먼저 가리고, 비식별화된 전문을 눈으로 확인한 뒤에야 AI를 호출합니다.',
+    '전송 전 개인정보 자동 가림',
+    '계약서에 적힌 주민등록번호, 전화번호, 계좌번호, 동·호수를 먼저 가리고, 가려진 전문을 눈으로 확인한 뒤에야 점검을 시작합니다.',
   ],
   [
-    '법령 원문 + 수치 규칙 대조',
-    '임대료 5% 초과 인상이나 위약금 10% 초과 같은 수치 기준은 코드 규칙으로 먼저 판별하고, 법령·분쟁해결기준 원문을 함께 묶어 조항별로 대조합니다.',
+    '현행 법령 및 분쟁해결기준 대조',
+    '임대료 5% 초과 인상이나 위약금 10% 초과 같은 법정 기준과 주택임대차보호법·소비자분쟁해결기준 조문을 조항별로 대조합니다.',
   ],
   [
-    '원문 인용 검증과 대안 문구',
-    'AI가 인용한 문장이 실제 계약서에 없으면 서버가 즉시 무효화해 헛경고를 차단하고, 현장에서 바로 요청할 수 있는 수정 특약 문구를 제공합니다.',
+    '원문 인용 확인과 수정 문구 제안',
+    '실제 계약서에 적힌 문구만 근거로 삼아 판정하며, 임대인이나 사업자에게 바로 요청할 수 있는 대안 특약 문구를 함께 드립니다.',
   ],
 ];
 
 const SOURCES = [
   ['전월세 임대차 (11개 항목)', '법제처 국가법령정보센터 · 법무부', '주택임대차보호법 제3조·제4조·제6조의3·제7조·제10조, 민법 제623조, 주택임대차표준계약서'],
   ['헬스장·PT 약관 (7개 항목)', '공정거래위원회 · 한국소비자원', '소비자분쟁해결기준(체력단련장업), 계속거래 해지·해제 산정기준, 약관규제법'],
-  ['세무·적격증빙 자동 판정', '기획재정부 · 국세청 · 대법원', '부가가치세법 제38조·제39조, 소득세법 제27조·제33조·제160조의2, 조세특례제한법 제95조의2'],
-  ['법령 데이터 연동 (OKE MCP)', '법제처 국가법령정보 공동활용 (OpenAPI)', '현행 법령(law) · 대법원 판례(prec) · 행정규칙(admrul) 단일 Rust Law MCP 파드 실시간 대조'],
-  ['자기진화형 GraphRAG', 'Atomic GraphRAG · Writeback 원장', '2-Hop 법리 서브그래프 추출 + 판례 인용 가중치(Utility Boost) + 신규 모범 사례 자동 승격'],
+  ['세무·경비 증빙 기준', '기획재정부 · 국세청 · 대법원', '부가가치세법 제38조·제39조, 소득세법 제27조·제33조·제160조의2, 조세특례제한법 제95조의2'],
+  ['판례 및 해석 사례', '대법원 종합법률정보 · 법제처', '주택임대차·소비자 약관·세무 관련 대법원 판결 요지 및 유사 분쟁 해결 사례'],
 ];
 
 function resizeImage(file: File, maxDim = 1600): Promise<string> {
@@ -202,101 +183,21 @@ function resizeImage(file: File, maxDim = 1600): Promise<string> {
   });
 }
 
-function GraphRagStatsBar({ stats }: { stats: LawGraphStats | null }) {
-  if (!stats) return null;
-  return (
-    <div className="graphrag-stats-bar" data-testid="graphrag-stats-bar">
-      <div className="graphrag-stat-cell">
-        <span>지식그래프 노드</span>
-        <strong>{stats.nodeCount}개</strong>
-      </div>
-      <div className="graphrag-stat-cell">
-        <span>법리·판례 연결 엣지</span>
-        <strong>{stats.edgeCount}개</strong>
-      </div>
-      <div className="graphrag-stat-cell">
-        <span>누적 케이스북</span>
-        <strong>{stats.casebookCount}건</strong>
-      </div>
-      <div className="graphrag-stat-cell">
-        <span>인용 가중치 누적(Hits)</span>
-        <strong>{stats.citationHitCount}회</strong>
-      </div>
-      <div className="graphrag-stat-cell">
-        <span>자기진화 학습 사례</span>
-        <strong style={{ color: '#0066ff' }}>+{stats.learnedCaseCount}건</strong>
-      </div>
-    </div>
-  );
-}
-
-function GraphRagSubgraphPanel({ bundle }: { bundle?: LawGraphBundle }) {
-  if (!bundle) return null;
-  const { subgraph, writeback } = bundle;
-  return (
-    <div className="graphrag-panel" data-testid="graphrag-subgraph">
-      <FlexBox alignItems="center" justifyContent="space-between" gap={8} sx={{ flexWrap: 'wrap' }}>
-        <Typography variant="label2" weight="bold" color="semantic.foreground.neutral.strong">
-          다온사주 방식 Atomic GraphRAG 2-Hop 법리 서브그래프 &amp; 자기진화 Writeback
-        </Typography>
-        <span className="mcp-live-badge">
-          {writeback.learnedCaseId
-            ? `신규 케이스북 승격 완료 (${writeback.learnedCaseId})`
-            : `기존 케이스 인용 가중치 강화 (+${writeback.citedCaseIds.length}건)`}
-        </span>
-      </FlexBox>
-
-      <div className="graphrag-chain">
-        {subgraph.nodes.slice(0, 4).map((n, idx) => (
-          <div key={n.id} className="graphrag-node">
-            <span className={`graphrag-node-kind ${n.kind}`}>{n.kind.toUpperCase()}</span>
-            <span className="graphrag-node-label">{n.label}</span>
-            {idx < Math.min(subgraph.nodes.length, 4) - 1 && <span className="graphrag-arrow">→</span>}
-          </div>
-        ))}
-      </div>
-
-      {subgraph.matchedCases.length > 0 && (
-        <div className="graphrag-cases">
-          <div className="prec-head">유틸리티 점수(Writeback Boost) 상위 매칭 케이스북</div>
-          <ul className="prec-list">
-            {subgraph.matchedCases.map((c) => (
-              <li key={c.id} className="prec-item">
-                <div className="prec-title-row">
-                  <span className="prec-case">
-                    <strong>{c.label}</strong> · 근거: {c.statuteRef}
-                  </span>
-                  <span className="advisor-law-tag">
-                    인용 {c.citations}회 · 점수 {c.score} {c.learned ? '· AI 학습 승격' : ''}
-                  </span>
-                </div>
-                <p className="prec-summary">{c.headline}</p>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
-}
-
 export function App() {
   const [routePage, setRoutePage] = useState<RoutePage>(() => parseRoutePage(window.location.pathname));
   const [packs, setPacks] = useState<PackInfo[]>([]);
   const [packId, setPackId] = useState('lease');
   const [text, setText] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [version, setVersion] = useState<Version>('v2');
   const [preview, setPreview] = useState<MaskResult | null>(null);
   const [result, setResult] = useState<CheckResult | null>(null);
   const [busy, setBusy] = useState<'mask' | 'check' | 'ocr' | 'consult' | 'tax' | null>(null);
   const [error, setError] = useState('');
   const [filter, setFilter] = useState<VerdictFilter>('all');
 
-  const [graphStats, setGraphStats] = useState<LawGraphStats | null>(null);
   const [consultItemId, setConsultItemId] = useState<string | undefined>(undefined);
   const [consultQuote, setConsultQuote] = useState('');
-  const [consultQuestion, setConsultQuestion] = useState(CONSULT_PRESETS[0]);
+  const [consultQuestion, setConsultQuestion] = useState(CONSULT_PRESETS[0].question);
   const [consultResult, setConsultResult] = useState<ConsultResult | null>(null);
   const [draftCopied, setDraftCopied] = useState(false);
 
@@ -330,9 +231,6 @@ export function App() {
       .then((r) => r.json())
       .then((d) => setPacks(d.packs))
       .catch(() => setError('점검 종류를 불러오지 못했어요. 새로 고침해 주세요.'));
-    post<LawGraphStats>({ action: 'graph_stats' })
-      .then((s) => setGraphStats(s))
-      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -407,7 +305,7 @@ export function App() {
     setError('');
     setFilter('all');
     try {
-      setResult(await post<CheckResult>({ action: 'check', pack: packId, text, version }));
+      setResult(await post<CheckResult>({ action: 'check', pack: packId, text, version: 'v2' }));
       setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
     } catch (e) {
       setError((e as Error).message);
@@ -430,9 +328,6 @@ export function App() {
         quote: overrideQuote ?? consultQuote,
       });
       setConsultResult(data);
-      if (data.graphRag?.writeback.stats) {
-        setGraphStats(data.graphRag.writeback.stats);
-      }
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -474,9 +369,6 @@ export function App() {
         filerType: targetFiler,
       });
       setTaxResult(data);
-      if (data.graphRag?.writeback.stats) {
-        setGraphStats(data.graphRag.writeback.stats);
-      }
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -517,7 +409,7 @@ export function App() {
             계약서 특약 점검기
           </Typography>
         </a>
-        <nav aria-label="주 메뉴" style={{ display: 'flex', gap: 18, whiteSpace: 'nowrap', alignItems: 'center' }}>
+        <nav aria-label="주 메뉴" style={{ display: 'flex', gap: 20, whiteSpace: 'nowrap', alignItems: 'center' }}>
           <a
             href="/"
             onClick={(e) => {
@@ -547,7 +439,7 @@ export function App() {
               weight={routePage === 'consult' ? 'bold' : 'medium'}
               color={routePage === 'consult' ? 'semantic.foreground.neutral.strong' : 'semantic.foreground.neutral.tertiary'}
             >
-              법령·판례 실시간 상담
+              법률 상담
             </Typography>
           </a>
           <a
@@ -563,12 +455,12 @@ export function App() {
               weight={routePage === 'tax' ? 'bold' : 'medium'}
               color={routePage === 'tax' ? 'semantic.foreground.neutral.strong' : 'semantic.foreground.neutral.tertiary'}
             >
-              세무 자동 판정
+              세무·경비 점검
             </Typography>
           </a>
           <a href="/demo-contract.html" style={{ textDecoration: 'none' }}>
             <Typography variant="label1" weight="medium" color="semantic.foreground.neutral.tertiary">
-              전자계약 인라인 시험
+              전자계약 체험
             </Typography>
           </a>
         </nav>
@@ -579,7 +471,7 @@ export function App() {
           <>
             <section className="hero">
               <Typography variant="label2" color="semantic.foreground.neutral.tertiary">
-                주택임대차보호법 · 소비자분쟁해결기준 · 국가법령정보센터 기준 대조
+                주택임대차보호법 · 소비자분쟁해결기준 · 대법원 판례 대조
               </Typography>
               <Typography as="p" variant="display1" weight="bold" color="semantic.foreground.neutral.strong" sx={{ margin: '12px 0 16px' }}>
                 서명 전 계약서의 불리한 조항을
@@ -596,10 +488,10 @@ export function App() {
                   </Button>
                 </a>
                 <Button variant="outlined" color="assistive" size="large" onClick={() => navigateTo('consult')}>
-                  법령·판례 실시간 상담 (/consult)
+                  법령·판례 상담하기
                 </Button>
                 <Button variant="outlined" color="assistive" size="large" onClick={() => navigateTo('tax')}>
-                  세무 자동 판정 (/tax)
+                  세무·경비 점검하기
                 </Button>
               </FlexBox>
             </section>
@@ -741,17 +633,17 @@ export function App() {
                   value={text}
                   onChange={(e) => changeText(e.target.value)}
                   placeholder={
-                    '계약서 특약사항이나 약관 문구를 붙여 넣으세요. (Ctrl+V로 캡처 이미지를 바로 붙여넣어도 됩니다)\n\n예)\n특약사항\n1. 보증금은 다음 임차인이 들어오면 반환한다.\n2. 입주 후 모든 수선비는 임차인이 부담한다.'
+                    '계약서 특약사항이나 약관 문구를 붙여 넣으세요.\n\n예)\n특약사항\n1. 보증금은 다음 임차인이 들어오면 반환한다.\n2. 입주 후 모든 수선비는 임차인이 부담한다.'
                   }
                   rows={7}
                 />
 
                 <FlexBox alignItems="center" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
                   <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
-                    {text.trim().length.toLocaleString('ko-KR')} / 4,000자 · 개인정보는 가린 뒤 전송됩니다
+                    {text.trim().length.toLocaleString('ko-KR')} / 4,000자 · 주민번호·전화번호·계좌번호는 자동으로 가려집니다
                   </Typography>
                   <Button variant="solid" size="medium" onClick={showPreview} disabled={busy !== null}>
-                    {busy === 'mask' ? '확인하는 중…' : '보낼 내용 미리 보기'}
+                    {busy === 'mask' ? '확인하는 중…' : '개인정보 가림 확인하기'}
                   </Button>
                 </FlexBox>
               </div>
@@ -766,7 +658,7 @@ export function App() {
                 <section ref={previewRef} className="preview-block" aria-labelledby="step3">
                   <FlexBox alignItems="baseline" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
                     <Typography id="step3" as="h3" variant="headline1" weight="bold">
-                      AI에 전송할 내용 확인
+                      개인정보 가림 결과 확인
                     </Typography>
                     <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
                       {preview.found.length
@@ -777,18 +669,7 @@ export function App() {
                   <pre className="masked" data-testid="masked-preview">
                     {preview.masked}
                   </pre>
-                  <FlexBox alignItems="center" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
-                    <details className="dev">
-                      <summary>판정 방식 선택 ({version})</summary>
-                      <label>
-                        방식
-                        <select value={version} onChange={(e) => setVersion(e.target.value as Version)}>
-                          <option value="v0">v0 · 자유 질의</option>
-                          <option value="v1">v1 · 항목 + 원문 인용</option>
-                          <option value="v2">v2 · 근거 법령 + 규칙 검사 + 보정</option>
-                        </select>
-                      </label>
-                    </details>
+                  <FlexBox alignItems="center" justifyContent="flex-end" gap={12} sx={{ flexWrap: 'wrap' }}>
                     <Button variant="solid" size="large" onClick={runCheck} disabled={busy !== null}>
                       {busy === 'check' ? '법령 대조 및 점검 중…' : '이 내용으로 점검하기'}
                     </Button>
@@ -804,7 +685,7 @@ export function App() {
                     점검 결과
                   </Typography>
                   <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
-                    소요 시간 {Math.round(result.elapsedMs / 100) / 10}초 · 항목을 클릭해 필터링할 수 있습니다
+                    소요 시간 {Math.round(result.elapsedMs / 100) / 10}초 · 항목을 눌러 모아 볼 수 있습니다
                   </Typography>
                 </FlexBox>
 
@@ -859,7 +740,7 @@ export function App() {
 
                 {result.referenceOnly && (
                   <p className="callout">
-                    <strong>전용 점검팩이 없는 계약입니다.</strong> 정해진 법령 항목 대신 일반 원칙으로 불리한 조항을 안내해 드립니다.
+                    <strong>전용 점검 항목이 없는 계약입니다.</strong> 일반 원칙에 비추어 주의해야 할 조항을 안내해 드립니다.
                     {result.note && <span style={{ display: 'block', marginTop: 6 }}>{result.note}</span>}
                   </p>
                 )}
@@ -882,7 +763,7 @@ export function App() {
                 법령 및 기준 출처
               </Typography>
               <Typography variant="body2" color="semantic.foreground.neutral.secondary">
-                모든 판정은 AI의 임의 추측이 아닌 공식 법령과 행정 규칙 원문을 함께 묶어 대조합니다.
+                모든 판정은 공식 법령과 행정 규칙, 대법원 판례 원문을 바탕으로 이루어집니다.
               </Typography>
               <table className="sources">
                 <thead>
@@ -910,13 +791,13 @@ export function App() {
               </Typography>
               <ul className="principles">
                 <li>
-                  <strong>개인정보를 AI로 보내지 않습니다.</strong> 주민등록번호, 전화번호, 계좌번호, 동·호수는 전송 전에 가려지며, 사용자가 가려진 전문을 직접 확인한 뒤에야 점검이 실행됩니다.
+                  <strong>개인정보를 외부로 보내지 않습니다.</strong> 주민등록번호, 전화번호, 계좌번호, 동·호수는 전송 전에 먼저 가려지며, 가려진 전문을 직접 확인한 뒤에야 점검이 실행됩니다.
                 </li>
                 <li>
-                  <strong>계약서에 없는 문구를 지어내지 않습니다.</strong> AI가 근거로 인용한 문장이 실제 입력 원문에 존재하지 않으면 서버가 즉시 무효화하여 헛경고(환각)를 차단합니다.
+                  <strong>계약서에 없는 문구를 지어내지 않습니다.</strong> 근거로 삼은 문장이 실제 계약서 원문에 존재하지 않으면 즉시 제외하여 잘못된 경고를 막습니다.
                 </li>
                 <li>
-                  <strong>법률 자문을 대체하지 않습니다.</strong> 본 도구는 서명 전 위험 신호를 빠르게 점검하는 체크리스트이며, 실제 계약 체결 전에는 공인중개사 또는 법률 전문가와 상의하시기 바랍니다.
+                  <strong>법률 자문을 대체하지 않습니다.</strong> 본 서비스는 서명 전 위험 신호를 빠르게 짚어 주는 점검 도구이며, 중요한 계약 체결 전에는 공인중개사나 법률·세무 전문가와 상의하시기 바랍니다.
                 </li>
               </ul>
             </section>
@@ -925,22 +806,17 @@ export function App() {
 
         {routePage === 'consult' && (
           <section className="workspace-section" aria-labelledby="consult-page-title">
-            <FlexBox alignItems="baseline" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
-              <div>
-                <Typography variant="label2" color="semantic.foreground.neutral.tertiary">
-                  전용 법률 상담 워크스페이스 (/consult) · 다온사주 Atomic GraphRAG 적용
-                </Typography>
-                <Typography id="consult-page-title" as="h2" variant="title2" weight="bold" sx={{ marginTop: 4 }}>
-                  법령·대법원 판례 실시간 법률 상담
-                </Typography>
-                <Typography variant="body2" color="semantic.foreground.neutral.secondary" sx={{ marginTop: 6 }}>
-                  OKE 단일 Rust Law MCP 파드(<code>https://webrtc.ugot.uk/law/mcp</code>)에서 현행 법령과 대법원 판례를 실시간 조회하고, 상담할수록 케이스북 인용 가중치와 신규 사례가 누적 진화(GraphRAG Writeback)합니다.
-                </Typography>
-              </div>
-              <span className="mcp-live-badge">OKE Rust Law MCP · Atomic GraphRAG</span>
-            </FlexBox>
-
-            <GraphRagStatsBar stats={graphStats} />
+            <div>
+              <Typography variant="label2" color="semantic.foreground.neutral.tertiary">
+                주택임대차 · 소비자 약관 맞춤 상담
+              </Typography>
+              <Typography id="consult-page-title" as="h2" variant="title2" weight="bold" sx={{ marginTop: 4 }}>
+                법령 · 대법원 판례 기반 법률 상담
+              </Typography>
+              <Typography variant="body2" color="semantic.foreground.neutral.secondary" sx={{ marginTop: 6 }}>
+                계약서에서 걸리는 문구나 분쟁 상황을 적어 주시면, 관련 법령 조문과 대법원 판례를 근거로 해결 방법과 상대방에게 보낼 정중한 문자 초안을 정리해 드립니다.
+              </Typography>
+            </div>
 
             {error && (
               <p className="callout" data-level="error" role="alert">
@@ -951,21 +827,21 @@ export function App() {
             <div className="input-card" data-testid="consult-panel">
               <FlexBox alignItems="center" gap={8} sx={{ flexWrap: 'wrap' }}>
                 <Typography variant="label2" color="semantic.foreground.neutral.tertiary">
-                  자주 묻는 상담
+                  자주 묻는 상황
                 </Typography>
-                {CONSULT_PRESETS.map((q, idx) => (
+                {CONSULT_PRESETS.map((preset) => (
                   <Chip
-                    key={idx}
+                    key={preset.label}
                     variant="outlined"
                     size="small"
                     onClick={() => {
                       setConsultItemId(undefined);
                       setConsultQuote('');
-                      setConsultQuestion(q);
-                      void submitConsult(q, undefined, '');
+                      setConsultQuestion(preset.question);
+                      void submitConsult(preset.question, undefined, '');
                     }}
                   >
-                    {q.slice(0, 28)}…
+                    {preset.label}
                   </Chip>
                 ))}
               </FlexBox>
@@ -975,22 +851,20 @@ export function App() {
                 value={consultQuestion}
                 onChange={(e) => setConsultQuestion(e.target.value)}
                 rows={4}
-                placeholder="특약 조항이나 계약 분쟁 상황을 입력해 주세요. (주민번호·전화번호·계좌번호는 자동 마스킹됩니다)"
+                placeholder="특약 조항이나 계약 분쟁 상황을 입력해 주세요. (주민번호·전화번호·계좌번호는 자동으로 가려집니다)"
               />
 
               <FlexBox alignItems="center" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
                 <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
-                  국가법령정보센터(open.law.go.kr) 현행 조문·대법원 판례 고정 대조 + GraphRAG 2-Hop 검색
+                  현행 법령 조문 · 대법원 판례 · 소비자분쟁해결기준 대조
                 </Typography>
                 <Button variant="solid" size="medium" disabled={busy !== null} onClick={() => void submitConsult()}>
-                  {busy === 'consult' ? '법령·판례 조회 및 GraphRAG 상담 생성 중…' : '법령·판례 근거로 상담받기'}
+                  {busy === 'consult' ? '법령과 판례를 확인하는 중…' : '상담 결과 보기'}
                 </Button>
               </FlexBox>
 
               {consultResult && (
                 <div className="advisor-result" data-testid="consult-result">
-                  <GraphRagSubgraphPanel bundle={consultResult.graphRag} />
-
                   <div className="advisor-headline-box">
                     <div className="advisor-meta-row">
                       <span className="verdict-chip safe">{consultResult.itemTitle}</span>
@@ -1003,7 +877,7 @@ export function App() {
                         rel="noreferrer"
                         className="law-ext-link"
                       >
-                        법령 원문 ↗
+                        법령 원문 보기 ↗
                       </a>
                     </div>
                     <Typography as="h3" variant="headline1" weight="bold" color="semantic.foreground.neutral.strong" sx={{ marginTop: 8 }}>
@@ -1017,7 +891,7 @@ export function App() {
                   <div className="advisor-draft-box">
                     <FlexBox alignItems="center" justifyContent="space-between" gap={8} sx={{ marginBottom: 8 }}>
                       <Typography variant="label2" weight="bold" color="semantic.foreground.neutral.strong">
-                        임대인·중개사·사업자 전달용 정중 문자 초안
+                        임대인·중개사·사업자에게 보낼 문자 초안
                       </Typography>
                       <Button
                         variant="outlined"
@@ -1026,7 +900,7 @@ export function App() {
                         onClick={() => void copyDraft(consultResult.messageDraft)}
                         leadingContent={draftCopied ? <IconCheck /> : <IconCopy />}
                       >
-                        {draftCopied ? '복사 완료' : '문자 초안 복사'}
+                        {draftCopied ? '복사했어요' : '문자 초안 복사'}
                       </Button>
                     </FlexBox>
                     <pre className="advisor-draft-text">{consultResult.messageDraft}</pre>
@@ -1034,7 +908,7 @@ export function App() {
 
                   {consultResult.law.precedents.length > 0 && (
                     <div className="prec-block">
-                      <div className="prec-head">인용된 대법원 판례 (OKE Rust Law MCP 실시간 연동)</div>
+                      <div className="prec-head">참고 대법원 판례</div>
                       <ul className="prec-list">
                         {consultResult.law.precedents.slice(0, 2).map((p) => (
                           <li key={p.id || p.caseNumber} className="prec-item">
@@ -1054,9 +928,26 @@ export function App() {
                     </div>
                   )}
 
+                  {consultResult.graphRag && consultResult.graphRag.subgraph.matchedCases.length > 0 && (
+                    <div className="prec-block">
+                      <div className="prec-head">유사 분쟁 해결 사례</div>
+                      <ul className="prec-list">
+                        {consultResult.graphRag.subgraph.matchedCases.slice(0, 2).map((c) => (
+                          <li key={c.id} className="prec-item">
+                            <div className="prec-title-row">
+                              <span className="prec-name">{c.label}</span>
+                              <span className="advisor-law-tag">{c.statuteRef}</span>
+                            </div>
+                            <p className="prec-summary">{c.headline}</p>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
                   <div className="followup-block">
                     <Typography variant="label2" weight="bold" color="semantic.foreground.neutral.secondary">
-                      이어서 물어보기 (클릭 시 즉시 법령 대조 및 GraphRAG 학습)
+                      이어서 궁금한 점 물어보기
                     </Typography>
                     <div className="followup-list">
                       {consultResult.followups.map((fq, i) => (
@@ -1069,7 +960,7 @@ export function App() {
                             void submitConsult(fq, consultResult.itemId, '');
                           }}
                         >
-                          <span>Q{i + 1}. {fq}</span>
+                          <span>{fq}</span>
                           <span aria-hidden="true">→</span>
                         </button>
                       ))}
@@ -1083,22 +974,17 @@ export function App() {
 
         {routePage === 'tax' && (
           <section className="workspace-section" aria-labelledby="tax-page-title">
-            <FlexBox alignItems="baseline" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
-              <div>
-                <Typography variant="label2" color="semantic.foreground.neutral.tertiary">
-                  전용 세무 자동 판정 워크스페이스 (/tax) · 세법 Atomic GraphRAG 적용
-                </Typography>
-                <Typography id="tax-page-title" as="h2" variant="title2" weight="bold" sx={{ marginTop: 4 }}>
-                  영수증·계약서 세무 자동 판정 (부가세·종소세·연말정산)
-                </Typography>
-                <Typography variant="body2" color="semantic.foreground.neutral.secondary" sx={{ marginTop: 6 }}>
-                  OKE 단일 Rust Law MCP 파드(<code>https://webrtc.ugot.uk/law/mcp</code>)에서 부가가치세법·소득세법·조세특례제한법 조문과 대법원 세무 판례를 실시간 조회하여 적격증빙(3만 원 기준) 및 홈택스 처리 경로를 안내합니다.
-                </Typography>
-              </div>
-              <span className="mcp-live-badge">OKE Rust Law MCP · 세법 GraphRAG</span>
-            </FlexBox>
-
-            <GraphRagStatsBar stats={graphStats} />
+            <div>
+              <Typography variant="label2" color="semantic.foreground.neutral.tertiary">
+                부가가치세 · 종합소득세 · 연말정산 월세 세액공제
+              </Typography>
+              <Typography id="tax-page-title" as="h2" variant="title2" weight="bold" sx={{ marginTop: 4 }}>
+                영수증 · 임대차 계약 세무·경비 점검
+              </Typography>
+              <Typography variant="body2" color="semantic.foreground.neutral.secondary" sx={{ marginTop: 6 }}>
+                월세 이체 내역이나 영수증·거래 내역을 입력하시면 세법 조문과 판례를 바탕으로 세액공제·필요경비 인정 여부와 홈택스 신청 방법을 알려 드립니다.
+              </Typography>
+            </div>
 
             {error && (
               <p className="callout" data-level="error" role="alert">
@@ -1110,11 +996,11 @@ export function App() {
               <FlexBox alignItems="center" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
                 <FlexBox alignItems="center" gap={8} sx={{ flexWrap: 'wrap' }}>
                   <Typography variant="label2" color="semantic.foreground.neutral.tertiary">
-                    납세자 유형
+                    신고 유형
                   </Typography>
                   {([
-                    ['wage_earner', '근로소득자 (연말정산·월세공제)'],
-                    ['individual_biz', '개인사업자 (일반과세·종소세)'],
+                    ['wage_earner', '직장인 (연말정산·월세공제)'],
+                    ['individual_biz', '개인사업자 (부가세·종소세)'],
                     ['freelancer', '프리랜서 (3.3% 사업소득)'],
                   ] as const).map(([id, label]) => (
                     <Chip
@@ -1131,7 +1017,7 @@ export function App() {
 
               <FlexBox alignItems="center" gap={8} sx={{ flexWrap: 'wrap' }}>
                 <Typography variant="label2" color="semantic.foreground.neutral.tertiary">
-                  영수증·거래 예시
+                  자주 찾는 사례
                 </Typography>
                 {TAX_PRESETS.map((preset) => (
                   <Chip
@@ -1150,37 +1036,35 @@ export function App() {
               </FlexBox>
 
               <textarea
-                aria-label="세무 판정 대상 문구"
+                aria-label="세무 점검 대상 문구"
                 value={taxText}
                 onChange={(e) => setTaxText(e.target.value)}
                 rows={4}
-                placeholder="영수증·거래명세서 내역이나 월세·경비 지출 내역을 입력해 주세요."
+                placeholder="월세 입금 내역이나 영수증·거래명세서 지출 내역을 입력해 주세요."
               />
 
               <FlexBox alignItems="center" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
                 <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
-                  부가가치세법 제38·39조 · 소득세법 제27·33·160조의2 · 조세특례제한법 제95조의2 실시간 대조
+                  부가가치세법 · 소득세법 · 조세특례제한법 기준 대조
                 </Typography>
                 <Button variant="solid" size="medium" disabled={busy !== null} onClick={() => void submitTax()}>
-                  {busy === 'tax' ? '세법 조문·세무 판례 GraphRAG 대조 중…' : '세법·홈택스 기준 판정하기'}
+                  {busy === 'tax' ? '세법 기준을 확인하는 중…' : '공제·경비 가능 여부 확인하기'}
                 </Button>
               </FlexBox>
 
               {taxResult && (
                 <div className="advisor-result" data-testid="tax-result">
-                  <GraphRagSubgraphPanel bundle={taxResult.graphRag} />
-
                   <div className="tax-grid">
                     <div className="tax-metric">
-                      <span className="tax-metric-label">부가가치세 판정</span>
+                      <span className="tax-metric-label">부가가치세</span>
                       <strong className="tax-metric-val">{taxResult.vatVerdict}</strong>
                     </div>
                     <div className="tax-metric">
-                      <span className="tax-metric-label">소득세·연말정산 판정</span>
+                      <span className="tax-metric-label">종합소득세 · 연말정산</span>
                       <strong className="tax-metric-val">{taxResult.incomeTaxVerdict}</strong>
                     </div>
                     <div className="tax-metric">
-                      <span className="tax-metric-label">권장 계정과목·분류</span>
+                      <span className="tax-metric-label">회계 계정과목</span>
                       <strong className="tax-metric-val">{taxResult.accountTitle}</strong>
                     </div>
                   </div>
@@ -1196,7 +1080,7 @@ export function App() {
                         rel="noreferrer"
                         className="law-ext-link"
                       >
-                        세법 조문 원문 ↗
+                        세법 조문 보기 ↗
                       </a>
                     </div>
                     <Typography as="h3" variant="headline1" weight="bold" color="semantic.foreground.neutral.strong" sx={{ marginTop: 8 }}>
@@ -1209,19 +1093,19 @@ export function App() {
 
                   <div className="advisor-draft-box">
                     <Typography variant="label2" weight="bold" color="semantic.foreground.neutral.strong">
-                      적격증빙(3만 원 기준) 점검 및 국세청 홈택스(Hometax) 처리 가이드
+                      필요 증빙 및 홈택스 신청 방법
                     </Typography>
                     <p style={{ margin: '6px 0 4px', fontSize: 13, color: '#171719', fontWeight: 600 }}>
-                      · 증빙 상태: {taxResult.evidenceStatus}
+                      · 증빙 서류: {taxResult.evidenceStatus}
                     </p>
                     <p style={{ margin: 0, fontSize: 13, color: 'rgba(46,47,51,0.88)', lineHeight: 1.6 }}>
-                      · 홈택스 경로: {taxResult.hometaxGuide}
+                      · 신청 경로: {taxResult.hometaxGuide}
                     </p>
                   </div>
 
                   {taxResult.law.precedents.length > 0 && (
                     <div className="prec-block">
-                      <div className="prec-head">관련 대법원 세무 판례 (OKE Rust Law MCP 실시간 연동)</div>
+                      <div className="prec-head">참고 대법원 판례</div>
                       <ul className="prec-list">
                         {taxResult.law.precedents.slice(0, 2).map((p) => (
                           <li key={p.id || p.caseNumber} className="prec-item">
@@ -1243,7 +1127,7 @@ export function App() {
 
                   <div className="followup-block">
                     <Typography variant="label2" weight="bold" color="semantic.foreground.neutral.secondary">
-                      이어서 물어보기 (클릭 시 세법 조문 즉시 대조 및 GraphRAG 학습)
+                      이어서 궁금한 점 물어보기
                     </Typography>
                     <div className="followup-list">
                       {taxResult.followups.map((fq, i) => (
@@ -1256,7 +1140,7 @@ export function App() {
                             void submitTax(fq, filerType);
                           }}
                         >
-                          <span>Q{i + 1}. {fq}</span>
+                          <span>{fq}</span>
                           <span aria-hidden="true">→</span>
                         </button>
                       ))}
@@ -1270,7 +1154,7 @@ export function App() {
 
         <footer className="footer">
           <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
-            계약서 특약 점검기 · 주택임대차보호법 및 소비자분쟁해결기준 기반 · 디자인 시스템: Montage by Wantedlab (MIT)
+            계약서 특약 점검기 · 주택임대차보호법 및 소비자분쟁해결기준 기반
           </Typography>
         </footer>
       </main>

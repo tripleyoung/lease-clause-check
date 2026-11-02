@@ -188,12 +188,12 @@ export function ResultCard({
           <p className="law">{lawData?.statute?.articleText || info?.knowledgeText}</p>
 
           {lawLoading && (
-            <p className="law-loading">법제처 국가법령정보센터(OpenAPI)에서 현행 조문과 대법원 판례를 조회하고 있습니다…</p>
+            <p className="law-loading">국가법령정보센터에서 현행 조문과 대법원 판례를 불러오고 있습니다…</p>
           )}
 
           {lawData && lawData.precedents.length > 0 && (
             <div className="prec-block" data-testid={`prec-${item.itemId}`}>
-              <div className="prec-head">관련 대법원 판례 (국가법령정보센터 실시간 연동)</div>
+              <div className="prec-head">관련 대법원 판례</div>
               <ul className="prec-list">
                 {lawData.precedents.map((p) => (
                   <li key={p.id || p.caseNumber} className="prec-item">
