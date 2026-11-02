@@ -12,6 +12,8 @@ import {
   IconTriangleExclamationFill,
   IconCircleCheckFill,
   IconCircleInfoFill,
+  IconSearch,
+  IconDocumentText,
 } from '@montage-ui/icon';
 
 export interface DocAnnotationBox {
@@ -457,7 +459,8 @@ export function DocumentFullscreenModal({
             }}
             data-testid="fs-start-check-btn"
           >
-            🔍 이 스캔 문서로 정밀 점검 시작하기
+            <IconSearch width={16} height={16} />
+            <span>이 스캔 문서로 정밀 점검 시작하기</span>
           </button>
         )}
       </footer>
@@ -514,7 +517,7 @@ export function SamplePreviewCard({
       <section className="doc-preview-shell" aria-label={`${doc.title} 미리보기`} data-testid="sample-preview-card">
         <div className="doc-preview-shell__top">
           <div>
-            <span className="visual-card__eyebrow">📄 공식 계약서 스캔 원본 및 위험 조항 위치 확인</span>
+            <span className="visual-card__eyebrow">공식 계약서 스캔 원본 및 위험 조항 위치 확인</span>
             <h3 className="visual-card__title">{doc.title}</h3>
             <p className="doc-preview-shell__sub">{doc.subtitle}</p>
           </div>
@@ -527,7 +530,7 @@ export function SamplePreviewCard({
                   onClick={() => setViewMode('scan')}
                   data-testid="toggle-view-scan"
                 >
-                  📄 스캔 원본 (A4 정비율)
+                  스캔 원본 (A4 정비율)
                 </button>
                 <button
                   type="button"
@@ -535,7 +538,7 @@ export function SamplePreviewCard({
                   onClick={() => setViewMode('structured')}
                   data-testid="toggle-view-structured"
                 >
-                  📋 조항 분석 텍스트
+                  조항 분석 텍스트
                 </button>
               </div>
             )}
@@ -547,7 +550,7 @@ export function SamplePreviewCard({
                   onClick={() => setShowPinsOnScan((v) => !v)}
                   data-testid="toggle-scan-pins"
                 >
-                  {showPinsOnScan ? '🎯 조항 위치 핀 표시 켜짐' : '🎯 조항 핀 숨기기'}
+                  {showPinsOnScan ? '조항 위치 핀 표시 켜짐' : '조항 핀 숨기기'}
                 </button>
                 <button
                   type="button"
@@ -556,7 +559,8 @@ export function SamplePreviewCard({
                   title="스캔 계약서 전체화면으로 크게 보기"
                   data-testid="open-doc-fullscreen-btn"
                 >
-                  ⛶ 스캔문서 전체화면
+                  <IconFull width={14} height={14} />
+                  <span>스캔문서 전체화면</span>
                 </button>
               </>
             )}
@@ -713,7 +717,8 @@ export function SamplePreviewCard({
           onClick={() => onStartCheck(doc)}
           data-testid="start-sample-check-btn"
         >
-          🔍 이 스캔 문서로 정밀 점검 시작하기
+          <IconSearch width={16} height={16} />
+          <span>이 스캔 문서로 정밀 점검 시작하기</span>
         </button>
       </div>
     </section>

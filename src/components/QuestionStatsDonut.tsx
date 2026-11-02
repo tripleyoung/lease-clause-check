@@ -487,7 +487,7 @@ export function QuestionStatsDonut({
                 onClick={() => onSelectCategory && onSelectCategory(activeItem.sampleQuestion)}
                 data-testid={`ask-stat-${activeItem.id}`}
               >
-                💬 이 질문으로 한결에게 바로 물어보기
+                이 질문으로 한결에게 바로 물어보기
               </button>
               {activeItem.recommendedDocId && onOpenSample && (
                 <button
@@ -496,7 +496,7 @@ export function QuestionStatsDonut({
                   onClick={() => onOpenSample(activeItem.recommendedDocId)}
                   data-testid={`preview-stat-doc-${activeItem.id}`}
                 >
-                  📄 관련 공식 스캔 문서 보기
+                  관련 공식 스캔 문서 보기
                 </button>
               )}
             </div>

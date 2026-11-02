@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { IconArrowLeft, IconArrowRight } from '@montage-ui/icon';
 
 export interface DeckItem {
   key: string;
@@ -50,12 +51,13 @@ export function VisualDeck({ items }: { items: DeckItem[] }) {
       <div className="deck__bar">
         <button
           type="button"
-          className="deck__step"
+          className="deck__step wanted-icon-btn"
           onClick={() => setIdx(safe - 1)}
           disabled={!multi || safe === 0}
           aria-label="이전 카드"
+          title="이전 카드"
         >
-          ◀
+          <IconArrowLeft width={16} height={16} />
         </button>
         <div className="deck__dots" role="tablist" aria-label="카드 선택">
           <span className="deck__label">
@@ -77,12 +79,13 @@ export function VisualDeck({ items }: { items: DeckItem[] }) {
         </div>
         <button
           type="button"
-          className="deck__step"
+          className="deck__step wanted-icon-btn"
           onClick={() => setIdx(safe + 1)}
           disabled={!multi || safe >= items.length - 1}
           aria-label="다음 카드"
+          title="다음 카드"
         >
-          ▶
+          <IconArrowRight width={16} height={16} />
         </button>
       </div>
     </div>

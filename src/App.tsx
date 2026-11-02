@@ -1,4 +1,13 @@
-import { IconArrowRight, IconArrowUp, IconChevronDown } from '@montage-ui/icon';
+import {
+  IconArrowLeft,
+  IconArrowRight,
+  IconArrowUp,
+  IconCamera,
+  IconChevronDown,
+  IconClose,
+  IconEye,
+  IconFull,
+} from '@montage-ui/icon';
 import {
   useEffect,
   useRef,
@@ -1026,7 +1035,7 @@ export function App() {
 
       const questionTitle =
         imageToUse && !trimmed
-          ? `📷 ${imageToUse.name} 점검`
+          ? `${imageToUse.name} 점검`
           : workingText.split('\n')[0].slice(0, 48);
 
       if (mode === 'tax') {
@@ -1221,7 +1230,7 @@ export function App() {
       };
     }
     if (previewDoc) {
-      const previewSpeech = `선택하신 **[${previewDoc.title}]** 문서를 먼저 펼쳐보았어요!\n\n문서 상단의 **주민등록번호·연락처·계좌번호**는 자동으로 가려두었습니다. 오른쪽 문서 시트에서 **①~${previewDoc.clauses.length}번 조항 위치**를 확인하신 뒤 아래 **[🔍 이 문서 가리키며 정밀 점검 시작하기]** 버튼을 누르면 조항 하나하나를 짚어가며 설명해 드릴게요.`;
+      const previewSpeech = `선택하신 **[${previewDoc.title}]** 문서를 먼저 펼쳐보았어요!\n\n문서 상단의 **주민등록번호·연락처·계좌번호**는 자동으로 가려두었습니다. 오른쪽 문서 시트에서 **①~${previewDoc.clauses.length}번 조항 위치**를 확인하신 뒤 아래 **[이 문서 가리키며 정밀 점검 시작하기]** 버튼을 누르면 조항 하나하나를 짚어가며 설명해 드릴게요.`;
       return {
         mood: 'thinking' as Mood,
         line: previewSpeech,
@@ -1448,49 +1457,6 @@ export function App() {
                   </h2>
                 </div>
 
-                <div
-                  className="photo-dropcard"
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => fileInputRef.current?.click()}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      fileInputRef.current?.click();
-                    }
-                  }}
-                >
-                  <div className="photo-dropcard__text">
-                    <strong>📷 계약서 · 영수증 사진 바로 첨부하기 (Ctrl+V 붙여넣기 지원)</strong>
-                    <span>
-                      성명·주민등록번호·연락처·계좌번호는 브라우저에서 자동으로 가린 뒤 안전하게 분석해요
-                    </span>
-                  </div>
-                  <div className="photo-dropcard__actions">
-                    <button
-                      type="button"
-                      className="pill-btn pill-btn--primary"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        fileInputRef.current?.click();
-                      }}
-                    >
-                      사진 고르기
-                    </button>
-                    <button
-                      type="button"
-                      className="pill-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openSamplePreview();
-                      }}
-                      data-testid="sample-btn"
-                    >
-                      샘플 문서 미리보기
-                    </button>
-                  </div>
-                </div>
-
                 {/* 3종 샘플 문서 미리보기 카드 */}
                 <div className="sample-cards-row" aria-label="샘플 문서 미리보기 목록">
                   {SAMPLE_DOCS.map((doc) => (
@@ -1503,7 +1469,13 @@ export function App() {
                     >
                       <div className="sample-card-mini__top">
                         <span className="sample-card-mini__badge">{doc.badge}</span>
-                        <span className="sample-card-mini__preview-tag">📄 미리보기</span>
+                        <span
+                          className="sample-card-mini__preview-tag wanted-icon-btn"
+                          title="미리보기"
+                          aria-label="미리보기"
+                        >
+                          <IconEye width={16} height={16} />
+                        </span>
                       </div>
                       <strong>{doc.docHeader}</strong>
                       <span>{doc.subtitle}</span>
@@ -1542,12 +1514,13 @@ export function App() {
                   <div className="turn__nav">
                     <button
                       type="button"
-                      className="turn__step"
+                      className="turn__step wanted-icon-btn"
                       onClick={() => setTurnIndex((i) => Math.max(0, i - 1))}
                       disabled={turnIndex === 0}
                       aria-label="이전 질문"
+                      title="이전 질문"
                     >
-                      ◀
+                      <IconArrowLeft width={16} height={16} />
                     </button>
                     <p title={activeTurn.question}>
                       {turns.length > 1 && (
@@ -1559,12 +1532,13 @@ export function App() {
                     </p>
                     <button
                       type="button"
-                      className="turn__step"
+                      className="turn__step wanted-icon-btn"
                       onClick={() => setTurnIndex((i) => Math.min(turns.length - 1, i + 1))}
                       disabled={turnIndex >= turns.length - 1}
                       aria-label="다음 질문"
+                      title="다음 질문"
                     >
-                      ▶
+                      <IconArrowRight width={16} height={16} />
                     </button>
                   </div>
                   <div className="turn__actions">
@@ -1575,7 +1549,8 @@ export function App() {
                       title={isFullscreenDeck ? '시각화 전체화면 종료 (Esc)' : '시각화 패널 전체화면으로 크게 보기'}
                       data-testid="toggle-deck-fullscreen-btn"
                     >
-                      {isFullscreenDeck ? '✕ 전체화면 닫기' : '⛶ 전체화면'}
+                      {isFullscreenDeck ? <IconClose width={14} height={14} /> : <IconFull width={14} height={14} />}
+                      <span>{isFullscreenDeck ? '전체화면 닫기' : '전체화면'}</span>
                     </button>
                     <button
                       type="button"
@@ -1652,10 +1627,11 @@ export function App() {
                   className="composer__attach"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={busy}
-                  aria-label="계약서 또는 영수증 사진 첨부"
+                  aria-label="계약서 또는 영수증 사진 첨부 (Ctrl+V 지원)"
+                  title="계약서 또는 영수증 사진 첨부 (Ctrl+V 붙여넣기 지원)"
                   data-testid="composer-attach"
                 >
-                  <span aria-hidden="true">📷</span>
+                  <IconCamera width={18} height={18} />
                   <span>사진 첨부</span>
                 </button>
                 <textarea

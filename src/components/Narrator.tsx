@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { IconArrowLeft, IconArrowRight } from '@montage-ui/icon';
 import { Mascot, type Mood } from './Mascot';
 import { RichText } from './RichText';
 import { SpeechBubble } from './SpeechBubble';
@@ -146,8 +147,8 @@ export function Narrator({
         </div>
         {multi && (
           <div className="narrator__nav" role="group" aria-label="말풍선 쪽 넘김">
-            <button type="button" onClick={() => go(idx - 1)} disabled={idx === 0} aria-label="이전 쪽">
-              ◀
+            <button type="button" onClick={() => go(idx - 1)} disabled={idx === 0} aria-label="이전 쪽" title="이전 쪽">
+              <IconArrowLeft width={12} height={12} />
             </button>
             <span>
               {idx + 1} / {pages.length}
@@ -158,8 +159,16 @@ export function Narrator({
               onClick={() => go(idx + 1)}
               disabled={atEnd}
               aria-label="다음 쪽"
+              title="다음 쪽"
             >
-              {!atEnd ? '다음 ▶' : '▶'}
+              {!atEnd ? (
+                <>
+                  <span>다음</span>
+                  <IconArrowRight width={12} height={12} />
+                </>
+              ) : (
+                <IconArrowRight width={12} height={12} />
+              )}
             </button>
           </div>
         )}
