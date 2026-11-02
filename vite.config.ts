@@ -4,7 +4,11 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 
 /** 개발 서버에서 /api/* 를 Vercel 함수와 같은 server/http.ts 처리기로 보낸다(다온 사주 localApi 와 같은 방식). */
 function localApi(env: Record<string, string>): Plugin {
-  const routes: Record<string, string> = { '/api/check': 'handleCheck', '/api/packs': 'handlePacks' };
+  const routes: Record<string, string> = {
+    '/api/check': 'handleCheck',
+    '/api/packs': 'handlePacks',
+    '/api/token': 'handleToken',
+  };
   return {
     name: 'lease-clause-check-local-api',
     configureServer(server: ViteDevServer) {

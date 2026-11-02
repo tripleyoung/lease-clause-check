@@ -2270,6 +2270,213 @@ button.paper-doc__clause:hover {
   margin-top: 4px;
 }
 
+/* ==========================================================================
+   첫 화면(Welcome Stage): 다온 사주(apps/saju-ai)와 동일한 2단 히어로 + 로그인 스테이지
+   ========================================================================== */
+.app--welcome {
+  padding: 0;
+  max-width: none;
+}
+
+.app--welcome .topbar {
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+.welcome__band {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  padding: 40px 0 0;
+  min-height: 300px;
+  background: var(--indigo) url('/hero-law.webp') center 38% / cover no-repeat;
+  overflow: hidden;
+}
+
+.welcome__band .mascot__body {
+  width: 240px;
+  height: 240px;
+}
+
+.welcome__body {
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 28px var(--gutter) 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.welcome .eyebrow {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--indigo-text);
+}
+
+.welcome h1 {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 900;
+  font-size: clamp(30px, 8vw, 42px);
+  line-height: 1.24;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+
+.welcome h1 span {
+  color: var(--indigo-text);
+}
+
+.welcome__lede {
+  margin: 0;
+  font-size: 16.5px;
+  line-height: 1.7;
+  color: var(--ink-soft);
+}
+
+.welcome__lede b {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.welcome__list {
+  list-style: none;
+  margin: 4px 0 8px;
+  padding: 0;
+  border-top: 1px solid var(--hairline);
+}
+
+.welcome__list li {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.welcome__list b {
+  display: block;
+  font-family: var(--serif);
+  font-size: 16.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.welcome__list li > span:last-child > span {
+  display: block;
+  margin-top: 2px;
+  font-size: 13.5px;
+  color: var(--ink-faint);
+  line-height: 1.45;
+}
+
+.welcome__num {
+  font-family: var(--serif);
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--dancheong);
+  text-align: center;
+}
+
+.welcome__notice {
+  margin: 0;
+  color: var(--dancheong);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.welcome__primary-btn {
+  width: 100%;
+  height: 48px;
+  border: none;
+  border-radius: 12px;
+  background: var(--indigo);
+  color: #fff;
+  font-family: inherit;
+  font-size: 15.5px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: filter 0.15s ease, transform 0.1s ease;
+}
+
+.welcome__primary-btn:hover {
+  filter: brightness(1.08);
+}
+
+.welcome__primary-btn:active {
+  transform: translateY(1px);
+}
+
+.welcome__dev {
+  border: 1px dashed var(--hairline-strong);
+  background: none;
+  color: var(--ink-soft);
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.welcome__dev:hover {
+  border-color: var(--indigo);
+  color: var(--indigo-text);
+  background: var(--indigo-subtle);
+}
+
+.welcome__fine {
+  margin: 0;
+  text-align: center;
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+
+@media (min-width: 960px) {
+  .app.app--welcome {
+    max-width: none;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+  .app--welcome .topbar {
+    max-width: none;
+    padding: 0 32px;
+  }
+  .app--welcome .welcome {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(440px, 560px);
+  }
+  .app--welcome .welcome__band {
+    min-height: 0;
+    height: 100%;
+    align-items: center;
+    padding: 0;
+    background-position: center 35%;
+  }
+  .app--welcome .welcome__band .mascot__body {
+    width: min(340px, 44vh);
+    height: min(340px, 44vh);
+  }
+  .app--welcome .welcome__body {
+    max-width: none;
+    margin: 0;
+    padding: 24px 48px;
+    justify-content: center;
+    gap: 14px;
+    overflow-y: auto;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

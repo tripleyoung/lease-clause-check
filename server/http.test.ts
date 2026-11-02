@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { handleCheck, handlePacks } from './http.js';
+import { handleCheck, handlePacks, handleToken } from './http.js';
 
 const post = (body: unknown) => new Request('http://x/api/check', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 
@@ -187,4 +187,30 @@ test('api personalization account, profiles, and conversation history round-trip
   const getConvBody = await getConvRes.json();
   assert.equal(getConvBody.conversation.title, '퇴실 시 도배·장판비 40만원 공제 특약 점검');
   assert.equal(getConvBody.conversation.turns.length, 1);
+});
+
+test('api token validates client_id and grant_type', async () => {
+  const badClient = await handleToken(
+    new Request('http://x/api/token', {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ client_id: 'wrong-client', grant_type: 'authorization_code' }),
+    }),
+  );
+  assert.equal(badClient.status, 400);
+  assert.equal((await badClient.json()).error, 'invalid_request');
+
+  const badGoogleExchange = await handleToken(
+    new Request('http://x/api/token', {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        client_id: 'saju-ai',
+        grant_type: 'urn:ietf:params:oauth:grant-type:token-exchange',
+        subject_token_type: 'wrong_type',
+      }),
+    }),
+  );
+  assert.equal(badGoogleExchange.status, 400);
+  assert.equal((await badGoogleExchange.json()).error, 'invalid_request');
 });

@@ -9,6 +9,7 @@ import { lookupLawByItemId } from './law-api.js';
 import { getLawGraphStats } from './law-graphrag.js';
 import { runTaxCheck } from './tax.js';
 import { responseCache } from './response-cache.js';
+import { handleToken } from './token.js';
 import {
   userStore,
   type OnyulProfile,
@@ -16,6 +17,8 @@ import {
 } from './user-store.js';
 import { CheckError } from './errors.js';
 import type { Version } from '../shared/types.js';
+
+export { handleToken };
 
 const json = (status: number, body: unknown, extraHeaders?: Record<string, string>) =>
   new Response(JSON.stringify(body), {

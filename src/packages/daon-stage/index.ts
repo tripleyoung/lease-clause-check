@@ -1,9 +1,23 @@
 /**
- * @daon/stage-ui — 다온 사주(apps/saju-ai)와 다온 계약·법률·세무(lease-clause-check)가
- * 공통으로 사용하는 캐릭터 화자(Narrator/Mascot) · 말풍선(SpeechBubble) · 시각화 카드 덱(VisualDeck/InsightCard/ScoreRing) 코어 라이브러리.
+ * @daon/stage-ui — 다온 사주(apps/saju-ai)와 온율 계약·법률·세무(lease-clause-check)가
+ * 공통으로 사용하는 캐릭터 화자(Narrator/Mascot) · 말풍선(SpeechBubble) · 시각화 카드 덱(VisualDeck/InsightCard/ScoreRing)
+ * 및 통합 OAuth2 PKCE + Google Identity 로그인 스테이지(WelcomeStage / createAuthClient) 코어 라이브러리.
  */
+export {
+  AuthCallbackError,
+  cancelGoogleSignIn,
+  createAuthClient,
+  mountGoogleSignIn,
+  type AuthClientOptions,
+  type AuthSession,
+  type DaonAuthClient,
+} from './auth';
 export { FitBox } from '../../components/FitBox';
-export { InsightCard, type InsightCardContent, type InsightCardProps } from '../../components/InsightCard';
+export {
+  InsightCard,
+  type InsightCardContent,
+  type InsightCardProps,
+} from '../../components/InsightCard';
 export { Mascot, type Mood } from '../../components/Mascot';
 export { Narrator, paginateSpeech } from '../../components/Narrator';
 export { RichText } from '../../components/RichText';
@@ -12,3 +26,9 @@ export { SpeechBubble, type SpeechBubbleProps } from '../../components/SpeechBub
 export { parseInline, parseRich, type Block, type Inline } from '../../components/speechMarkdown';
 export { useElementSize } from '../../components/useElementSize';
 export { VisualDeck, type DeckItem } from '../../components/VisualDeck';
+export {
+  SharedGoogleSignIn,
+  WelcomeStage,
+  type WelcomeFeatureItem,
+  type WelcomeStageProps,
+} from './WelcomeStage';

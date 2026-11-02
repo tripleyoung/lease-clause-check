@@ -13,9 +13,18 @@ import {
   Narrator,
   ScoreRing,
   VisualDeck,
+  WelcomeStage,
   type DeckItem,
   type Mood,
+  type WelcomeFeatureItem,
 } from './packages/daon-stage';
+import {
+  finishLoginIfCallback,
+  getAccessToken,
+  isLoggedIn,
+  logout,
+  onyulAuth,
+} from './auth';
 import {
   AnnotatedDocumentDeckCard,
   SAMPLE_DOCS,
@@ -242,6 +251,27 @@ function taxBadgeTone(verdict: string): string {
   return 'tax-badge tax-badge--ineligible';
 }
 
+const WELCOME_ITEMS: WelcomeFeatureItem[] = [
+  {
+    num: '一',
+    title: '문서를 가리키며 조항별 정밀 점검',
+    detail:
+      '계약서·영수증의 위험 조항 위치를 번호 핀으로 직접 짚어 안심 수정 문안까지 알려드려요.',
+  },
+  {
+    num: '二',
+    title: '법령·대법원 판례·세법 실시간 대조',
+    detail:
+      '주택임대차보호법, 약관규제법, 소득세법·부가가치세법 조문을 근거로 정확히 판정해요.',
+  },
+  {
+    num: '三',
+    title: '개인정보 자동 보호 · 이전 대화 이어보기',
+    detail:
+      '성명·주민번호·연락처·계좌번호는 자동으로 가리고, 내 프로필과 상담 기록을 안전하게 보관해요.',
+  },
+];
+
 export function App() {
   const initialTopic = (): TopicKey => {
     if (typeof window === 'undefined') return 'lease';
@@ -249,6 +279,10 @@ export function App() {
     return 'lease';
   };
 
+  const [phase, setPhase] = useState<'boot' | 'signed-out' | 'ready'>(() =>
+    isLoggedIn() || readSavedSession() !== null ? 'ready' : 'signed-out',
+  );
+  const [loginNotice, setLoginNotice] = useState<string | null>(null);
   const [session, setSession] = useState<OnyulSession | null>(() => readSavedSession());
   const [profiles, setProfiles] = useState<OnyulProfile[]>(() => readLocalProfiles());
   const [activeProfileId, setActiveProfileId] = useState<string>(
@@ -282,6 +316,63 @@ export function App() {
     profiles.find((p) => p.id === activeProfileId) ??
     profiles.find((p) => p.topic === topic) ??
     DEFAULT_LOCAL_PROFILES[0];
+
+  const syncAuthToSession = async () => {
+    const token = await getAccessToken();
+    if (!token) return;
+    if (token === 'dev') {
+      const existing = readSavedSession();
+      if (!existing) {
+        const nextSession = createQuickSession('온율 회원');
+        setSession(nextSession);
+      }
+      return;
+    }
+    try {
+      const res = await fetch('/api/check', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ action: 'account' }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.account) {
+          const nextSession: OnyulSession = {
+            token,
+            userId: data.account.userId || 'ugot-member',
+            name: data.account.name || '온율 회원',
+            email: data.account.email,
+            provider: 'ugot',
+          };
+          writeSavedSession(nextSession);
+          setSession(nextSession);
+        }
+      }
+    } catch {
+      // ignore offline account error
+    }
+  };
+
+  useEffect(() => {
+    finishLoginIfCallback()
+      .then(async (didFinish) => {
+        if (didFinish || isLoggedIn()) {
+          await syncAuthToSession();
+          setPhase('ready');
+        } else if (readSavedSession()) {
+          setPhase('ready');
+        } else {
+          setPhase('signed-out');
+        }
+      })
+      .catch(() => {
+        setLoginNotice('로그인 중 문제가 생겼어요. 다시 시도해 주세요.');
+        setPhase('signed-out');
+      });
+  }, []);
 
   useEffect(() => {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -1082,15 +1173,19 @@ export function App() {
   };
 
   const handleQuickSignIn = (name: string, email?: string) => {
+    onyulAuth.devLogin();
     const nextSession = createQuickSession(name, email);
     setSession(nextSession);
     setPersonalizationOpen(false);
+    setPhase('ready');
   };
 
   const handleSignOut = () => {
+    void logout({ endSession: false });
     writeSavedSession(null);
     setSession(null);
     setPersonalizationOpen(false);
+    setPhase('signed-out');
   };
 
   const handleSaveProfile = (profileInput: Omit<OnyulProfile, 'id'> & { id?: string }) => {
@@ -1196,6 +1291,41 @@ export function App() {
   })();
 
   const starters = STARTER_QUESTIONS[topic];
+
+  if (phase === 'signed-out') {
+    return (
+      <WelcomeStage
+        auth={onyulAuth}
+        brandSeal="律"
+        brandTitle="온율 · 계약·법률·세무"
+        heroImage="/hero-law.webp"
+        mascotMood="calm"
+        eyebrow="溫律 · 온율 계약·법률·세무"
+        headline={
+          <>
+            반갑습니다.
+            <br />내 편이 되어주는 법률·세무 파트너 <span>한결</span>입니다.
+          </>
+        }
+        lede={
+          <>
+            어려운 계약서 특약과 영수증 세무 처리도 걱정하지 마세요.{' '}
+            <b>국가법령정보센터 법령과 대법원 판례</b>를 근거로 문서를 가리키며 쉽게 짚어
+            드릴게요.
+          </>
+        }
+        items={WELCOME_ITEMS}
+        loginButtonLabel="계정으로 시작하기"
+        devLoginLabel="로그인 없이 둘러보기 (빠른 체험)"
+        finePrint="로그인하면 맞춤 프로필(임차인·헬스회원·세무유형)과 이전 상담 내역이 계정에 자동 저장됩니다."
+        initialNotice={loginNotice}
+        onSignedIn={() => {
+          void syncAuthToSession();
+          setPhase('ready');
+        }}
+      />
+    );
+  }
 
   return (
     <div className="app app--chat">

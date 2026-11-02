@@ -10,6 +10,9 @@
     "api/packs.ts": {
       "maxDuration": 10,
       "includeFiles": "knowledge/**"
+    },
+    "api/token.ts": {
+      "maxDuration": 25
     }
   },
   "rewrites": [
