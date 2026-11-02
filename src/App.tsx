@@ -1392,40 +1392,14 @@ export function App() {
       />
 
       <div className={`layout layout--chat ${previewDoc || activeTurn ? 'layout--inspecting' : ''}`}>
-        <aside className="stage stage--chat" aria-label="한결의 법률·세무 브리핑 및 14,280건 상담 빅데이터">
-          {!activeTurn && !previewDoc ? (
-            <div className="landing-sidebar">
-              <div className="landing-narrator-compact">
-                <Narrator
-                  mood={mascotState.mood}
-                  line={mascotState.line}
-                  text={mascotState.text}
-                  streaming={mascotState.streaming}
-                  messageId={mascotState.messageId}
-                />
-              </div>
-              {/* 3대 상담 분야별 질문 14,280건 빅데이터 원(도넛) 차트 - 첫 화면 좌측 배치 */}
-              <QuestionStatsDonut
-                currentTopic={topic}
-                onSelectCategory={(question) => {
-                  setInput(question);
-                  inputRef.current?.focus();
-                }}
-                onOpenSample={(docId) => {
-                  const found = SAMPLE_DOCS.find((d) => d.id === docId);
-                  if (found) openSamplePreview(found);
-                }}
-              />
-            </div>
-          ) : (
-            <Narrator
-              mood={mascotState.mood}
-              line={mascotState.line}
-              text={mascotState.text}
-              streaming={mascotState.streaming}
-              messageId={mascotState.messageId}
-            />
-          )}
+        <aside className="stage stage--chat" aria-label="한결의 법률·세무 브리핑">
+          <Narrator
+            mood={mascotState.mood}
+            line={mascotState.line}
+            text={mascotState.text}
+            streaming={mascotState.streaming}
+            messageId={mascotState.messageId}
+          />
         </aside>
 
         <main className="main">
