@@ -196,18 +196,16 @@ async function recordUnifiedDashboardDemo() {
   // 시연 시나리오: 저니 맵핑 기반 통합 대시보드 & 메일 전달
   // ========================================================
 
-  // [00:00 ~ 00:15] STEP 1: 빅데이터 위험률 도넛 차트 & 워크스페이스 진입
-  await setCaption('STEP 1 · 상담 빅데이터', '14,280건 상담 통계 — 사회초년생이 가장 많이 겪는 독소 조항 TOP 4 분석');
-  console.log('STEP 1: Big data donut chart');
+  // [00:00 ~ 00:15] STEP 1: 로그인 첫 페이지 빅데이터 위험률 도넛 차트 & 워크스페이스 진입
+  await setCaption('STEP 1 · 상담 빅데이터', '14,280건 상담 통계 — 사회초년생이 가장 많이 겪는 독소 조항 TOP 4 빅데이터 분석');
+  console.log('STEP 1: Big data donut chart on Welcome stage');
   await page.waitForTimeout(1500);
 
-  await page.evaluate(() => window.scrollBy({ top: 220, behavior: 'smooth' }));
-  await page.waitForTimeout(1200);
-
-  const donutEl = page.locator('.stats-donut__chart-wrap').first();
+  // 첫 화면 좌측의 14,280건 빅데이터 통계 도넛으로 커서 이동 (스크롤 불필요, 1440x900 원화면)
+  const donutEl = page.locator('[data-testid="question-stats-donut"]').first();
   if (await donutEl.isVisible()) {
     await moveCursorTo(donutEl);
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(1800);
   }
 
   const devLoginBtn = page.locator('button:has-text("로그인 없이 둘러보기 (빠른 체험)")').first();
@@ -217,14 +215,22 @@ async function recordUnifiedDashboardDemo() {
     await page.waitForTimeout(1800);
   }
 
-  // [00:15 ~ 00:40] STEP 2: 실제 계약서 사진 직접 첨부(업로드) & AI 분석 전송
-  await setCaption('STEP 2 · 실제 파일 첨부', '계약서 사진 직접 첨부(scanned_lease_contract.png) ➔ 개인정보 자동 마스킹 준비', 'green');
-  console.log('STEP 2: Real file upload and send');
+  // [00:15 ~ 00:40] STEP 2: 대화형 워크스페이스 — 전신 법률 파트너 한결 & 계약서 사진 직접 첨부(업로드) & AI 분석 전송
+  await setCaption('STEP 2 · 법률 파트너 한결 & 첨부', '좌측 전신 법률 파트너 한결 상주 — 계약서 사진 첨부 및 개인정보 자동 마스킹', 'green');
+  console.log('STEP 2: Mascot greeting & real file upload');
   await page.waitForTimeout(1000);
 
-  const photoDropCard = page.locator('.photo-dropcard').first();
-  if (await photoDropCard.isVisible()) {
-    await moveCursorTo(photoDropCard);
+  // 좌측 법률 파트너 캐릭터 '한결' 둘러보기
+  const mascotFigure = page.locator('.narrator__figure').first();
+  if (await mascotFigure.isVisible()) {
+    await moveCursorTo(mascotFigure);
+    await page.waitForTimeout(1500);
+  }
+
+  // 하단 사진 첨부 버튼으로 마우스 이동 (Ctrl+V 지원)
+  const attachBtn = page.locator('[data-testid="composer-attach"]').first();
+  if (await attachBtn.isVisible()) {
+    await moveCursorTo(attachBtn);
     await page.waitForTimeout(1000);
   }
 
@@ -309,7 +315,7 @@ async function recordUnifiedDashboardDemo() {
     await clickWithCursor(fsBtn);
     await page.waitForTimeout(2000);
 
-    const zoomInBtn = page.locator('button:has-text("➕ 확대")');
+    const zoomInBtn = page.locator('button[aria-label="확대"], .doc-zoom-btn, button:has-text("➕ 확대")').first();
     if (await zoomInBtn.isVisible()) {
       await clickWithCursor(zoomInBtn);
       await page.waitForTimeout(1200);
