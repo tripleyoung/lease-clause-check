@@ -124,4 +124,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     return true;
   }
+
+  if (request.action === 'lookup_law') {
+    const { itemId = 'no_new_mortgage' } = request;
+    fetch(`${API_BASE}/api/check`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'law', itemId }),
+    })
+      .then((r) => r.json())
+      .then((data) => sendResponse({ ok: true, data }))
+      .catch(() => sendResponse({ ok: false }));
+    return true;
+  }
 });

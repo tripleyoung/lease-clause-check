@@ -1,0 +1,20 @@
+[package]
+name = "law-mcp-rs"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Korean National Law Information Center (open.law.go.kr) MCP Server in Rust"
+
+[workspace]
+
+[[bin]]
+name = "law-mcp"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1"
+axum = "0.8"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }

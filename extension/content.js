@@ -293,6 +293,35 @@
         setTimeout(() => (copyBtn.innerText = '문구 복사'), 1800);
       });
     }
+
+    const liveBox = document.createElement('div');
+    liveBox.className = 'cg-law-live';
+    liveBox.innerHTML = '<span>법제처 국가법령정보센터(OpenAPI) 현행 법령·판례 조회 중…</span>';
+    tooltip.appendChild(liveBox);
+
+    chrome.runtime.sendMessage({ action: 'lookup_law', itemId: risk.itemId || 'no_new_mortgage' }, (res) => {
+      if (!res || !res.ok || !res.data || !res.data.statute) {
+        liveBox.style.display = 'none';
+        return;
+      }
+      const st = res.data.statute;
+      const prec = (res.data.precedents || [])[0];
+      liveBox.innerHTML = `
+        <div class="cg-law-live-row">
+          <span><strong>${st.lawName}</strong> · ${st.ministry}${st.proclamationNo ? ' · ' + st.proclamationNo : ''}${st.effectiveDate ? ' (시행 ' + st.effectiveDate + ')' : ''}</span>
+          <a href="${st.officialUrl}" target="_blank" rel="noreferrer" class="cg-law-link">법령 원문 ↗</a>
+        </div>
+        ${prec ? `
+          <div class="cg-prec-box">
+            <div class="cg-law-live-row">
+              <span><strong>대법원 판례</strong> ${prec.decisionDate} 선고 ${prec.caseNumber}</span>
+              <a href="${prec.officialUrl}" target="_blank" rel="noreferrer" class="cg-law-link">판례 전문 ↗</a>
+            </div>
+            ${prec.caseName ? `<div style="margin-top:2px;color:#171719;font-weight:600;">${prec.caseName}</div>` : ''}
+          </div>
+        ` : ''}
+      `;
+    });
   }
 
   const pageKeywords = ['특약', '임대차', '임대인', '임차인', '보증금', '차임', '위약금', '환불규정', '수선 의무', '계약서', '약관'];

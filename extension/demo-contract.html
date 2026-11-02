@@ -281,6 +281,43 @@
       background: #f7f7f8;
       border-color: #171719;
     }
+    .cg-law-live {
+      margin-top: 10px;
+      padding: 10px 12px;
+      background: #f7f7f8;
+      border: 1px solid var(--line-soft);
+      border-radius: 8px;
+      font-size: 12px;
+      color: #46474c;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .cg-law-live-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .cg-law-link {
+      color: #0066ff;
+      font-weight: 600;
+      text-decoration: none;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .cg-law-link:hover {
+      text-decoration: underline;
+    }
+    .cg-prec-box {
+      background: #ffffff;
+      border: 1px solid var(--line-soft);
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 12px;
+      line-height: 1.5;
+    }
   </style>
 </head>
 <body>
@@ -401,6 +438,7 @@
           if (idx !== -1) {
             const span = document.createElement('span');
             span.className = 'clause-guard-highlight-risk';
+            span.dataset.itemId = risk.itemId || 'no_new_mortgage';
             span.dataset.title = risk.title || risk.itemId || '불리한 특약';
             span.dataset.reason = risk.riskReason || '';
             span.dataset.consequence = risk.riskConsequence || '';
@@ -426,7 +464,10 @@
       if (firstSpan) showDemoTooltip(firstSpan);
     }
 
-    function showDemoTooltip(span) {
+    const lawCache = {};
+
+    async function showDemoTooltip(span) {
+      const itemId = span.dataset.itemId || 'no_new_mortgage';
       const title = span.dataset.title;
       const quote = span.dataset.quote;
       const reason = span.dataset.reason;
@@ -472,6 +513,9 @@
             </div>
           ` : ''}
         </div>
+        <div class="cg-law-live" id="demo-law-live">
+          <span>법제처 국가법령정보센터(OpenAPI) 현행 법령·판례 조회 중…</span>
+        </div>
       `;
 
       const rect = span.getBoundingClientRect();
@@ -486,6 +530,41 @@
           copyBtn.innerText = '복사했어요';
           setTimeout(() => (copyBtn.innerText = '문구 복사'), 1800);
         });
+      }
+
+      try {
+        if (!lawCache[itemId]) {
+          const r = await fetch('/api/check', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ action: 'law', itemId })
+          });
+          if (r.ok) lawCache[itemId] = await r.json();
+        }
+        const lawData = lawCache[itemId];
+        const liveBox = document.getElementById('demo-law-live');
+        if (liveBox && lawData && lawData.statute) {
+          const st = lawData.statute;
+          const prec = (lawData.precedents || [])[0];
+          liveBox.innerHTML = `
+            <div class="cg-law-live-row">
+              <span><strong>${st.lawName}</strong> · ${st.ministry}${st.proclamationNo ? ' · ' + st.proclamationNo : ''}${st.effectiveDate ? ' (시행 ' + st.effectiveDate + ')' : ''}</span>
+              <a href="${st.officialUrl}" target="_blank" rel="noreferrer" class="cg-law-link">법령 원문 ↗</a>
+            </div>
+            ${prec ? `
+              <div class="cg-prec-box">
+                <div class="cg-law-live-row">
+                  <span><strong>대법원 판례</strong> ${prec.decisionDate} 선고 ${prec.caseNumber}</span>
+                  <a href="${prec.officialUrl}" target="_blank" rel="noreferrer" class="cg-law-link">판례 전문 ↗</a>
+                </div>
+                ${prec.caseName ? `<div style="margin-top:2px;color:#171719;font-weight:600;">${prec.caseName}</div>` : ''}
+              </div>
+            ` : ''}
+          `;
+        }
+      } catch (e) {
+        const liveBox = document.getElementById('demo-law-live');
+        if (liveBox) liveBox.style.display = 'none';
       }
     }
 

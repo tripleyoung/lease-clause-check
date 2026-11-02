@@ -5,6 +5,9 @@
  * - 대법원 판례(target=prec) 검색 및 판시사항·판결요지 조회
  */
 
+import { existsSync } from 'node:fs';
+import { execFile } from 'node:child_process';
+import { resolve } from 'node:path';
 import { LAW_OPENAPI_SNAPSHOT } from './law-snapshot.js';
 
 export interface LiveStatuteInfo {
@@ -32,9 +35,51 @@ export interface LawLookupResponse {
   itemId: string;
   fetchedAt: string;
   oc: string;
+  engine?: string;
   liveConnected: boolean;
   statute: LiveStatuteInfo;
   precedents: LivePrecedentInfo[];
+}
+
+async function tryRustLawMcp(itemId: string): Promise<LawLookupResponse | null> {
+  // 1. 원격/로컬 Rust law-mcp-rs HTTP JSON-RPC 서버가 켜져 있는 경우
+  const mcpHttpUrl = process.env.LAW_MCP_HTTP_URL;
+  if (mcpHttpUrl) {
+    try {
+      const rpcRes = await fetchJsonWithTimeout(`${mcpHttpUrl.replace(/\/$/, '')}/mcp`, 4000);
+      if (rpcRes?.result) return rpcRes.result;
+    } catch {
+      // fall through
+    }
+  }
+
+  // 2. 로컬 빌드된 Rust law-mcp 바이너리 (mcp/law-mcp-rs/target/release/law-mcp) 실행
+  const binPath = resolve(process.cwd(), 'mcp/law-mcp-rs/target/release/law-mcp');
+  if (!existsSync(binPath)) return null;
+
+  return new Promise((resolvePromise) => {
+    execFile(binPath, ['--inspect', itemId], { timeout: 4500 }, (err, stdout) => {
+      if (err || !stdout) return resolvePromise(null);
+      try {
+        const parsed = JSON.parse(stdout.trim());
+        if (parsed && parsed.statute && parsed.liveConnected) {
+          resolvePromise({
+            itemId,
+            fetchedAt: new Date().toISOString(),
+            oc: parsed.oc || 'tripleyoung',
+            engine: 'law-mcp-rs',
+            liveConnected: true,
+            statute: parsed.statute,
+            precedents: parsed.precedents || [],
+          });
+          return;
+        }
+      } catch {
+        // ignore parse error
+      }
+      resolvePromise(null);
+    });
+  });
 }
 
 interface ItemLawMapping {
@@ -383,6 +428,14 @@ export async function lookupLawByItemId(itemId: string): Promise<LawLookupRespon
     return cached.data;
   }
 
+  // 1순위: Rust law-mcp-rs 엔진 호출
+  const mcpResult = await tryRustLawMcp(itemId);
+  if (mcpResult) {
+    CACHE.set(itemId, { expiresAt: Date.now() + CACHE_TTL_MS, data: mcpResult });
+    return mcpResult;
+  }
+
+  // 2순위: 서버리스 환경 직접 OpenAPI 호출 + 실측 스냅샷 폴백
   const oc = process.env.LAW_API_OC || 'tripleyoung';
   const mapping = ITEM_LAW_MAP[itemId] ?? ITEM_LAW_MAP.no_new_mortgage;
   const snapshot = LAW_OPENAPI_SNAPSHOT[itemId] ?? LAW_OPENAPI_SNAPSHOT.no_new_mortgage;
@@ -399,6 +452,7 @@ export async function lookupLawByItemId(itemId: string): Promise<LawLookupRespon
     itemId,
     fetchedAt: new Date().toISOString(),
     oc,
+    engine: connected ? 'open-law-drf' : 'law-mcp-snapshot',
     liveConnected: connected || precedents.length > 0,
     statute: finalStatute,
     precedents: finalPrecedents,
