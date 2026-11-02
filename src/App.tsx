@@ -16,6 +16,31 @@ import {
   type DeckItem,
   type Mood,
 } from './packages/daon-stage';
+import {
+  AnnotatedDocumentDeckCard,
+  SAMPLE_DOCS,
+  SamplePreviewCard,
+  type SampleDocSpec,
+} from './components/DocumentVisualizer';
+import {
+  cachedCheckPost,
+  createQuickSession,
+  DEFAULT_LOCAL_PROFILES,
+  getClientCacheInfo,
+  HistoryDrawer,
+  LoginAndProfileModal,
+  readLocalConversations,
+  readLocalProfiles,
+  readSavedSession,
+  TopbarActions,
+  writeLocalConversations,
+  writeLocalProfiles,
+  writeSavedSession,
+  type OnyulProfile,
+  type OnyulSession,
+  type SavedConversationFull,
+  type SerializedTurnRecord,
+} from './components/PersonalizationBar';
 import { SAMPLES } from './samples';
 
 type ContractType = 'lease' | 'gym';
@@ -89,6 +114,8 @@ interface Turn {
   deck: DeckItem[];
   followups: string[];
   maskedSummary?: string;
+  cached?: boolean;
+  serialized?: SerializedTurnRecord;
 }
 
 interface AttachedImage {
@@ -222,9 +249,23 @@ export function App() {
     return 'lease';
   };
 
+  const [session, setSession] = useState<OnyulSession | null>(() => readSavedSession());
+  const [profiles, setProfiles] = useState<OnyulProfile[]>(() => readLocalProfiles());
+  const [activeProfileId, setActiveProfileId] = useState<string>(
+    () => readLocalProfiles()[0]?.id ?? DEFAULT_LOCAL_PROFILES[0].id,
+  );
+  const [conversations, setConversations] = useState<SavedConversationFull[]>(() =>
+    readLocalConversations(),
+  );
+  const [currentConvId, setCurrentConvId] = useState<string | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [personalizationOpen, setPersonalizationOpen] = useState(false);
+  const [cacheStats, setCacheStats] = useState(() => getClientCacheInfo());
+
   const [topic, setTopic] = useState<TopicKey>(initialTopic);
   const [turns, setTurns] = useState<Turn[]>([]);
   const [turnIndex, setTurnIndex] = useState(0);
+  const [previewDoc, setPreviewDoc] = useState<SampleDocSpec | null>(null);
   const [input, setInput] = useState('');
   const [attachedImage, setAttachedImage] = useState<AttachedImage | null>(null);
   const [busy, setBusy] = useState(false);
@@ -237,6 +278,40 @@ export function App() {
   const followupRef = useRef<HTMLDetailsElement>(null);
 
   const activeTurn = turns[turnIndex] ?? null;
+  const activeProfile =
+    profiles.find((p) => p.id === activeProfileId) ??
+    profiles.find((p) => p.topic === topic) ??
+    DEFAULT_LOCAL_PROFILES[0];
+
+  useEffect(() => {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (session?.token) headers.Authorization = `Bearer ${session.token}`;
+    fetch('/api/check', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ action: 'account' }),
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!data) return;
+        if (Array.isArray(data.profiles) && data.profiles.length > 0 && session) {
+          setProfiles(data.profiles);
+          writeLocalProfiles(data.profiles);
+        }
+      })
+      .catch(() => {
+        // ignore offline account sync error
+      });
+  }, [session?.token]);
+
+  const handleSelectClauseForSpeech = (speech: string, mood: 'worry' | 'joy' | 'thinking') => {
+    setTurns((prev) =>
+      prev.map((t, i) => (i === turnIndex ? { ...t, speech, mood } : t)),
+    );
+    setStreamText(speech);
+    setStreaming(true);
+    setTimeout(() => setStreaming(false), 1200);
+  };
 
   useEffect(() => {
     if (!activeTurn) {
@@ -302,6 +377,8 @@ export function App() {
     result: CheckResult,
     lawData: LawLookupResponse | null,
     maskedSummary?: string,
+    sampleDoc?: SampleDocSpec,
+    uploadedImageUrl?: string,
   ): Turn => {
     const riskItems = result.items.filter((i) => i.verdict === '위험');
     const protectItems = result.items.filter((i) => i.verdict === '보호됨');
@@ -332,11 +409,29 @@ export function App() {
 
     if (firstRisk) {
       speechParts.push(
-        `특히 **"${firstRisk.title ?? firstRisk.itemId}"** 항목("${firstRisk.quote}")은 ${firstRisk.riskReason ?? '법정 기준보다 불리할 수 있어요.'} 오른쪽 카드에서 **대안 특약 문구**를 바로 복사해 보세요.`,
+        `오른쪽 계약서 문서에서 **①번 조항("${firstRisk.title ?? firstRisk.itemId}")**을 가리키고 있어요. 원문의 **"${firstRisk.quote}"** 문구는 ${firstRisk.riskReason ?? '법정 기준보다 불리할 수 있어요.'} 문서의 다른 번호(①~④)를 눌러보시면 해당 위치도 바로 짚어 드릴게요!`,
       );
     }
 
+    const matchedDoc =
+      sampleDoc ??
+      SAMPLE_DOCS.find((d) => d.topic === (result.pack === 'gym' ? 'gym' : 'lease'));
+
     const deck: DeckItem[] = [
+      {
+        key: 'annotated-doc',
+        label: '문서 위치 · 포인터 해설',
+        node: (
+          <AnnotatedDocumentDeckCard
+            doc={matchedDoc}
+            uploadedImageUrl={uploadedImageUrl}
+            items={result.items}
+            onSelectClauseForSpeech={handleSelectClauseForSpeech}
+            onCopyAlternative={(key, text) => void copyText(key, text)}
+            copiedKey={copiedKey}
+          />
+        ),
+      },
       {
         key: 'summary',
         label: '계약 안전도 · 요약',
@@ -481,14 +576,31 @@ export function App() {
             '무주택 직장인인데 월세 세액공제는 얼마나 돌려받을 수 있나요?',
           ];
 
+    const turnId = `turn-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    const speech = speechParts.join('\n\n');
     return {
-      id: `turn-${Date.now()}`,
+      id: turnId,
       question: questionLabel,
-      speech: speechParts.join('\n\n'),
+      speech,
       mood,
       deck,
       followups,
       maskedSummary,
+      serialized: {
+        id: turnId,
+        question: questionLabel,
+        speech,
+        mood,
+        mode: 'check',
+        maskedSummary,
+        followups,
+        checkPayload: {
+          result,
+          lawData,
+          sampleDocId: matchedDoc?.id,
+          uploadedImageUrl,
+        },
+      },
     };
   };
 
@@ -570,14 +682,26 @@ export function App() {
       },
     ];
 
+    const turnId = `turn-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    const speech = speechParts.join('\n\n');
     return {
-      id: `turn-${Date.now()}`,
+      id: turnId,
       question: questionLabel,
-      speech: speechParts.join('\n\n'),
+      speech,
       mood: 'calm',
       deck,
       followups: result.followups ?? [],
       maskedSummary,
+      serialized: {
+        id: turnId,
+        question: questionLabel,
+        speech,
+        mood: 'calm',
+        mode: 'consult',
+        maskedSummary,
+        followups: result.followups ?? [],
+        consultPayload: { result },
+      },
     };
   };
 
@@ -671,27 +795,130 @@ export function App() {
       },
     ];
 
+    const turnId = `turn-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    const speech = speechParts.join('\n\n');
     return {
-      id: `turn-${Date.now()}`,
+      id: turnId,
       question: questionLabel,
-      speech: speechParts.join('\n\n'),
+      speech,
       mood: 'joy',
       deck,
       followups: result.followups ?? [],
       maskedSummary,
+      serialized: {
+        id: turnId,
+        question: questionLabel,
+        speech,
+        mood: 'joy',
+        mode: 'tax',
+        maskedSummary,
+        followups: result.followups ?? [],
+        taxPayload: { result },
+      },
     };
+  };
+
+  const rehydrateTurn = (rec: SerializedTurnRecord): Turn => {
+    if (rec.mode === 'check' && rec.checkPayload?.result) {
+      const sampleDoc = SAMPLE_DOCS.find((d) => d.id === rec.checkPayload?.sampleDocId);
+      const built = buildCheckTurn(
+        rec.question,
+        rec.checkPayload.result as CheckResult,
+        (rec.checkPayload.lawData as LawLookupResponse | null) ?? null,
+        rec.maskedSummary,
+        sampleDoc,
+        rec.checkPayload.uploadedImageUrl,
+      );
+      return { ...built, id: rec.id, cached: true };
+    }
+    if (rec.mode === 'consult' && rec.consultPayload?.result) {
+      const built = buildConsultTurn(
+        rec.question,
+        rec.consultPayload.result as ConsultApiResponse,
+        rec.maskedSummary,
+      );
+      return { ...built, id: rec.id, cached: true };
+    }
+    if (rec.mode === 'tax' && rec.taxPayload?.result) {
+      const built = buildTaxTurn(
+        rec.question,
+        rec.taxPayload.result as TaxApiResponse,
+        rec.maskedSummary,
+      );
+      return { ...built, id: rec.id, cached: true };
+    }
+    return {
+      id: rec.id,
+      question: rec.question,
+      speech: rec.speech,
+      mood: rec.mood,
+      deck: [],
+      followups: rec.followups ?? [],
+      maskedSummary: rec.maskedSummary,
+      cached: true,
+      serialized: rec,
+    };
+  };
+
+  const appendAndSaveTurn = (nextTurn: Turn) => {
+    setTurns((prev) => {
+      const next = [...prev, nextTurn];
+      setTurnIndex(next.length - 1);
+
+      const convId = currentConvId ?? `conv-${Date.now()}`;
+      if (!currentConvId) setCurrentConvId(convId);
+
+      const serializedTurns = next
+        .map((t) => t.serialized)
+        .filter((s): s is SerializedTurnRecord => Boolean(s));
+
+      const savedConv: SavedConversationFull = {
+        id: convId,
+        profileId: activeProfile.id,
+        profileName: activeProfile.name,
+        topic,
+        title: next[0]?.question || nextTurn.question,
+        updatedAt: new Date().toISOString(),
+        turns: serializedTurns,
+      };
+
+      setConversations((prevConvs) => {
+        const filtered = prevConvs.filter((c) => c.id !== convId);
+        const updated = [savedConv, ...filtered].slice(0, 40);
+        writeLocalConversations(updated);
+        return updated;
+      });
+
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (session?.token) headers.Authorization = `Bearer ${session.token}`;
+      void fetch('/api/check', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          action: 'conversations_save',
+          conversation: savedConv,
+        }),
+      }).catch(() => {
+        // ignore network save error
+      });
+
+      return next;
+    });
+    setCacheStats(getClientCacheInfo());
   };
 
   const submitQuery = async (
     rawText: string,
     explicitMode?: 'check' | 'consult' | 'tax',
     overrideImage?: AttachedImage | null,
+    sampleDoc?: SampleDocSpec,
   ) => {
     const imageToUse = overrideImage !== undefined ? overrideImage : attachedImage;
     const trimmed = rawText.trim();
     if ((!trimmed && !imageToUse) || busy) return;
 
     setBusy(true);
+    setPreviewDoc(null);
     setInput('');
     if (overrideImage === undefined) {
       setAttachedImage(null);
@@ -761,80 +988,66 @@ export function App() {
           ? 'freelancer'
           : /사업자|거래처|축의금|접대/.test(workingText)
             ? 'individual_biz'
-            : 'wage_earner';
-        const res = await fetch('/api/check', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+            : activeProfile.filerType || 'wage_earner';
+        const { data, cached } = await cachedCheckPost<TaxApiResponse>(
+          {
             action: 'tax',
             filerType,
             text: workingText,
-          }),
-        });
-        const data = (await res.json()) as TaxApiResponse;
+          },
+          session?.token,
+        );
         const nextTurn = buildTaxTurn(questionTitle, data, maskedSummary);
-        setTurns((prev) => {
-          const next = [...prev, nextTurn];
-          setTurnIndex(next.length - 1);
-          return next;
-        });
+        appendAndSaveTurn({ ...nextTurn, cached });
       } else if (mode === 'check') {
         setLoadingLine('계약서 조항을 한 줄씩 읽고 국가법령정보센터 법령·대법원 판례와 대조하고 있어요…');
         const pack: ContractType =
           topic === 'gym' || /헬스|PT|피트니스|회원권|트레이닝/.test(workingText) ? 'gym' : 'lease';
-        const res = await fetch('/api/check', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const { data, cached } = await cachedCheckPost<CheckResult>(
+          {
             action: 'check',
             pack,
             text: workingText,
             version: 'v2',
-          }),
-        });
-        const data = (await res.json()) as CheckResult;
+          },
+          session?.token,
+        );
         const firstRisk = data.items.find((i) => i.verdict === '위험');
         let lawData: LawLookupResponse | null = null;
         if (firstRisk) {
           try {
-            const lawRes = await fetch('/api/check', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'law', itemId: firstRisk.itemId }),
-            });
-            if (lawRes.ok) {
-              lawData = (await lawRes.json()) as LawLookupResponse;
-            }
+            const lawResp = await cachedCheckPost<LawLookupResponse>(
+              { action: 'law', itemId: firstRisk.itemId },
+              session?.token,
+            );
+            lawData = lawResp.data;
           } catch {
             // ignore law lookup error
           }
         }
-        const nextTurn = buildCheckTurn(questionTitle, data, lawData, maskedSummary);
-        setTurns((prev) => {
-          const next = [...prev, nextTurn];
-          setTurnIndex(next.length - 1);
-          return next;
-        });
+        const nextTurn = buildCheckTurn(
+          questionTitle,
+          data,
+          lawData,
+          maskedSummary,
+          sampleDoc,
+          imageToUse?.dataUrl,
+        );
+        appendAndSaveTurn({ ...nextTurn, cached });
       } else {
         setLoadingLine('국가법령정보센터 실시간 법령과 대법원 판례를 찾아 답변을 정리하고 있어요…');
         const pack =
           topic === 'gym' || /헬스|PT|피트니스|회원권/.test(workingText) ? 'gym' : 'lease';
-        const res = await fetch('/api/check', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const { data, cached } = await cachedCheckPost<ConsultApiResponse>(
+          {
             action: 'consult',
             pack,
             question: workingText,
-          }),
-        });
-        const data = (await res.json()) as ConsultApiResponse;
+          },
+          session?.token,
+        );
         const nextTurn = buildConsultTurn(questionTitle, data, maskedSummary);
-        setTurns((prev) => {
-          const next = [...prev, nextTurn];
-          setTurnIndex(next.length - 1);
-          return next;
-        });
+        appendAndSaveTurn({ ...nextTurn, cached });
       }
     } catch {
       const fallbackTurn: Turn = {
@@ -862,17 +1075,79 @@ export function App() {
     void submitQuery(input);
   };
 
-  const loadSampleContract = () => {
-    if (topic === 'tax') {
-      void submitQuery(
-        '무주택 세대주 직장인이고 총급여 5,800만 원입니다. 월세 75만 원 세액공제 한도와 홈택스 신청 방법을 알려주세요.',
-        'tax',
-      );
-      return;
+  const openSamplePreview = (doc?: SampleDocSpec) => {
+    const target = doc ?? SAMPLE_DOCS.find((d) => d.topic === topic) ?? SAMPLE_DOCS[0];
+    setTopic(target.topic);
+    setPreviewDoc(target);
+  };
+
+  const handleQuickSignIn = (name: string, email?: string) => {
+    const nextSession = createQuickSession(name, email);
+    setSession(nextSession);
+    setPersonalizationOpen(false);
+  };
+
+  const handleSignOut = () => {
+    writeSavedSession(null);
+    setSession(null);
+    setPersonalizationOpen(false);
+  };
+
+  const handleSaveProfile = (profileInput: Omit<OnyulProfile, 'id'> & { id?: string }) => {
+    const id = profileInput.id || `prof-${Date.now()}`;
+    const saved: OnyulProfile = {
+      id,
+      name: profileInput.name,
+      topic: profileInput.topic,
+      filerType: profileInput.filerType,
+      memo: profileInput.memo,
+    };
+    setProfiles((prev) => {
+      const idx = prev.findIndex((p) => p.id === id);
+      const next = idx >= 0 ? prev.map((p, i) => (i === idx ? saved : p)) : [...prev, saved];
+      writeLocalProfiles(next);
+      return next;
+    });
+    setActiveProfileId(id);
+    setTopic(saved.topic);
+
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (session?.token) headers.Authorization = `Bearer ${session.token}`;
+    void fetch('/api/check', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ action: 'profiles_save', profile: saved }),
+    }).catch(() => {});
+  };
+
+  const handleSelectSavedConversation = (conv: SavedConversationFull) => {
+    const restored = conv.turns.map(rehydrateTurn);
+    setTopic(conv.topic);
+    setActiveProfileId(conv.profileId);
+    setCurrentConvId(conv.id);
+    setPreviewDoc(null);
+    setTurns(restored);
+    setTurnIndex(Math.max(0, restored.length - 1));
+  };
+
+  const handleDeleteConversation = (convId: string) => {
+    setConversations((prev) => {
+      const next = prev.filter((c) => c.id !== convId);
+      writeLocalConversations(next);
+      return next;
+    });
+    if (currentConvId === convId) {
+      setCurrentConvId(null);
+      setTurns([]);
+      setTurnIndex(0);
     }
-    const targetPack = topic === 'gym' ? 'gym' : 'lease';
-    const sample = SAMPLES.find((s) => s.pack === targetPack) ?? SAMPLES[0];
-    void submitQuery(sample.text, 'check');
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (session?.token) headers.Authorization = `Bearer ${session.token}`;
+    void fetch('/api/check', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ action: 'conversations_delete', conversationId: convId }),
+    }).catch(() => {});
   };
 
   const mascotState = (() => {
@@ -894,20 +1169,29 @@ export function App() {
         messageId: activeTurn.id,
       };
     }
+    if (previewDoc) {
+      const previewSpeech = `선택하신 **[${previewDoc.title}]** 문서를 먼저 펼쳐보았어요!\n\n문서 상단의 **주민등록번호·연락처·계좌번호**는 자동으로 가려두었습니다. 오른쪽 문서 시트에서 **①~${previewDoc.clauses.length}번 조항 위치**를 확인하신 뒤 아래 **[🔍 이 문서 가리키며 정밀 점검 시작하기]** 버튼을 누르면 조항 하나하나를 짚어가며 설명해 드릴게요.`;
+      return {
+        mood: 'thinking' as Mood,
+        line: previewSpeech,
+        text: previewSpeech,
+        streaming: false,
+        messageId: `preview-${previewDoc.id}`,
+      };
+    }
+    const greetingPrefix = session ? `${session.name} 님, 반가워요! ` : '안녕하세요, ';
+    const memoNote = activeProfile.memo ? ` (현재 맞춤 설정: **${activeProfile.memo}**)` : '';
     const welcomeByTopic: Record<TopicKey, string> = {
-      lease:
-        '안녕하세요, 법률·세무 도우미 **다온**이에요. **전월세 계약서 사진**을 찍어 올리거나 특약 문구·보증금 질문을 적어 주시면, 성명·주민번호 같은 개인정보는 먼저 가린 뒤 **관련 법령과 대법원 판례**로 알기 쉽게 풀이해 드릴게요.',
-      gym:
-        '안녕하세요, **다온**이에요. **헬스장·PT 계약서 사진**이나 환불 고민을 올려 주시면 **방문판매법·약관규제법** 기준에 맞는지, 얼마를 돌려받을 수 있는지 카드로 정리해 드릴게요.',
-      tax:
-        '안녕하세요, **다온**이에요. **월세 계약서나 카드 영수증 사진**을 올리거나 지출 내역을 물어보시면 **부가가치세·종합소득세·연말정산 세액공제** 여부를 한눈에 판정해 드릴게요.',
+      lease: `${greetingPrefix}온율의 법률·세무 파트너 **한결**이에요.${memoNote} **전월세 계약서 사진**을 찍어 올리거나 아래 **샘플 문서 카드**를 눌러 미리보기로 확인해 보세요. 성명·주민번호 같은 개인정보는 먼저 가린 뒤 **관련 법령과 대법원 판례**로 명쾌하게 짚어 드릴게요.`,
+      gym: `${greetingPrefix}법률·세무 파트너 **한결**이에요.${memoNote} **헬스장·PT 계약서 사진**이나 아래 **약관 샘플**을 눌러 미리보기로 살펴보세요. **방문판매법·약관규제법** 기준에 맞는지, 얼마를 돌려받을 수 있는지 문서를 가리키며 정리해 드릴게요.`,
+      tax: `${greetingPrefix}법률·세무 파트너 **한결**이에요.${memoNote} **월세 계약서나 카드 영수증 사진**을 올리거나 **세무 샘플 명세서**를 눌러 미리보기로 확인해 보세요. **부가가치세·종합소득세·연말정산 세액공제** 여부를 한눈에 판정해 드릴게요.`,
     };
     return {
       mood: 'calm' as Mood,
       line: welcomeByTopic[topic],
       text: welcomeByTopic[topic],
       streaming: false,
-      messageId: `welcome-${topic}`,
+      messageId: `welcome-${topic}-${session?.userId ?? 'guest'}-${activeProfile.id}`,
     };
   })();
 
@@ -922,15 +1206,17 @@ export function App() {
           onClick={() => {
             setTurns([]);
             setTurnIndex(0);
+            setCurrentConvId(null);
+            setPreviewDoc(null);
           }}
         >
           <span className="brand__seal" aria-hidden="true">
             律
           </span>
-          <span className="brand__title">다온 계약·법률·세무</span>
+          <span className="brand__title">온율 · 계약·법률·세무</span>
         </button>
 
-        <nav className="profiles" aria-label="상담 분야 선택">
+        <nav className="profiles" aria-label="상담 분야 및 맞춤 프로필 선택">
           <ul className="profiles__list">
             {TOPICS.map((t) => (
               <li key={t.key}>
@@ -939,7 +1225,12 @@ export function App() {
                   className={
                     topic === t.key ? 'profile-chip profile-chip--active' : 'profile-chip'
                   }
-                  onClick={() => setTopic(t.key)}
+                  onClick={() => {
+                    setTopic(t.key);
+                    const matchedProf = profiles.find((p) => p.topic === t.key);
+                    if (matchedProf) setActiveProfileId(matchedProf.id);
+                    setPreviewDoc(null);
+                  }}
                 >
                   <span className={`profile-chip__dot ${t.dotClass}`} aria-hidden="true" />
                   <span>{t.label}</span>
@@ -948,10 +1239,45 @@ export function App() {
             ))}
           </ul>
         </nav>
+
+        <TopbarActions
+          session={session}
+          convCount={conversations.length}
+          cacheHits={cacheStats.hits}
+          onOpenHistory={() => setHistoryOpen(true)}
+          onOpenPersonalization={() => setPersonalizationOpen(true)}
+        />
       </header>
 
+      <HistoryDrawer
+        open={historyOpen}
+        currentConvId={currentConvId}
+        conversations={conversations}
+        onClose={() => setHistoryOpen(false)}
+        onSelectConversation={handleSelectSavedConversation}
+        onDeleteConversation={handleDeleteConversation}
+        onStartNewConversation={() => {
+          setTurns([]);
+          setTurnIndex(0);
+          setCurrentConvId(null);
+          setPreviewDoc(null);
+        }}
+      />
+
+      <LoginAndProfileModal
+        open={personalizationOpen}
+        session={session}
+        activeProfile={activeProfile}
+        savedConvCount={conversations.length}
+        cacheStats={cacheStats}
+        onClose={() => setPersonalizationOpen(false)}
+        onSignInQuick={handleQuickSignIn}
+        onSignOut={handleSignOut}
+        onSaveProfile={handleSaveProfile}
+      />
+
       <div className="layout layout--chat">
-        <aside className="stage stage--chat" aria-label="다온의 풀이">
+        <aside className="stage stage--chat" aria-label="한결의 법률·세무 브리핑">
           <Narrator
             mood={mascotState.mood}
             line={mascotState.line}
@@ -972,12 +1298,21 @@ export function App() {
               data-testid="file-input"
             />
 
-            {!activeTurn && (
+            {!activeTurn && previewDoc && (
+              <SamplePreviewCard
+                doc={previewDoc}
+                busy={busy}
+                onClose={() => setPreviewDoc(null)}
+                onStartCheck={(doc) => void submitQuery(doc.rawText, doc.mode, undefined, doc)}
+              />
+            )}
+
+            {!activeTurn && !previewDoc && (
               <section className="suggest" aria-label="시작 안내 및 추천 질문">
                 <div className="suggest__header">
                   <span className="suggest__eyebrow">무엇이든 편하게 물어보세요</span>
                   <h2 className="suggest__title">
-                    계약서·영수증 사진을 올리거나 궁금한 질문을 눌러보세요
+                    계약서·영수증 사진을 올리거나 샘플 문서를 눌러 미리보기로 살펴보세요
                   </h2>
                 </div>
 
@@ -1015,13 +1350,33 @@ export function App() {
                       className="pill-btn"
                       onClick={(e) => {
                         e.stopPropagation();
-                        loadSampleContract();
+                        openSamplePreview();
                       }}
                       data-testid="sample-btn"
                     >
-                      샘플 넣어보기
+                      샘플 문서 미리보기
                     </button>
                   </div>
+                </div>
+
+                {/* 3종 샘플 문서 미리보기 카드 */}
+                <div className="sample-cards-row" aria-label="샘플 문서 미리보기 목록">
+                  {SAMPLE_DOCS.map((doc) => (
+                    <button
+                      key={doc.id}
+                      type="button"
+                      className="sample-card-mini"
+                      onClick={() => openSamplePreview(doc)}
+                      data-testid={`sample-card-${doc.id}`}
+                    >
+                      <div className="sample-card-mini__top">
+                        <span className="sample-card-mini__badge">{doc.badge}</span>
+                        <span className="sample-card-mini__preview-tag">📄 미리보기</span>
+                      </div>
+                      <strong>{doc.docHeader}</strong>
+                      <span>{doc.subtitle}</span>
+                    </button>
+                  ))}
                 </div>
 
                 <ul>
@@ -1080,15 +1435,23 @@ export function App() {
                     onClick={() => {
                       setTurns([]);
                       setTurnIndex(0);
+                      setPreviewDoc(null);
                     }}
                   >
                     처음으로
                   </button>
                 </header>
 
-                {activeTurn.maskedSummary && (
+                {(activeTurn.maskedSummary || activeTurn.cached) && (
                   <div className="mask-banner" role="status">
-                    <span>🔒 {activeTurn.maskedSummary}</span>
+                    <span>
+                      {activeTurn.maskedSummary
+                        ? `🔒 ${activeTurn.maskedSummary}`
+                        : '🔒 개인정보 보호 점검 완료'}
+                    </span>
+                    {activeTurn.cached && (
+                      <span className="cache-pill">⚡ 캐시에서 즉시 불러옴</span>
+                    )}
                   </div>
                 )}
 
@@ -1179,7 +1542,7 @@ export function App() {
                       : '계약서·영수증 사진을 첨부하거나 특약·법률·세금 질문을 적어보세요'
                   }
                   disabled={busy}
-                  aria-label="다온에게 질문하기"
+                  aria-label="한결에게 질문하기"
                   data-testid="composer-input"
                 />
                 <button

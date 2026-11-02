@@ -5,12 +5,12 @@ import { SpeechBubble } from './SpeechBubble';
 export type Mood = 'calm' | 'thinking' | 'joy' | 'worry' | 'surprise' | 'mystic';
 
 const MOOD_ALT: Record<Mood, string> = {
-  calm: '차분한 다온',
-  thinking: '법령과 판례를 살피는 다온',
-  joy: '환하게 웃는 다온',
-  worry: '위험 조항을 짚어주는 다온',
-  surprise: '중요 포인트를 발견한 다온',
-  mystic: '계약서와 법전을 꼼꼼히 읽는 다온',
+  calm: '차분한 법률·세무 파트너 한결',
+  thinking: '법령과 판례를 살피는 한결',
+  joy: '환하게 미소 짓는 한결',
+  worry: '위험 조항을 짚어주는 한결',
+  surprise: '중요 포인트를 발견한 한결',
+  mystic: '계약서와 법전을 꼼꼼히 읽는 한결',
 };
 
 const MOOD_MOTION: Record<Mood, { animate: TargetAndTransition; transition: Transition }> = {

@@ -102,3 +102,89 @@ test('api graph_stats returns GraphRAG node, edge, and learned case counts', asy
   assert.ok(stats.edgeCount >= 20);
   assert.ok(stats.casebookCount >= 6);
 });
+
+test('api response cache returns HIT on repeated law and consult requests', async () => {
+  const payload = {
+    action: 'consult',
+    pack: 'lease',
+    question: '전입신고 다음 날 집주인이 근저당을 설정하면 대항력 순위는 어떻게 되나요?',
+  };
+  const first = await handleCheck(post(payload));
+  assert.equal(first.status, 200);
+  const second = await handleCheck(post(payload));
+  assert.equal(second.status, 200);
+  assert.equal(second.headers.get('x-onyul-cache'), 'HIT');
+  const secondBody = await second.json();
+  assert.equal(secondBody.cached, true);
+  assert.ok(secondBody.cacheKey);
+});
+
+test('api personalization account, profiles, and conversation history round-trip', async () => {
+  const authHeaders = {
+    'content-type': 'application/json',
+    authorization: 'Bearer quick:testuser:%EA%B9%80%EC%9C%A8:kim%40onyul.kr',
+  };
+  const postAuthed = (body: unknown) =>
+    new Request('http://x/api/check', {
+      method: 'POST',
+      headers: authHeaders,
+      body: JSON.stringify(body),
+    });
+
+  // 1. Account & default profiles
+  const accRes = await handleCheck(postAuthed({ action: 'account' }));
+  assert.equal(accRes.status, 200);
+  const accBody = await accRes.json();
+  assert.equal(accBody.account.name, '김율');
+  assert.ok(accBody.profiles.length >= 3);
+
+  // 2. Save custom profile
+  const saveProfRes = await handleCheck(
+    postAuthed({
+      action: 'profiles_save',
+      profile: {
+        name: '마포 오피스텔 계약',
+        topic: 'lease',
+        filerType: 'wage_earner',
+        memo: '보증금 5,000만 / 월세 65만',
+      },
+    }),
+  );
+  assert.equal(saveProfRes.status, 200);
+  const savedProfBody = await saveProfRes.json();
+  assert.equal(savedProfBody.saved.name, '마포 오피스텔 계약');
+
+  // 3. Save & retrieve conversation history
+  const saveConvRes = await handleCheck(
+    postAuthed({
+      action: 'conversations_save',
+      conversation: {
+        id: 'conv-test-101',
+        profileId: savedProfBody.saved.id,
+        profileName: '마포 오피스텔 계약',
+        topic: 'lease',
+        title: '퇴실 시 도배·장판비 40만원 공제 특약 점검',
+        updatedAt: new Date().toISOString(),
+        turns: [
+          {
+            id: 'turn-1',
+            question: '퇴실 시 도배·장판비 40만원 공제 특약 점검',
+            speech: '주의가 필요한 위험 특약이 발견되었어요.',
+            mood: 'worry',
+            mode: 'check',
+            followups: ['수정 요청 문자 초안 써줘'],
+          },
+        ],
+      },
+    }),
+  );
+  assert.equal(saveConvRes.status, 200);
+
+  const getConvRes = await handleCheck(
+    postAuthed({ action: 'conversations_get', conversationId: 'conv-test-101' }),
+  );
+  assert.equal(getConvRes.status, 200);
+  const getConvBody = await getConvRes.json();
+  assert.equal(getConvBody.conversation.title, '퇴실 시 도배·장판비 40만원 공제 특약 점검');
+  assert.equal(getConvBody.conversation.turns.length, 1);
+});

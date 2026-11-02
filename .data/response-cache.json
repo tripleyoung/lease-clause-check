@@ -1,0 +1,826 @@
+{
+  "entries": [
+    {
+      "key": "597f8f9628db4bb29deda2a59b6a457f",
+      "action": "law",
+      "value": {
+        "itemId": "repair_duty",
+        "fetchedAt": "2026-11-02T05:22:27.703Z",
+        "oc": "tripleyoung",
+        "engine": "oke-rust-law-mcp",
+        "mcpEndpoint": "https://webrtc.ugot.uk/law/mcp",
+        "liveConnected": true,
+        "statute": {
+          "lawName": "민법",
+          "article": "제623조(임대인의 의무)",
+          "ministry": "법무부",
+          "effectiveDate": "2026.03.17",
+          "proclamationNo": "법률 제21454호",
+          "articleText": "제623조(임대인의 의무) 임대인은 목적물을 임차인에게 인도하고 계약존속중 그 사용, 수익에 필요한 상태를 유지하게 할 의무를 부담한다.",
+          "officialUrl": "https://www.law.go.kr/법령/%EB%AF%BC%EB%B2%95",
+          "sourceType": "law"
+        },
+        "precedents": [
+          {
+            "id": "207485",
+            "caseNumber": "2017다225312",
+            "caseName": "손해배상(기)·건물인도등",
+            "courtName": "대법원",
+            "decisionDate": "2019.05.16",
+            "summary": "[1] 구 상가건물 임대차보호법(2018. 10. 16. 법률 제15791호로 개정되기 전의 것, 이하 ‘구 상가임대차법’이라 한다) 제10조의4의 문언과 내용, 입법 취지에 비추어 보면, 구 상가임대차법 제10조 제2항에 따라 최초의 임대차기간을 포함한 전체 임대차기간이 5년을 초과하여 임차인이 계약갱신요구권을 행사할 수 없는 경우에도 임대인은 같은 법 제10조의4 제1항에 따른 권리금 회수기회 보호의무를 부담한다고 보아야 한다.\n\n[2] 甲이 乙과 상가 임대차계약을 체결한 다음 상가를 인도받아 음식점을 운영하면서 2회에 걸쳐 계약을 갱신하였고, 최종 임대차기간이…",
+            "officialUrl": "https://www.law.go.kr/판례/(2017%EB%8B%A4225312)"
+          },
+          {
+            "id": "164196",
+            "caseNumber": "2010다89876",
+            "caseName": "손해배상(기)·건물명도",
+            "courtName": "대법원",
+            "decisionDate": "2012.06.14",
+            "summary": "[1] 임대차계약에서 임대인은 목적물을 계약 존속 중 사용·수익에 필요한 상태를 유지할 의무를 부담하므로, 목적물에 파손 또는 장해가 생긴 경우 그것이 임차인이 별비용을 들이지 아니하고도 손쉽게 고칠 수 있을 정도의 사소한 것이어서 임차인의 사용·수익을 방해할 정도의 것이 아니라면 임대인은 수선의무를 부담하지 않지만, 그것을 수선하지 아니하면 임차인이 계약에 의하여 정해진 목적에 따라 사용·수익할 수 없는 상태로 될 정도의 것이라면 임대인은 수선의무를 부담한다.\n\n[2] 임차인 甲이 가구전시장으로 임차하여 사용하던 건물 바닥에 결로현상이 발생하자 임대인 乙을 상대로…",
+            "officialUrl": "https://www.law.go.kr/판례/(2010%EB%8B%A489876)"
+          }
+        ]
+      },
+      "createdAt": 1793596947704,
+      "expiresAt": 1793618547704,
+      "hits": 0
+    },
+    {
+      "key": "2a3e3584aa7206a70f2b952cd6e8d407",
+      "action": "consult",
+      "value": {
+        "itemId": "deposit_return",
+        "itemTitle": "보증금 반환 시기",
+        "maskedQuestion": "집주인([전화번호])이 다음 세입자가 들어와야 보증금을 돌려준다고 합니다.",
+        "headline": "주택임대차보호법 제4조(임대차기간 등) 기준에 따라 임차인·소비자 보호 규정을 우선 확인해야 합니다.",
+        "analysis": "보증금 반환은 계약 종료와 동시에 이루어져야 하는 임대인의 당연한 법적 의무(동시이행)입니다. 이를 다음 세입자 입주 조건에 묶는 것은 세입자에게 무한 대기를 강요하는 불리한 특약입니다. 다음 세입자가 몇 달 혹은 몇 년간 들어오지 않으면 보증금을 돌려받지 못해 새로 이사 갈 집의 잔금을 치르지 못하고, 전세대출 연체 이자 폭탄을 맞거나 새 계약금을 몰수당하게 됩니다. 근거 조문(주택임대차보호법 제4조(임대차기간 등))에 따라 불리한 특약은 수정 요구 또는 효력 다툼의 대상이 됩니다.",
+        "messageDraft": "안녕하세요. 계약서 특약 조항 중 \"보증금 반환 시기\" 관련하여 주택임대차보호법 제4조(임대차기간 등) 기준에 맞도록 아래와 같이 문구를 조정하고 싶습니다.\n\n[수정 요청 문구]\n\"임대인은 계약 종료일에 임차인의 퇴거와 동시에 보증금 전액을 반환하며, 새 임차인의 입주 여부를 반환 조건으로 삼지 않는다.\"\n\n확인 부탁드립니다.",
+        "followups": [
+          "집주인이 관행이라며 특약 수정을 끝까지 거부하면 어떻게 대응해야 하나요?",
+          "이미 도장을 찍은 계약서인데도 강행규정 위반으로 무효가 될 수 있나요?",
+          "분쟁 발생 시 문자나 카톡 기록을 어떻게 남겨두면 법적 증거가 되나요?"
+        ],
+        "law": {
+          "itemId": "deposit_return",
+          "fetchedAt": "2026-11-02T05:22:28.290Z",
+          "oc": "tripleyoung",
+          "engine": "oke-rust-law-mcp",
+          "mcpEndpoint": "https://webrtc.ugot.uk/law/mcp",
+          "liveConnected": true,
+          "statute": {
+            "lawName": "주택임대차보호법",
+            "article": "제4조(임대차기간 등)",
+            "ministry": "법무부",
+            "effectiveDate": "2026.01.02",
+            "proclamationNo": "법률 제21065호",
+            "articleText": "제4조(임대차기간 등)\n① 기간을 정하지 아니하거나 2년 미만으로 정한 임대차는 그 기간을 2년으로 본다. 다만, 임차인은 2년 미만으로 정한 기간이 유효함을 주장할 수 있다.\n② 임대차기간이 끝난 경우에도 임차인이 보증금을 반환받을 때까지는 임대차관계가 존속되는 것으로 본다.",
+            "officialUrl": "https://www.law.go.kr/법령/%EC%A3%BC%ED%83%9D%EC%9E%84%EB%8C%80%EC%B0%A8%EB%B3%B4%ED%98%B8%EB%B2%95",
+            "sourceType": "law"
+          },
+          "precedents": [
+            {
+              "id": "622971",
+              "caseNumber": "2026다201978",
+              "caseName": "보증금반환",
+              "courtName": "대법원",
+              "decisionDate": "2026.06.24",
+              "summary": "甲이 임대인에게 임대차보증금을 지급하고 부동산을 임차하는 내용의 계약을 체결한 다음, 주택도시보증공사와 위 임대차계약에 따라 임대인이 부담하는 임대차보증금 반환채무를 주택도시보증공사가 보증하는 내용의 계약을 체결하였는데, 임대차계약 종료 후 주택도시보증공사가 甲에게 임대차보증금 상당의 보증채무액에 더하여 이에 대한 지연손해금까지 지급할 의무가 있는지 문제 된 사안에서, 주택도시보증공사의 甲에 대한 보증채무 이행의무는 형식적으로는 보증계약에 따른 지급의무이지만 그 실질은 임대차계약에 따른 임차보증금 반환의무의 변형에 불과하여 임대인의 의무와 동일하다고 볼 수 있고, 위…",
+              "officialUrl": "https://www.law.go.kr/판례/(2026%EB%8B%A4201978)"
+            },
+            {
+              "id": "607231",
+              "caseNumber": "2025다209893",
+              "caseName": "분양대금반환청구의소·매매대금[상가의 수분양자인 원고들이 동시이행항변권을 포기한 것인지 문제된 사건]",
+              "courtName": "대법원",
+              "decisionDate": "2025.06.26",
+              "summary": "[1] 부동산 매매계약에서 특별한 사정이 없는 한 매수인의 잔대금 지급의무와 매도인의 소유권이전등기서류 교부의무는 동시이행관계에 있다. 동시이행항변권의 포기는 명시적 의사표시뿐만 아니라 묵시적 의사표시로 이루어지는 것도 가능하지만, 묵시적 의사표시의 해석을 통한 동시이행항변권 포기의 인정은 엄격하고 신중하게 이루어져야 한다. 한편 매수인이 대금을 약정기일까지 납부하지 아니할 경우 그 체납액에 대하여 연체료를 가산하여 지급하기로 하는 연체료 약정은 이행지체에 대한 손해배상의 예정으로서 지체책임이 발생할 때 비로소 그 지급의무가 발생한다.\n [2] 쌍무계약에서 일방 당사…",
+              "officialUrl": "https://www.law.go.kr/판례/(2025%EB%8B%A4209893)"
+            }
+          ]
+        },
+        "graphRag": {
+          "subgraph": {
+            "domain": "lease",
+            "seedItemId": "deposit_return",
+            "seeds": [
+              {
+                "nodeId": "concept:deposit_return",
+                "reason": "질문·문구에서 'deposit_return' 법리 개념 시드 감지"
+              },
+              {
+                "nodeId": "statute:주택임대차보호법:제4조(임대차기간 등)",
+                "reason": "OKE Rust Law MCP 실시간 조문 고정 (주택임대차보호법)"
+              }
+            ],
+            "nodes": [
+              {
+                "id": "concept:deposit_return",
+                "kind": "concept",
+                "domain": "lease",
+                "label": "보증금 반환 시기",
+                "summary": "보증금 반환은 계약 종료와 동시에 이루어져야 하는 임대인의 당연한 법적 의무(동시이행)입니다. 이를 다음 세입자 입주 조건에 묶는 것은 세입자에게 무한 대기를 강요하는 불리한 특약입니다."
+              },
+              {
+                "id": "statute:주택임대차보호법:제4조(임대차기간 등)",
+                "kind": "statute",
+                "domain": "lease",
+                "label": "주택임대차보호법 제4조(임대차기간 등)",
+                "summary": "제4조(임대차기간 등)\n① 기간을 정하지 아니하거나 2년 미만으로 정한 임대차는 그 기간을 2년으로 본다. 다만, 임차인은 2년 미만으로 정한 기간이 유효함을 주장할 수 있다.\n② 임대차기간이 끝난 경우에도 임차인이 보증금을 반환받을 때까지는 임대차관계가 존속되는 것으로 본다."
+              },
+              {
+                "id": "prec:2026다201978",
+                "kind": "precedent",
+                "domain": "lease",
+                "label": "대법원 2026다201978 (보증금반환)",
+                "summary": "甲이 임대인에게 임대차보증금을 지급하고 부동산을 임차하는 내용의 계약을 체결한 다음, 주택도시보증공사와 위 임대차계약에 따라 임대인이 부담하는 임대차보증금 반환채무를 주택도시보증공사가 보증하는 내용의 계약을 체결하였는데, 임대차계약 종료 후 주택도시보증공사가 甲에게 임대차보증금 상당의 보증채무액에 더하여 이에 대한 지연손해금까지 지급할 의무가 있는지 문제 된 사안에서, 주택도시보증공사의 甲에 대한 보증채무 이행의무는 형식적으로는 보증계약에 따른 지급의무이지만 그 실질은 임대차계약에 따른 임차보증금 반환의무의 변형에 불과하여 임대인의 의무와 동일하다고 볼 수 있고, 위…"
+              },
+              {
+                "id": "prec:2025다209893",
+                "kind": "precedent",
+                "domain": "lease",
+                "label": "대법원 2025다209893 (분양대금반환청구의소·매매대금[상가의 수분양자인 원고들이 동시이행항변권을 포기한 것인지 문제된 사건])",
+                "summary": "[1] 부동산 매매계약에서 특별한 사정이 없는 한 매수인의 잔대금 지급의무와 매도인의 소유권이전등기서류 교부의무는 동시이행관계에 있다. 동시이행항변권의 포기는 명시적 의사표시뿐만 아니라 묵시적 의사표시로 이루어지는 것도 가능하지만, 묵시적 의사표시의 해석을 통한 동시이행항변권 포기의 인정은 엄격하고 신중하게 이루어져야 한다. 한편 매수인이 대금을 약정기일까지 납부하지 아니할 경우 그 체납액에 대하여 연체료를 가산하여 지급하기로 하는 연체료 약정은 이행지체에 대한 손해배상의 예정으로서 지체책임이 발생할 때 비로소 그 지급의무가 발생한다.\n [2] 쌍무계약에서 일방 당사…"
+              },
+              {
+                "id": "case:lease:deposit_return:learned_0a3e1bbb",
+                "kind": "casebook",
+                "domain": "lease",
+                "itemId": "deposit_return",
+                "label": "주택임대차보호법 제4조(임대차기간 등) 기준에 따라 임차인·소비자 보호 규정을 우선 확",
+                "questionPattern": "집주인([전화번호])이 다음 세입자가 들어와야 보증금을 돌려준다고 합니다.",
+                "headline": "주택임대차보호법 제4조(임대차기간 등) 기준에 따라 임차인·소비자 보호 규정을 우선 확인해야 합니다.",
+                "statuteRef": "주택임대차보호법 제4조(임대차기간 등)",
+                "precedentRef": "2026다201978",
+                "citations": 6,
+                "learned": true,
+                "createdAt": "2026-11-02T03:55:36.341Z",
+                "score": 44.1
+              },
+              {
+                "id": "case:lease:deposit_return:01",
+                "kind": "casebook",
+                "domain": "lease",
+                "itemId": "deposit_return",
+                "label": "신규 세입자 입주 조건부 보증금 반환 특약 무효 다툼 사례",
+                "questionPattern": "다음 세입자 들어와야 보증금 반환 만기 퇴거 동시이행",
+                "headline": "보증금 반환과 임차목적물 인도는 동시이행 관계이므로 신규 임차인 입주 조건 특약은 수정 대상입니다.",
+                "statuteRef": "주택임대차보호법 제4조 · 제3조의2",
+                "precedentRef": "대법원 2026다201978, 대법원 2025다209893",
+                "citations": 22,
+                "learned": false,
+                "createdAt": "2026-10-01T00:00:00Z",
+                "score": 24
+              },
+              {
+                "id": "case:lease:move_in_and_fixed_date:learned_95cdbd00",
+                "kind": "casebook",
+                "domain": "lease",
+                "itemId": "move_in_and_fixed_date",
+                "label": "주택임대차보호법 제3조의2(보증금의 회수) 기준에 따라 임차인·소비자 보호 규정을 우선",
+                "questionPattern": "전입신고와 확정일자를 받으면 보증금 대항력은 언제부터 생기나요?",
+                "headline": "주택임대차보호법 제3조의2(보증금의 회수) 기준에 따라 임차인·소비자 보호 규정을 우선 확인해야 합니다.",
+                "statuteRef": "주택임대차보호법 제3조의2(보증금의 회수)",
+                "precedentRef": "2025다213466",
+                "citations": 2,
+                "learned": true,
+                "createdAt": "2026-11-02T04:35:31.621Z",
+                "score": 9.7
+              }
+            ],
+            "edges": [
+              {
+                "id": "edge:concept:deposit_return->statute:주택임대차보호법:제4조(임대차기간 등)",
+                "source": "concept:deposit_return",
+                "target": "statute:주택임대차보호법:제4조(임대차기간 등)",
+                "relation": "GOVERNED_BY"
+              },
+              {
+                "id": "edge:case:lease:deposit_return:01->concept:deposit_return",
+                "source": "case:lease:deposit_return:01",
+                "target": "concept:deposit_return",
+                "relation": "APPLIES_TO_CONCEPT"
+              },
+              {
+                "id": "edge:statute:주택임대차보호법:제4조(임대차기간 등)->prec:2026다201978",
+                "source": "statute:주택임대차보호법:제4조(임대차기간 등)",
+                "target": "prec:2026다201978",
+                "relation": "CITED_PRECEDENT"
+              },
+              {
+                "id": "edge:statute:주택임대차보호법:제4조(임대차기간 등)->prec:2025다209893",
+                "source": "statute:주택임대차보호법:제4조(임대차기간 등)",
+                "target": "prec:2025다209893",
+                "relation": "CITED_PRECEDENT"
+              }
+            ],
+            "matchedCases": [
+              {
+                "id": "case:lease:deposit_return:learned_0a3e1bbb",
+                "kind": "casebook",
+                "domain": "lease",
+                "itemId": "deposit_return",
+                "label": "주택임대차보호법 제4조(임대차기간 등) 기준에 따라 임차인·소비자 보호 규정을 우선 확",
+                "questionPattern": "집주인([전화번호])이 다음 세입자가 들어와야 보증금을 돌려준다고 합니다.",
+                "headline": "주택임대차보호법 제4조(임대차기간 등) 기준에 따라 임차인·소비자 보호 규정을 우선 확인해야 합니다.",
+                "statuteRef": "주택임대차보호법 제4조(임대차기간 등)",
+                "precedentRef": "2026다201978",
+                "citations": 6,
+                "learned": true,
+                "createdAt": "2026-11-02T03:55:36.341Z",
+                "score": 44.1
+              },
+              {
+                "id": "case:lease:deposit_return:01",
+                "kind": "casebook",
+                "domain": "lease",
+                "itemId": "deposit_return",
+                "label": "신규 세입자 입주 조건부 보증금 반환 특약 무효 다툼 사례",
+                "questionPattern": "다음 세입자 들어와야 보증금 반환 만기 퇴거 동시이행",
+                "headline": "보증금 반환과 임차목적물 인도는 동시이행 관계이므로 신규 임차인 입주 조건 특약은 수정 대상입니다.",
+                "statuteRef": "주택임대차보호법 제4조 · 제3조의2",
+                "precedentRef": "대법원 2026다201978, 대법원 2025다209893",
+                "citations": 22,
+                "learned": false,
+                "createdAt": "2026-10-01T00:00:00Z",
+                "score": 24
+              },
+              {
+                "id": "case:lease:move_in_and_fixed_date:learned_95cdbd00",
+                "kind": "casebook",
+                "domain": "lease",
+                "itemId": "move_in_and_fixed_date",
+                "label": "주택임대차보호법 제3조의2(보증금의 회수) 기준에 따라 임차인·소비자 보호 규정을 우선",
+                "questionPattern": "전입신고와 확정일자를 받으면 보증금 대항력은 언제부터 생기나요?",
+                "headline": "주택임대차보호법 제3조의2(보증금의 회수) 기준에 따라 임차인·소비자 보호 규정을 우선 확인해야 합니다.",
+                "statuteRef": "주택임대차보호법 제3조의2(보증금의 회수)",
+                "precedentRef": "2025다213466",
+                "citations": 2,
+                "learned": true,
+                "createdAt": "2026-11-02T04:35:31.621Z",
+                "score": 9.7
+              }
+            ],
+            "formattedContext": "[GraphRAG 2-Hop 법리 서브그래프 · 도메인=lease · 시드=deposit_return]\n- 핵심 법령 노드: 주택임대차보호법 제4조(임대차기간 등)\n- 연결 대법원 판례 노드: 대법원 2026다201978 (보증금반환) / 대법원 2025다209893 (분양대금반환청구의소·매매대금[상가의 수분양자인 원고들이 동시이행항변권을 포기한 것인지 문제된 사건])\n- 누적 학습 케이스북(3건):\n  * [case:lease:deposit_return:learned_0a3e1bbb | 인용 6회 | 점수 44.1] 주택임대차보호법 제4조(임대차기간 등) 기준에 따라 임차인·소비자 보호 규정을 우선 확인해야 합니다. (주택임대차보호법 제4조(임대차기간 등))\n  * [case:lease:deposit_return:01 | 인용 22회 | 점수 24] 보증금 반환과 임차목적물 인도는 동시이행 관계이므로 신규 임차인 입주 조건 특약은 수정 대상입니다. (주택임대차보호법 제4조 · 제3조의2)\n  * [case:lease:move_in_and_fixed_date:learned_95cdbd00 | 인용 2회 | 점수 9.7] 주택임대차보호법 제3조의2(보증금의 회수) 기준에 따라 임차인·소비자 보호 규정을 우선 확인해야 합니다. (주택임대차보호법 제3조의2(보증금의 회수))",
+            "stats": {
+              "nodeCount": 57,
+              "edgeCount": 31,
+              "statuteCount": 22,
+              "precedentCount": 2,
+              "casebookCount": 10,
+              "writebackCount": 16,
+              "citationHitCount": 96,
+              "learnedCaseCount": 4
+            }
+          },
+          "writeback": {
+            "recorded": true,
+            "signatureId": "0a3e1bbb9aac4542",
+            "citedCaseIds": [
+              "case:lease:deposit_return:learned_0a3e1bbb",
+              "case:lease:deposit_return:01"
+            ],
+            "learnedCaseId": null,
+            "stats": {
+              "nodeCount": 57,
+              "edgeCount": 31,
+              "statuteCount": 22,
+              "precedentCount": 2,
+              "casebookCount": 10,
+              "writebackCount": 16,
+              "citationHitCount": 96,
+              "learnedCaseCount": 4
+            }
+          }
+        }
+      },
+      "createdAt": 1793596948295,
+      "expiresAt": 1793618548295,
+      "hits": 0
+    },
+    {
+      "key": "6459d843c4cc9a51cd556f11b0b311e4",
+      "action": "tax",
+      "value": {
+        "taxLawItemId": "tax_rent_credit",
+        "maskedText": "무주택 직장인인데 매달 월세 85만원을 계좌이체하고 있습니다.",
+        "filerType": "wage_earner",
+        "headline": "조세특례제한법 제95조의2에 따라 무주택 세대주 근로자는 연 1,000만 원 한도로 월세액의 15~17% 세액공제가 가능합니다.",
+        "vatVerdict": "연말정산·종소세 세액공제 대상",
+        "incomeTaxVerdict": "월세 세액공제 (15~17%)",
+        "accountTitle": "주거비 세액공제 (조세특례제한법 제95조의2)",
+        "evidenceStatus": "임대차계약서 사본 + 주민등록등본(전입신고 필수) + 계좌이체 영수증(무통장입금증) 구비 시 집주인 동의 없이 공제 가능",
+        "analysis": "조세특례제한법 제95조의2(월세액에 대한 세액공제) 기준에 따라 총급여 8,000만 원(종합소득금액 7,000만 원) 이하 무주택 세대주가 국민주택규모(85㎡) 또는 기준시가 4억 원 이하 주택을 임차한 경우 월세 세액공제를 받을 수 있습니다. 계약서상 주소지와 주민등록 전입신고 주소지가 일치해야 합니다.",
+        "hometaxGuide": "홈택스(Hometax) → [상담·불복·고충·제보·기타] → [주택임차료(월세) 현금영수증 발급 신청]에 임대차계약서를 첨부해 등록하면 연말정산 간소화 자료에 자동 반영됩니다.",
+        "followups": [
+          "집주인이 월세 세액공제 신청을 하지 말라고 특약에 적었는데 신청해도 되나요?",
+          "전입신고를 늦게 한 달의 월세도 소급해서 공제받을 수 있나요?",
+          "관리비 명목으로 매달 내는 금액도 월세 세액공제 대상에 포함되나요?"
+        ],
+        "law": {
+          "itemId": "tax_rent_credit",
+          "fetchedAt": "2026-11-02T05:22:29.019Z",
+          "oc": "tripleyoung",
+          "engine": "oke-rust-law-mcp",
+          "mcpEndpoint": "https://webrtc.ugot.uk/law/mcp",
+          "liveConnected": true,
+          "statute": {
+            "lawName": "조세특례제한법",
+            "article": "제95조의2(월세액에 대한 세액공제)",
+            "ministry": "재정경제부",
+            "effectiveDate": "2026.09.18",
+            "proclamationNo": "법률 제21467호",
+            "articleText": "제95조의2(월세액에 대한 세액공제)\n① 과세기간 종료일 현재 주택을 소유하지 아니한 대통령령으로 정하는 세대의 세대주(세대주가 이 항, 제87조제2항 및 「소득세법」 제52조제4항ㆍ제5항에 따른 공제를 받지 아니하는 경우에는 세대의 구성원을 말하며, 대통령령으로 정하는 외국인을 포함한다. 이하 이 조에서 같다)로서 해당 과세기간의 총급여액이 8천만원 이하인 근로소득이 있는 근로자(해당 과세기간에 종합소득과세표준을 계산할 때 합산하는 종합소득금액이 7천만원을 초과하는 사람은 제외한다)가 대통령령으로 정하는 주택을 임차하기 위하여 대통령령으로 정하는 월세액을 지급하는 경우 그 금액의 100분의 15[해당 과세기간의 총급여액이 5천500만원 이하인 근로소득이 있는 근로자(해당 과세기간에 종합소득과세표준을 계산할 때 합산하는 종합소득금액이 4천500만원을 초과하는 사람은 제외한다)의 경우에는 100분의 17]에 해당하는 금액을 해당 과세기간의 종합소득산출세액에서 공제한다. 다만, 해당 월세액이 1천만원을 초과하는 경우 그 초과하는 금액은 없는 것으로 한다. <개정 2017.12.19, 2020.12.29, 2022.12.31, 2023.12.31, 2025.12.23>\n② 제1항에 따른 세액공제를 적용받은 세대주의 배우자가 다음 각 호의 요건을 모두 충족하는 경우에는 그 배우자도 제1항에 따른 공제를 추가로 적용받을 수 있다. 이 경우 세대주와 그 배우자의 월세액의 합계액이 1천만원을 초과하면 그 배우자의 월세액에서 그 초과하는 금액을 뺀 금액(해당 금액이 음수인 경우에는 영으로 한다)을 제1항에 따른 공제대상금액으로 한다. <신설 2025.12.23>\n  1. 제1항에 따른 공제 요건을 모두 충족할 것\n  2. 세대주와 주소를 달리하는 등 대통령령으로 정하는 요건을 충족할 것\n③ 제1항 및 제2항에 따른 공제는 해당 거주자가 대통령령으로 정하는 바에 따라 신청한 경우에 적용한다. <개정 2025.12.23>\n④ 제1항 및 제2항에 따른 공제의 적용 등과 관련하여 그 밖에 필요한 사항은 대통령령으로 정한다. <개정 2025.12.23>",
+            "officialUrl": "https://www.law.go.kr/법령/%EC%A1%B0%EC%84%B8%ED%8A%B9%EB%A1%80%EC%A0%9C%ED%95%9C%EB%B2%95",
+            "sourceType": "law"
+          },
+          "precedents": [
+            {
+              "id": "618513",
+              "caseNumber": "2025두35585",
+              "caseName": "종합소득세부과처분취소[공동사업자가 출자비율에 따른 출자금을 마련하기 위해 대출을 받는 경우, 대출금의 이자가 공동사업장의 필요경비에 해당하는지가 문제 된 사건]",
+              "courtName": "대법원",
+              "decisionDate": "2026.03.12",
+              "summary": "소득세법 제27조 제1항, 제3항, 제33조 제1항 제13호, 소득세법 시행령 제55조 제1항 제13호, 제78조 제3호의 내용에 비추어 보면, 과세기간의 총수입금액에 대응하는 비용으로서 사업 관련성이 인정되는 지출인지 여부에 따라 필요경비 산입 여부가 결정된다.",
+              "officialUrl": "https://www.law.go.kr/판례/(2025%EB%91%9035585)"
+            }
+          ]
+        },
+        "graphRag": {
+          "subgraph": {
+            "domain": "tax",
+            "seedItemId": "tax_rent_credit",
+            "seeds": [
+              {
+                "nodeId": "concept:tax_rent_credit",
+                "reason": "질문·문구에서 'tax_rent_credit' 법리 개념 시드 감지"
+              },
+              {
+                "nodeId": "statute:조세특례제한법:제95조의2(월세액에 대한 세액공제)",
+                "reason": "OKE Rust Law MCP 실시간 조문 고정 (조세특례제한법)"
+              }
+            ],
+            "nodes": [
+              {
+                "id": "concept:tax_rent_credit",
+                "kind": "concept",
+                "domain": "tax",
+                "label": "제95조의2(월세액에 대한 세액공제)",
+                "summary": "조세특례제한법 제95조의2(월세액에 대한 세액공제)"
+              },
+              {
+                "id": "statute:조세특례제한법:제95조의2(월세액에 대한 세액공제)",
+                "kind": "statute",
+                "domain": "tax",
+                "label": "조세특례제한법 제95조의2(월세액에 대한 세액공제)",
+                "summary": "제95조의2(월세액에 대한 세액공제)\n① 과세기간 종료일 현재 주택을 소유하지 아니한 대통령령으로 정하는 세대의 세대주(세대주가 이 항, 제87조제2항 및 「소득세법」 제52조제4항ㆍ제5항에 따른 공제를 받지 아니하는 경우에는 세대의 구성원을 말하며, 대통령령으로 정하는 외국인을 포함한다. 이하 이 조에서 같다)로서 해당 과세기간의 총급여액이 8천만원 이하인 근로소득이 있는 근로자(해당 과세기간에 종합소득과세표준을 계산할 때 "
+              },
+              {
+                "id": "prec:2025두35585",
+                "kind": "precedent",
+                "domain": "tax",
+                "label": "대법원 2025두35585 (종합소득세부과처분취소[공동사업자가 출자비율에 따른 출자금을 마련하기 위해 대출을 받는 경우, 대출금의 이자가 공동사업장의 필요경비에 해당하는지가 문제 된 사건])",
+                "summary": "소득세법 제27조 제1항, 제3항, 제33조 제1항 제13호, 소득세법 시행령 제55조 제1항 제13호, 제78조 제3호의 내용에 비추어 보면, 과세기간의 총수입금액에 대응하는 비용으로서 사업 관련성이 인정되는 지출인지 여부에 따라 필요경비 산입 여부가 결정된다."
+              },
+              {
+                "id": "case:tax:tax_rent_credit:learned_6050205c",
+                "kind": "casebook",
+                "domain": "tax",
+                "itemId": "tax_rent_credit",
+                "label": "조세특례제한법 제95조의2에 따라 무주택 세대주 근로자는 연 1,000만 원 한도로 월",
+                "questionPattern": "무주택 직장인인데 매달 월세 85만원을 계좌이체하고 있습니다.",
+                "headline": "조세특례제한법 제95조의2에 따라 무주택 세대주 근로자는 연 1,000만 원 한도로 월세액의 15~17% 세액공제가 가능합니다.",
+                "statuteRef": "조세특례제한법 제95조의2(월세액에 대한 세액공제)",
+                "precedentRef": "2025두35585",
+                "citations": 7,
+                "learned": true,
+                "createdAt": "2026-11-02T03:55:36.829Z",
+                "score": 41.5
+              },
+              {
+                "id": "case:tax:rent_credit:01",
+                "kind": "casebook",
+                "domain": "tax",
+                "itemId": "tax_rent_credit",
+                "label": "집주인 동의 없는 무주택 근로자 월세 세액공제 및 경정청구 사례",
+                "questionPattern": "무주택 직장인 월세 계좌이체 집주인 동의 연말정산 세액공제",
+                "headline": "조세특례제한법 제95조의2에 따른 월세 세액공제는 임대인 동의가 요건이 아니며 임대차계약서·전입신고·이체내역만으로 신청 가능합니다.",
+                "statuteRef": "조세특례제한법 제95조의2",
+                "precedentRef": "대법원 2025두35585",
+                "citations": 19,
+                "learned": false,
+                "createdAt": "2026-10-01T00:00:00Z",
+                "score": 27
+              },
+              {
+                "id": "case:tax:tax_rent_credit:learned_d6befb03",
+                "kind": "casebook",
+                "domain": "tax",
+                "itemId": "tax_rent_credit",
+                "label": "조세특례제한법 제95조의2에 따라 무주택 세대주 근로자는 연 1,000만 원 한도로 월",
+                "questionPattern": "무주택 세대주 직장인이고 총급여 5,800만 원입니다. 오피스텔 월세 75만 원을 매달 계좌이체 중인데 연말정산 세액공제율과 홈택스 신청 방법이 궁금해요.",
+                "headline": "조세특례제한법 제95조의2에 따라 무주택 세대주 근로자는 연 1,000만 원 한도로 월세액의 15~17% 세액공제가 가능합니다.",
+                "statuteRef": "조세특례제한법 제95조의2(월세액에 대한 세액공제)",
+                "precedentRef": "2025두35585",
+                "citations": 1,
+                "learned": true,
+                "createdAt": "2026-11-02T04:38:03.858Z",
+                "score": 25.5
+              }
+            ],
+            "edges": [
+              {
+                "id": "edge:concept:tax_rent_credit->statute:조세특례제한법:제95조의2(월세액에 대한 세액공제)",
+                "source": "concept:tax_rent_credit",
+                "target": "statute:조세특례제한법:제95조의2(월세액에 대한 세액공제)",
+                "relation": "GOVERNED_BY"
+              },
+              {
+                "id": "edge:case:tax:rent_credit:01->concept:tax_rent_credit",
+                "source": "case:tax:rent_credit:01",
+                "target": "concept:tax_rent_credit",
+                "relation": "APPLIES_TO_CONCEPT"
+              },
+              {
+                "id": "edge:statute:조세특례제한법:제95조의2(월세액에 대한 세액공제)->prec:2025두35585",
+                "source": "statute:조세특례제한법:제95조의2(월세액에 대한 세액공제)",
+                "target": "prec:2025두35585",
+                "relation": "CITED_PRECEDENT"
+              }
+            ],
+            "matchedCases": [
+              {
+                "id": "case:tax:tax_rent_credit:learned_6050205c",
+                "kind": "casebook",
+                "domain": "tax",
+                "itemId": "tax_rent_credit",
+                "label": "조세특례제한법 제95조의2에 따라 무주택 세대주 근로자는 연 1,000만 원 한도로 월",
+                "questionPattern": "무주택 직장인인데 매달 월세 85만원을 계좌이체하고 있습니다.",
+                "headline": "조세특례제한법 제95조의2에 따라 무주택 세대주 근로자는 연 1,000만 원 한도로 월세액의 15~17% 세액공제가 가능합니다.",
+                "statuteRef": "조세특례제한법 제95조의2(월세액에 대한 세액공제)",
+                "precedentRef": "2025두35585",
+                "citations": 7,
+                "learned": true,
+                "createdAt": "2026-11-02T03:55:36.829Z",
+                "score": 41.5
+              },
+              {
+                "id": "case:tax:rent_credit:01",
+                "kind": "casebook",
+                "domain": "tax",
+                "itemId": "tax_rent_credit",
+                "label": "집주인 동의 없는 무주택 근로자 월세 세액공제 및 경정청구 사례",
+                "questionPattern": "무주택 직장인 월세 계좌이체 집주인 동의 연말정산 세액공제",
+                "headline": "조세특례제한법 제95조의2에 따른 월세 세액공제는 임대인 동의가 요건이 아니며 임대차계약서·전입신고·이체내역만으로 신청 가능합니다.",
+                "statuteRef": "조세특례제한법 제95조의2",
+                "precedentRef": "대법원 2025두35585",
+                "citations": 19,
+                "learned": false,
+                "createdAt": "2026-10-01T00:00:00Z",
+                "score": 27
+              },
+              {
+                "id": "case:tax:tax_rent_credit:learned_d6befb03",
+                "kind": "casebook",
+                "domain": "tax",
+                "itemId": "tax_rent_credit",
+                "label": "조세특례제한법 제95조의2에 따라 무주택 세대주 근로자는 연 1,000만 원 한도로 월",
+                "questionPattern": "무주택 세대주 직장인이고 총급여 5,800만 원입니다. 오피스텔 월세 75만 원을 매달 계좌이체 중인데 연말정산 세액공제율과 홈택스 신청 방법이 궁금해요.",
+                "headline": "조세특례제한법 제95조의2에 따라 무주택 세대주 근로자는 연 1,000만 원 한도로 월세액의 15~17% 세액공제가 가능합니다.",
+                "statuteRef": "조세특례제한법 제95조의2(월세액에 대한 세액공제)",
+                "precedentRef": "2025두35585",
+                "citations": 1,
+                "learned": true,
+                "createdAt": "2026-11-02T04:38:03.858Z",
+                "score": 25.5
+              }
+            ],
+            "formattedContext": "[GraphRAG 2-Hop 법리 서브그래프 · 도메인=tax · 시드=tax_rent_credit]\n- 핵심 법령 노드: 조세특례제한법 제95조의2(월세액에 대한 세액공제)\n- 연결 대법원 판례 노드: 대법원 2025두35585 (종합소득세부과처분취소[공동사업자가 출자비율에 따른 출자금을 마련하기 위해 대출을 받는 경우, 대출금의 이자가 공동사업장의 필요경비에 해당하는지가 문제 된 사건])\n- 누적 학습 케이스북(3건):\n  * [case:tax:tax_rent_credit:learned_6050205c | 인용 7회 | 점수 41.5] 조세특례제한법 제95조의2에 따라 무주택 세대주 근로자는 연 1,000만 원 한도로 월세액의 15~17% 세액공제가 가능합니다. (조세특례제한법 제95조의2(월세액에 대한 세액공제))\n  * [case:tax:rent_credit:01 | 인용 19회 | 점수 27] 조세특례제한법 제95조의2에 따른 월세 세액공제는 임대인 동의가 요건이 아니며 임대차계약서·전입신고·이체내역만으로 신청 가능합니다. (조세특례제한법 제95조의2)\n  * [case:tax:tax_rent_credit:learned_d6befb03 | 인용 1회 | 점수 25.5] 조세특례제한법 제95조의2에 따라 무주택 세대주 근로자는 연 1,000만 원 한도로 월세액의 15~17% 세액공제가 가능합니다. (조세특례제한법 제95조의2(월세액에 대한 세액공제))",
+            "stats": {
+              "nodeCount": 58,
+              "edgeCount": 32,
+              "statuteCount": 22,
+              "precedentCount": 3,
+              "casebookCount": 10,
+              "writebackCount": 17,
+              "citationHitCount": 98,
+              "learnedCaseCount": 4
+            }
+          },
+          "writeback": {
+            "recorded": true,
+            "signatureId": "6050205c72cba4de",
+            "citedCaseIds": [
+              "case:tax:tax_rent_credit:learned_6050205c",
+              "case:tax:rent_credit:01"
+            ],
+            "learnedCaseId": null,
+            "stats": {
+              "nodeCount": 58,
+              "edgeCount": 32,
+              "statuteCount": 22,
+              "precedentCount": 3,
+              "casebookCount": 10,
+              "writebackCount": 17,
+              "citationHitCount": 98,
+              "learnedCaseCount": 4
+            }
+          }
+        }
+      },
+      "createdAt": 1793596949021,
+      "expiresAt": 1793618549021,
+      "hits": 0
+    },
+    {
+      "key": "dcf997caf3a32584e9fee0e8170ae6f7",
+      "action": "consult",
+      "value": {
+        "itemId": "no_new_mortgage",
+        "itemTitle": "잔금·전입 다음 날까지 근저당 설정 금지",
+        "maskedQuestion": "전입신고 다음 날 집주인이 근저당을 설정하면 대항력 순위는 어떻게 되나요?",
+        "headline": "주택임대차보호법 제3조(대항력 등) 기준에 따라 임차인·소비자 보호 규정을 우선 확인해야 합니다.",
+        "analysis": "세입자의 법적 대항력은 전입신고 및 확정일자 \"익일(다음 날) 0시\"부터 발생합니다. 만약 잔금 당일 집주인이 대출을 받아 근저당을 설정하면, 은행의 근저당권이 세입자보다 선순위(1순위)가 됩니다. 집이 경매로 넘어갈 경우 은행 대출금이 먼저 변제되고, 내 보증금은 후순위로 밀려 수천만~수억 원의 전세보증금을 한 푼도 건지지 못하고 날릴 수 있습니다. 근거 조문(주택임대차보호법 제3조(대항력 등))에 따라 불리한 특약은 수정 요구 또는 효력 다툼의 대상이 됩니다.",
+        "messageDraft": "안녕하세요. 계약서 특약 조항 중 \"잔금·전입 다음 날까지 근저당 설정 금지\" 관련하여 주택임대차보호법 제3조(대항력 등) 기준에 맞도록 아래와 같이 문구를 조정하고 싶습니다.\n\n[수정 요청 문구]\n\"임대인은 잔금 지급일 다음 날까지 이 주택에 근저당권 등 어떠한 권리도 새로 설정하지 않으며, 이를 어기면 임차인은 계약을 해제하고 지급한 금액 전부와 그 배액을 청구할 수 있다.\"\n\n확인 부탁드립니다.",
+        "followups": [
+          "집주인이 관행이라며 특약 수정을 끝까지 거부하면 어떻게 대응해야 하나요?",
+          "이미 도장을 찍은 계약서인데도 강행규정 위반으로 무효가 될 수 있나요?",
+          "분쟁 발생 시 문자나 카톡 기록을 어떻게 남겨두면 법적 증거가 되나요?"
+        ],
+        "law": {
+          "itemId": "no_new_mortgage",
+          "fetchedAt": "2026-11-02T05:22:29.312Z",
+          "oc": "tripleyoung",
+          "engine": "oke-rust-law-mcp",
+          "mcpEndpoint": "https://webrtc.ugot.uk/law/mcp",
+          "liveConnected": true,
+          "statute": {
+            "lawName": "주택임대차보호법",
+            "article": "제3조(대항력 등)",
+            "ministry": "법무부",
+            "effectiveDate": "2026.01.02",
+            "proclamationNo": "법률 제21065호",
+            "articleText": "제3조(대항력 등)\n① 임대차는 그 등기(登記)가 없는 경우에도 임차인(賃借人)이 주택의 인도(引渡)와 주민등록을 마친 때에는 그 다음 날부터 제삼자에 대하여 효력이 생긴다. 이 경우 전입신고를 한 때에 주민등록이 된 것으로 본다.\n② 주택도시기금을 재원으로 하여 저소득층 무주택자에게 주거생활 안정을 목적으로 전세임대주택을 지원하는 법인이 주택을 임차한 후 지방자치단체의 장 또는 그 법인이 선정한 입주자가 그 주택을 인도받고 주민등록을 마쳤을 때에는 제1항을 준용한다. 이 경우 대항력이 인정되는 법인은 대통령령으로 정한다. <개정 2015.1.6>\n③ 「중소기업기본법」 제2조에 따른 중소기업에 해당하는 법인이 소속 직원의 주거용으로 주택을 임차한 후 그 법인이 선정한 직원이 해당 주택을 인도받고 주민등록을 마쳤을 때에는 제1항을 준용한다. 임대차가 끝나기 전에 그 직원이 변경된 경우에는 그 법인이 선정한 새로운 직원이 주택을 인도받고 주민등록을 마친 다음 날부터 제삼자에 대하여 효력이 생긴다. <신설 2013.8.13>\n④ 임차주택의 양수인(讓受人)(그 밖에 임대할 권리를 승계한 자를 포함한다)은 임대인(賃貸人)의 지위를 승계한 것으로 본다. <개정 2013.8.13>\n⑤ 이 법에 따라 임대차의 목적이 된 주택이 매매나 경매의 목적물이 된 경우에는 「민법」 제575조제1항ㆍ제3항 및 같은 법 제578조를 준용한다. <개정 2013.8.13>\n⑥ 제5항의 경우에는 동시이행의 항변권(抗辯權)에 관한 「민법」 제536조를 준용한다. <개정 2013.8.13>",
+            "officialUrl": "https://www.law.go.kr/법령/%EC%A3%BC%ED%83%9D%EC%9E%84%EB%8C%80%EC%B0%A8%EB%B3%B4%ED%98%B8%EB%B2%95",
+            "sourceType": "law"
+          },
+          "precedents": [
+            {
+              "id": "618185",
+              "caseNumber": "2025다210305",
+              "caseName": "배당이의[주택임대차보호법 제3조 제2항에서 정한 법인인 임차인이 대항력과 우선변제권을 상실하였다는 이유로 해당 주택에 관한 근저당권자가 배당이의를 한 사건]",
+              "courtName": "대법원",
+              "decisionDate": "2026.02.26",
+              "summary": "주택임대차보호법 제3조 제2항은 주택도시기금을 재원으로 하여 저소득층 무주택자에게 주거생활 안정을 목적으로 전세임대주택을 지원하는 법인이 주택을 임차한 후 지방자치단체의 장 또는 그 법인이 선정한 입주자가 그 주택을 인도받고 주민등록을 마쳤을 때에는 주택임대차보호법 제3조 제1항에 따른 대항력 및 같은 법 제3조의2 제2항에 따른 우선변제권을 인정하고 있다. 그러나 주택임대차보호법 제3조 제2항에 따라 입주자가 전세임대주택을 인도받고 주민등록을 마침으로써 법인인 임차인이 대항력을 갖추었더라도 이후 입주자가 해당 주택을 양수함으로써 주택의 소유자가 된 경우, 입주자의…",
+              "officialUrl": "https://www.law.go.kr/판례/(2025%EB%8B%A4210305)"
+            },
+            {
+              "id": "605771",
+              "caseNumber": "2024다326398",
+              "caseName": "임대차보증금반환[주택 임차인의 점유 상실 후 마쳐진 임차권등기의 대항력이 문제된 사건]",
+              "courtName": "대법원",
+              "decisionDate": "2025.04.15",
+              "summary": "[1] 주택임대차보호법이 제3조 제1항에서 주택 임차인에게 주택의 인도와 주민등록을 요건으로 명시하여 등기된 물권에 버금가는 강력한 대항력을 부여하고 있는 취지에 비추어 볼 때 달리 공시방법이 없는 주택 임대차에서 주택의 인도 및 주민등록이라는 대항요건은 대항력 취득 시에만 갖추면 충분한 것이 아니라 대항력을 유지하기 위하여서도 계속 존속하고 있어야 한다. 따라서 주택 임차인이 주택 소재지로 전입신고를 마치고 주택을 인도받아 일단 임차권의 대항력을 취득하였으나 그 후 주택의 점유를 상실하였다면 그 대항력은 점유 상실 시에 소멸한다. 한편 주택임대차보호법 제3조의3 제…",
+              "officialUrl": "https://www.law.go.kr/판례/(2024%EB%8B%A4326398)"
+            }
+          ]
+        },
+        "graphRag": {
+          "subgraph": {
+            "domain": "lease",
+            "seedItemId": "no_new_mortgage",
+            "seeds": [
+              {
+                "nodeId": "concept:no_new_mortgage",
+                "reason": "질문·문구에서 'no_new_mortgage' 법리 개념 시드 감지"
+              },
+              {
+                "nodeId": "statute:주택임대차보호법:제3조(대항력 등)",
+                "reason": "OKE Rust Law MCP 실시간 조문 고정 (주택임대차보호법)"
+              }
+            ],
+            "nodes": [
+              {
+                "id": "concept:no_new_mortgage",
+                "kind": "concept",
+                "domain": "lease",
+                "label": "잔금·전입 다음 날까지 근저당 설정 금지",
+                "summary": "세입자의 법적 대항력은 전입신고 및 확정일자 \"익일(다음 날) 0시\"부터 발생합니다. 만약 잔금 당일 집주인이 대출을 받아 근저당을 설정하면, 은행의 근저당권이 세입자보다 선순위(1순위)가 됩니다."
+              },
+              {
+                "id": "statute:주택임대차보호법:제3조(대항력 등)",
+                "kind": "statute",
+                "domain": "lease",
+                "label": "주택임대차보호법 제3조(대항력 등)",
+                "summary": "제3조(대항력 등)\n① 임대차는 그 등기(登記)가 없는 경우에도 임차인(賃借人)이 주택의 인도(引渡)와 주민등록을 마친 때에는 그 다음 날부터 제삼자에 대하여 효력이 생긴다. 이 경우 전입신고를 한 때에 주민등록이 된 것으로 본다.\n② 주택도시기금을 재원으로 하여 저소득층 무주택자에게 주거생활 안정을 목적으로 전세임대주택을 지원하는 법인이 주택을 임차한 후 지방자치단체의 장 또는 그 법인이 선정한 입주자가 그 주택을 인도받고 "
+              },
+              {
+                "id": "prec:2025다210305",
+                "kind": "precedent",
+                "domain": "lease",
+                "label": "대법원 2025다210305 (배당이의[주택임대차보호법 제3조 제2항에서 정한 법인인 임차인이 대항력과 우선변제권을 상실하였다는 이유로 해당 주택에 관한 근저당권자가 배당이의를 한 사건])",
+                "summary": "주택임대차보호법 제3조 제2항은 주택도시기금을 재원으로 하여 저소득층 무주택자에게 주거생활 안정을 목적으로 전세임대주택을 지원하는 법인이 주택을 임차한 후 지방자치단체의 장 또는 그 법인이 선정한 입주자가 그 주택을 인도받고 주민등록을 마쳤을 때에는 주택임대차보호법 제3조 제1항에 따른 대항력 및 같은 법 제3조의2 제2항에 따른 우선변제권을 인정하고 있다. 그러나 주택임대차보호법 제3조 제2항에 따라 입주자가 전세임대주택을 인도받고 주민등록을 마침으로써 법인인 임차인이 대항력을 갖추었더라도 이후 입주자가 해당 주택을 양수함으로써 주택의 소유자가 된 경우, 입주자의…"
+              },
+              {
+                "id": "prec:2024다326398",
+                "kind": "precedent",
+                "domain": "lease",
+                "label": "대법원 2024다326398 (임대차보증금반환[주택 임차인의 점유 상실 후 마쳐진 임차권등기의 대항력이 문제된 사건])",
+                "summary": "[1] 주택임대차보호법이 제3조 제1항에서 주택 임차인에게 주택의 인도와 주민등록을 요건으로 명시하여 등기된 물권에 버금가는 강력한 대항력을 부여하고 있는 취지에 비추어 볼 때 달리 공시방법이 없는 주택 임대차에서 주택의 인도 및 주민등록이라는 대항요건은 대항력 취득 시에만 갖추면 충분한 것이 아니라 대항력을 유지하기 위하여서도 계속 존속하고 있어야 한다. 따라서 주택 임차인이 주택 소재지로 전입신고를 마치고 주택을 인도받아 일단 임차권의 대항력을 취득하였으나 그 후 주택의 점유를 상실하였다면 그 대항력은 점유 상실 시에 소멸한다. 한편 주택임대차보호법 제3조의3 제…"
+              },
+              {
+                "id": "case:lease:deposit_return:01",
+                "kind": "casebook",
+                "domain": "lease",
+                "itemId": "deposit_return",
+                "label": "신규 세입자 입주 조건부 보증금 반환 특약 무효 다툼 사례",
+                "questionPattern": "다음 세입자 들어와야 보증금 반환 만기 퇴거 동시이행",
+                "headline": "보증금 반환과 임차목적물 인도는 동시이행 관계이므로 신규 임차인 입주 조건 특약은 수정 대상입니다.",
+                "statuteRef": "주택임대차보호법 제4조 · 제3조의2",
+                "precedentRef": "대법원 2026다201978, 대법원 2025다209893",
+                "citations": 23,
+                "learned": false,
+                "createdAt": "2026-10-01T00:00:00Z",
+                "score": 13
+              },
+              {
+                "id": "case:lease:deposit_return:learned_0a3e1bbb",
+                "kind": "casebook",
+                "domain": "lease",
+                "itemId": "deposit_return",
+                "label": "주택임대차보호법 제4조(임대차기간 등) 기준에 따라 임차인·소비자 보호 규정을 우선 확",
+                "questionPattern": "집주인([전화번호])이 다음 세입자가 들어와야 보증금을 돌려준다고 합니다.",
+                "headline": "주택임대차보호법 제4조(임대차기간 등) 기준에 따라 임차인·소비자 보호 규정을 우선 확인해야 합니다.",
+                "statuteRef": "주택임대차보호법 제4조(임대차기간 등)",
+                "precedentRef": "2026다201978",
+                "citations": 7,
+                "learned": true,
+                "createdAt": "2026-11-02T03:55:36.341Z",
+                "score": 12.5
+              },
+              {
+                "id": "case:lease:repair_duty:01",
+                "kind": "casebook",
+                "domain": "lease",
+                "itemId": "repair_duty",
+                "label": "보일러·배관 누수 등 대규모 설비 수선비 전가 특약 한계 사례",
+                "questionPattern": "보일러 고장 누수 배관 곰팡이 모든 수선비 임차인 부담",
+                "headline": "대법원 판례상 통상적인 소모품 교체를 넘어선 보일러·배관·누수 등 주요 설비 수선의무는 임대인에게 있습니다.",
+                "statuteRef": "민법 제623조(임대인의 의무)",
+                "precedentRef": "대법원 2025다218402",
+                "citations": 13,
+                "learned": false,
+                "createdAt": "2026-10-01T00:00:00Z",
+                "score": 9.6
+              }
+            ],
+            "edges": [
+              {
+                "id": "edge:concept:no_new_mortgage->statute:주택임대차보호법:제3조(대항력 등)",
+                "source": "concept:no_new_mortgage",
+                "target": "statute:주택임대차보호법:제3조(대항력 등)",
+                "relation": "GOVERNED_BY"
+              },
+              {
+                "id": "edge:statute:주택임대차보호법:제3조(대항력 등)->prec:2025다210305",
+                "source": "statute:주택임대차보호법:제3조(대항력 등)",
+                "target": "prec:2025다210305",
+                "relation": "CITED_PRECEDENT"
+              },
+              {
+                "id": "edge:statute:주택임대차보호법:제3조(대항력 등)->prec:2024다326398",
+                "source": "statute:주택임대차보호법:제3조(대항력 등)",
+                "target": "prec:2024다326398",
+                "relation": "CITED_PRECEDENT"
+              }
+            ],
+            "matchedCases": [
+              {
+                "id": "case:lease:deposit_return:01",
+                "kind": "casebook",
+                "domain": "lease",
+                "itemId": "deposit_return",
+                "label": "신규 세입자 입주 조건부 보증금 반환 특약 무효 다툼 사례",
+                "questionPattern": "다음 세입자 들어와야 보증금 반환 만기 퇴거 동시이행",
+                "headline": "보증금 반환과 임차목적물 인도는 동시이행 관계이므로 신규 임차인 입주 조건 특약은 수정 대상입니다.",
+                "statuteRef": "주택임대차보호법 제4조 · 제3조의2",
+                "precedentRef": "대법원 2026다201978, 대법원 2025다209893",
+                "citations": 23,
+                "learned": false,
+                "createdAt": "2026-10-01T00:00:00Z",
+                "score": 13
+              },
+              {
+                "id": "case:lease:deposit_return:learned_0a3e1bbb",
+                "kind": "casebook",
+                "domain": "lease",
+                "itemId": "deposit_return",
+                "label": "주택임대차보호법 제4조(임대차기간 등) 기준에 따라 임차인·소비자 보호 규정을 우선 확",
+                "questionPattern": "집주인([전화번호])이 다음 세입자가 들어와야 보증금을 돌려준다고 합니다.",
+                "headline": "주택임대차보호법 제4조(임대차기간 등) 기준에 따라 임차인·소비자 보호 규정을 우선 확인해야 합니다.",
+                "statuteRef": "주택임대차보호법 제4조(임대차기간 등)",
+                "precedentRef": "2026다201978",
+                "citations": 7,
+                "learned": true,
+                "createdAt": "2026-11-02T03:55:36.341Z",
+                "score": 12.5
+              },
+              {
+                "id": "case:lease:repair_duty:01",
+                "kind": "casebook",
+                "domain": "lease",
+                "itemId": "repair_duty",
+                "label": "보일러·배관 누수 등 대규모 설비 수선비 전가 특약 한계 사례",
+                "questionPattern": "보일러 고장 누수 배관 곰팡이 모든 수선비 임차인 부담",
+                "headline": "대법원 판례상 통상적인 소모품 교체를 넘어선 보일러·배관·누수 등 주요 설비 수선의무는 임대인에게 있습니다.",
+                "statuteRef": "민법 제623조(임대인의 의무)",
+                "precedentRef": "대법원 2025다218402",
+                "citations": 13,
+                "learned": false,
+                "createdAt": "2026-10-01T00:00:00Z",
+                "score": 9.6
+              }
+            ],
+            "formattedContext": "[GraphRAG 2-Hop 법리 서브그래프 · 도메인=lease · 시드=no_new_mortgage]\n- 핵심 법령 노드: 주택임대차보호법 제3조(대항력 등)\n- 연결 대법원 판례 노드: 대법원 2025다210305 (배당이의[주택임대차보호법 제3조 제2항에서 정한 법인인 임차인이 대항력과 우선변제권을 상실하였다는 이유로 해당 주택에 관한 근저당권자가 배당이의를 한 사건]) / 대법원 2024다326398 (임대차보증금반환[주택 임차인의 점유 상실 후 마쳐진 임차권등기의 대항력이 문제된 사건])\n- 누적 학습 케이스북(3건):\n  * [case:lease:deposit_return:01 | 인용 23회 | 점수 13] 보증금 반환과 임차목적물 인도는 동시이행 관계이므로 신규 임차인 입주 조건 특약은 수정 대상입니다. (주택임대차보호법 제4조 · 제3조의2)\n  * [case:lease:deposit_return:learned_0a3e1bbb | 인용 7회 | 점수 12.5] 주택임대차보호법 제4조(임대차기간 등) 기준에 따라 임차인·소비자 보호 규정을 우선 확인해야 합니다. (주택임대차보호법 제4조(임대차기간 등))\n  * [case:lease:repair_duty:01 | 인용 13회 | 점수 9.6] 대법원 판례상 통상적인 소모품 교체를 넘어선 보일러·배관·누수 등 주요 설비 수선의무는 임대인에게 있습니다. (민법 제623조(임대인의 의무))",
+            "stats": {
+              "nodeCount": 61,
+              "edgeCount": 35,
+              "statuteCount": 22,
+              "precedentCount": 5,
+              "casebookCount": 11,
+              "writebackCount": 18,
+              "citationHitCount": 101,
+              "learnedCaseCount": 5
+            }
+          },
+          "writeback": {
+            "recorded": true,
+            "signatureId": "1eefb866082a9cea",
+            "citedCaseIds": [
+              "case:lease:deposit_return:01",
+              "case:lease:deposit_return:learned_0a3e1bbb"
+            ],
+            "learnedCaseId": "case:lease:no_new_mortgage:learned_1eefb866",
+            "stats": {
+              "nodeCount": 61,
+              "edgeCount": 35,
+              "statuteCount": 22,
+              "precedentCount": 5,
+              "casebookCount": 11,
+              "writebackCount": 18,
+              "citationHitCount": 101,
+              "learnedCaseCount": 5
+            }
+          }
+        }
+      },
+      "createdAt": 1793596949313,
+      "expiresAt": 1793618549313,
+      "hits": 0
+    },
+    {
+      "key": "205336673d8cca90cb230701eb5268c1",
+      "action": "law",
+      "value": {
+        "itemId": "deposit_return",
+        "fetchedAt": "2026-11-02T05:23:10.480Z",
+        "oc": "tripleyoung",
+        "engine": "oke-rust-law-mcp",
+        "mcpEndpoint": "https://webrtc.ugot.uk/law/mcp",
+        "liveConnected": true,
+        "statute": {
+          "lawName": "주택임대차보호법",
+          "article": "제4조(임대차기간 등)",
+          "ministry": "법무부",
+          "effectiveDate": "2026.01.02",
+          "proclamationNo": "법률 제21065호",
+          "articleText": "제4조(임대차기간 등)\n① 기간을 정하지 아니하거나 2년 미만으로 정한 임대차는 그 기간을 2년으로 본다. 다만, 임차인은 2년 미만으로 정한 기간이 유효함을 주장할 수 있다.\n② 임대차기간이 끝난 경우에도 임차인이 보증금을 반환받을 때까지는 임대차관계가 존속되는 것으로 본다.",
+          "officialUrl": "https://www.law.go.kr/법령/%EC%A3%BC%ED%83%9D%EC%9E%84%EB%8C%80%EC%B0%A8%EB%B3%B4%ED%98%B8%EB%B2%95",
+          "sourceType": "law"
+        },
+        "precedents": [
+          {
+            "id": "622971",
+            "caseNumber": "2026다201978",
+            "caseName": "보증금반환",
+            "courtName": "대법원",
+            "decisionDate": "2026.06.24",
+            "summary": "甲이 임대인에게 임대차보증금을 지급하고 부동산을 임차하는 내용의 계약을 체결한 다음, 주택도시보증공사와 위 임대차계약에 따라 임대인이 부담하는 임대차보증금 반환채무를 주택도시보증공사가 보증하는 내용의 계약을 체결하였는데, 임대차계약 종료 후 주택도시보증공사가 甲에게 임대차보증금 상당의 보증채무액에 더하여 이에 대한 지연손해금까지 지급할 의무가 있는지 문제 된 사안에서, 주택도시보증공사의 甲에 대한 보증채무 이행의무는 형식적으로는 보증계약에 따른 지급의무이지만 그 실질은 임대차계약에 따른 임차보증금 반환의무의 변형에 불과하여 임대인의 의무와 동일하다고 볼 수 있고, 위…",
+            "officialUrl": "https://www.law.go.kr/판례/(2026%EB%8B%A4201978)"
+          },
+          {
+            "id": "607231",
+            "caseNumber": "2025다209893",
+            "caseName": "분양대금반환청구의소·매매대금[상가의 수분양자인 원고들이 동시이행항변권을 포기한 것인지 문제된 사건]",
+            "courtName": "대법원",
+            "decisionDate": "2025.06.26",
+            "summary": "[1] 부동산 매매계약에서 특별한 사정이 없는 한 매수인의 잔대금 지급의무와 매도인의 소유권이전등기서류 교부의무는 동시이행관계에 있다. 동시이행항변권의 포기는 명시적 의사표시뿐만 아니라 묵시적 의사표시로 이루어지는 것도 가능하지만, 묵시적 의사표시의 해석을 통한 동시이행항변권 포기의 인정은 엄격하고 신중하게 이루어져야 한다. 한편 매수인이 대금을 약정기일까지 납부하지 아니할 경우 그 체납액에 대하여 연체료를 가산하여 지급하기로 하는 연체료 약정은 이행지체에 대한 손해배상의 예정으로서 지체책임이 발생할 때 비로소 그 지급의무가 발생한다.\n [2] 쌍무계약에서 일방 당사…",
+            "officialUrl": "https://www.law.go.kr/판례/(2025%EB%8B%A4209893)"
+          }
+        ]
+      },
+      "createdAt": 1793596990481,
+      "expiresAt": 1793618590481,
+      "hits": 0
+    }
+  ]
+}
