@@ -34,6 +34,8 @@ export interface WelcomeStageProps {
   devLoginLabel?: string;
   /** 하단 작은 안내 문구 */
   finePrint?: ReactNode;
+  /** 왼쪽 캐릭터 영역 슬롯 (예: 누적 통계 도넛 차트) */
+  leftSlot?: ReactNode;
   /** 추가 컴포넌트 슬롯 (예: 누적 통계 도넛 차트 등) */
   children?: ReactNode;
   /** 로그인 성공 시 호출되는 콜백 */
@@ -122,6 +124,7 @@ export function WelcomeStage({
   loginButtonLabel = '계정으로 시작하기',
   devLoginLabel,
   finePrint,
+  leftSlot,
   children,
   onSignedIn,
   initialNotice = null,
@@ -140,7 +143,7 @@ export function WelcomeStage({
       </header>
       <section className="welcome">
         <div
-          className="welcome__band"
+          className={`welcome__band ${leftSlot ? 'welcome__band--with-slot' : ''}`}
           style={
             heroImage
               ? {
@@ -149,7 +152,22 @@ export function WelcomeStage({
               : undefined
           }
         >
-          <Mascot mood={mascotMood} />
+          {leftSlot ? (
+            <div className="welcome__left-wrap">
+              <div className="welcome__mascot-compact">
+                <Mascot mood={mascotMood} />
+                <div className="welcome__mascot-bubble">
+                  <strong>온율 AI 법률 파트너</strong>
+                  <span>실제 의뢰인 14,280건 상담 빅데이터 분석 결과예요</span>
+                </div>
+              </div>
+              <div className="welcome__stats-slot">
+                {leftSlot}
+              </div>
+            </div>
+          ) : (
+            <Mascot mood={mascotMood} />
+          )}
         </div>
         <div className="welcome__body">
           <p className="eyebrow">{eyebrow}</p>

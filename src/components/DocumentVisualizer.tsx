@@ -7,6 +7,7 @@ import {
   IconCopy,
   IconCheck,
   IconFull,
+  IconClose,
   IconExternalLink,
   IconTriangleExclamationFill,
   IconCircleCheckFill,
@@ -330,41 +331,45 @@ export function DocumentFullscreenModal({
           <div className="doc-zoom-controls">
             <button
               type="button"
-              className="copy-chip"
+              className="copy-chip wanted-icon-btn"
               onClick={() => setZoom((z) => Math.max(80, z - 15))}
               disabled={zoom <= 80}
               title="축소"
+              aria-label="축소"
             >
-              ➖ 축소
+              <span style={{ fontSize: 16, lineHeight: 1, fontWeight: 700 }}>−</span>
             </button>
             <span className="doc-zoom-val">{zoom}%</span>
             <button
               type="button"
-              className="copy-chip"
+              className="copy-chip wanted-icon-btn"
               onClick={() => setZoom((z) => Math.min(180, z + 15))}
               disabled={zoom >= 180}
               title="확대"
+              aria-label="확대"
             >
-              ➕ 확대
+              <span style={{ fontSize: 16, lineHeight: 1, fontWeight: 700 }}>+</span>
             </button>
             <button
               type="button"
-              className="copy-chip doc-zoom-reset-btn"
+              className="copy-chip doc-zoom-reset-btn wanted-icon-btn"
               onClick={() => setZoom(100)}
-              title="100% 기본 맞춤"
+              title="100% 원본 비율로 맞춤"
+              aria-label="100% 기본 맞춤"
             >
-              ⛶ 100%
+              100%
             </button>
           </div>
 
           <button
             type="button"
-            className="turn__reset"
+            className="turn__reset wanted-icon-btn"
             onClick={onClose}
             aria-label="전체화면 닫기"
+            title="닫기 (Esc)"
             data-testid="close-doc-fullscreen"
           >
-            ✕ 닫기 (Esc)
+            <IconClose width={18} height={18} />
           </button>
         </div>
       </div>
@@ -896,12 +901,13 @@ export function AnnotatedDocumentDeckCard({
             {doc?.scannedImageUrl && (
               <button
                 type="button"
-                className="wanted-btn wanted-btn--secondary wanted-btn--sm"
+                className="wanted-btn wanted-btn--secondary wanted-btn--sm wanted-btn--icon"
                 onClick={() => setIsFullscreenDoc(true)}
                 title="스캔 계약서 고해상도 전체화면으로 크게 보기"
+                aria-label="문서 전체화면"
                 data-testid="annotated-doc-fullscreen-btn"
               >
-                <IconFull width={14} height={14} style={{ marginRight: 5 }} /> 문서 전체화면
+                <IconFull width={14} height={14} />
               </button>
             )}
           </div>
