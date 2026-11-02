@@ -73,8 +73,19 @@ export async function check(input: CheckInput, deps: { model?: LanguageModel } =
     const res = await call(() => generateText({ ...common, ...p, output: Output.object({ schema: schemaFor(pack) }) }));
     raw = res.output.items;
   } catch (e) {
-    if (e instanceof CheckError) throw e;
-    raw = null; // 모양이 안 맞는 응답: 멈추지 않고 모두 autoFailed 로 보여 준다
+    if (!deps.model) {
+      try {
+        const fallback = await resolveModel(process.env, 'gemini-3.6-flash');
+        const res = await call(() => generateText({ ...common, model: fallback.model, ...p, output: Output.object({ schema: schemaFor(pack) }) }));
+        raw = res.output.items;
+      } catch (e2) {
+        if (e2 instanceof CheckError) throw e2;
+        raw = null;
+      }
+    } else {
+      if (e instanceof CheckError) throw e;
+      raw = null;
+    }
   }
   return { pack: pack.id, version, items: repair(pack, version, masked, raw), elapsedMs: Date.now() - started, referenceOnly: false };
 }
