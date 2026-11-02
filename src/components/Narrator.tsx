@@ -155,20 +155,13 @@ export function Narrator({
             </span>
             <button
               type="button"
-              className={!atEnd ? 'is-next' : undefined}
+              className={!atEnd ? 'is-next wanted-icon-btn' : 'wanted-icon-btn'}
               onClick={() => go(idx + 1)}
               disabled={atEnd}
               aria-label="다음 쪽"
               title="다음 쪽"
             >
-              {!atEnd ? (
-                <>
-                  <span>다음</span>
-                  <IconArrowRight width={12} height={12} />
-                </>
-              ) : (
-                <IconArrowRight width={12} height={12} />
-              )}
+              <IconArrowRight width={12} height={12} />
             </button>
           </div>
         )}

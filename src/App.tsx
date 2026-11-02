@@ -7,6 +7,7 @@ import {
   IconClose,
   IconEye,
   IconFull,
+  IconReset,
 } from '@montage-ui/icon';
 import {
   useEffect,
@@ -1518,25 +1519,28 @@ export function App() {
                   <div className="turn__actions">
                     <button
                       type="button"
-                      className="copy-chip"
+                      className="copy-chip wanted-icon-btn"
                       onClick={() => setIsFullscreenDeck((f) => !f)}
                       title={isFullscreenDeck ? '시각화 전체화면 종료 (Esc)' : '시각화 패널 전체화면으로 크게 보기'}
+                      aria-label={isFullscreenDeck ? '전체화면 닫기' : '시각화 전체화면'}
                       data-testid="toggle-deck-fullscreen-btn"
                     >
-                      {isFullscreenDeck ? <IconClose width={14} height={14} /> : <IconFull width={14} height={14} />}
-                      <span>{isFullscreenDeck ? '전체화면 닫기' : '전체화면'}</span>
+                      {isFullscreenDeck ? <IconClose width={15} height={15} /> : <IconFull width={15} height={15} />}
                     </button>
                     <button
                       type="button"
-                      className="turn__reset"
+                      className="turn__reset wanted-icon-btn"
                       onClick={() => {
                         setTurns([]);
                         setTurnIndex(0);
                         setPreviewDoc(null);
                         setIsFullscreenDeck(false);
                       }}
+                      title="처음으로"
+                      aria-label="처음으로"
+                      data-testid="turn-reset-btn"
                     >
-                      처음으로
+                      <IconReset width={15} height={15} />
                     </button>
                   </div>
                 </header>

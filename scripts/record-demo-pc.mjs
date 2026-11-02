@@ -101,12 +101,12 @@ async function recordUnifiedDashboardDemo() {
         document.body.appendChild(cursor);
       }
 
-      // 3) 상단 고정 설명 자막 배너
+      // 3) 상단 고정 설명 자막 배너 (하단 입력창을 가리지 않도록 상단에 배치)
       if (!document.getElementById('demo-caption-overlay')) {
         const caption = document.createElement('div');
         caption.id = 'demo-caption-overlay';
         caption.style.position = 'fixed';
-        caption.style.bottom = '32px';
+        caption.style.top = '14px';
         caption.style.left = '50%';
         caption.style.transform = 'translateX(-50%)';
         caption.style.background = 'rgba(15, 23, 42, 0.95)';

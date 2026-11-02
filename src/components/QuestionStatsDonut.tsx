@@ -1,4 +1,12 @@
 import { useState } from 'react';
+import {
+  IconDocumentSearch,
+  IconDocumentText,
+  IconHome,
+  IconListCategory,
+  IconPerson,
+  IconArrowRight,
+} from '@montage-ui/icon';
 
 export type QuestionTopicFilter = 'all' | 'lease' | 'gym' | 'tax';
 
@@ -329,7 +337,10 @@ export function QuestionStatsDonut({
     <section className="question-stats-card" aria-label="누적 사용자 질문 유형 통계" data-testid="question-stats-donut">
       <div className="question-stats-card__header">
         <div>
-          <span className="visual-card__eyebrow">📊 실제 의뢰인 14,280건 상담 빅데이터 분석</span>
+          <span className="visual-card__eyebrow">
+            <IconDocumentSearch width={13} height={13} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+            실제 의뢰인 14,280건 상담 빅데이터 분석
+          </span>
           <h3 className="question-stats-card__title">
             사용자들이 가장 많이 점검한 질문 TOP 통계
           </h3>
@@ -351,7 +362,8 @@ export function QuestionStatsDonut({
             }}
             data-testid="filter-tab-all"
           >
-            🌐 전체 종합
+            <IconListCategory width={13} height={13} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+            전체 종합
           </button>
           <button
             type="button"
@@ -364,7 +376,8 @@ export function QuestionStatsDonut({
             }}
             data-testid="filter-tab-lease"
           >
-            🏠 주택 전월세
+            <IconHome width={13} height={13} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+            주택 전월세
           </button>
           <button
             type="button"
@@ -377,7 +390,8 @@ export function QuestionStatsDonut({
             }}
             data-testid="filter-tab-gym"
           >
-            🏋️ 헬스장·PT
+            <IconPerson width={13} height={13} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+            헬스장·PT
           </button>
           <button
             type="button"
@@ -390,7 +404,8 @@ export function QuestionStatsDonut({
             }}
             data-testid="filter-tab-tax"
           >
-            🧾 월세 세무
+            <IconDocumentText width={13} height={13} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+            월세 세무
           </button>
         </div>
       </div>
@@ -487,7 +502,8 @@ export function QuestionStatsDonut({
                 onClick={() => onSelectCategory && onSelectCategory(activeItem.sampleQuestion)}
                 data-testid={`ask-stat-${activeItem.id}`}
               >
-                이 질문으로 한결에게 바로 물어보기
+                <span>이 질문으로 바로 상담</span>
+                <IconArrowRight width={12} height={12} style={{ marginLeft: 4 }} />
               </button>
               {activeItem.recommendedDocId && onOpenSample && (
                 <button
@@ -496,7 +512,8 @@ export function QuestionStatsDonut({
                   onClick={() => onOpenSample(activeItem.recommendedDocId)}
                   data-testid={`preview-stat-doc-${activeItem.id}`}
                 >
-                  관련 공식 스캔 문서 보기
+                  <IconDocumentSearch width={13} height={13} style={{ marginRight: 4 }} />
+                  <span>스캔 문서 보기</span>
                 </button>
               )}
             </div>

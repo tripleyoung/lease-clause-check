@@ -554,13 +554,13 @@ export function SamplePreviewCard({
                 </button>
                 <button
                   type="button"
-                  className="copy-chip"
+                  className="copy-chip wanted-icon-btn"
                   onClick={() => setIsFullscreen(true)}
                   title="스캔 계약서 전체화면으로 크게 보기"
+                  aria-label="스캔문서 전체화면"
                   data-testid="open-doc-fullscreen-btn"
                 >
                   <IconFull width={14} height={14} />
-                  <span>스캔문서 전체화면</span>
                 </button>
               </>
             )}
@@ -573,8 +573,14 @@ export function SamplePreviewCard({
                 {showMasked ? '🔒 개인정보 가림 적용됨' : '원본 개인정보 보기'}
               </button>
             )}
-            <button type="button" className="turn__reset" onClick={onClose}>
-              닫기
+            <button
+              type="button"
+              className="turn__reset wanted-icon-btn"
+              onClick={onClose}
+              title="미리보기 닫기"
+              aria-label="미리보기 닫기"
+            >
+              <IconClose width={14} height={14} />
             </button>
           </div>
         </div>
@@ -1093,13 +1099,19 @@ export function AnnotatedDocumentDeckCard({
                   </span>
                   <button
                     type="button"
-                    className="wanted-copy-btn"
+                    className="wanted-copy-btn wanted-icon-btn"
                     onClick={() =>
                       onCopyAlternative(`pin-${activeItem.itemId}-${safeIdx}`, activeItem.fixText)
                     }
+                    title={copiedKey === `pin-${activeItem.itemId}-${safeIdx}` ? '복사 완료' : '대안 문구 복사'}
+                    aria-label={copiedKey === `pin-${activeItem.itemId}-${safeIdx}` ? '복사 완료' : '대안 문구 복사'}
+                    data-testid="copy-alternative-btn"
                   >
-                    <IconCopy width={13} height={13} style={{ marginRight: 4 }} />
-                    {copiedKey === `pin-${activeItem.itemId}-${safeIdx}` ? '복사 완료' : '대안 문구 복사'}
+                    {copiedKey === `pin-${activeItem.itemId}-${safeIdx}` ? (
+                      <IconCheck width={14} height={14} />
+                    ) : (
+                      <IconCopy width={14} height={14} />
+                    )}
                   </button>
                 </div>
                 <p className="wanted-card-box__content font-medium">
