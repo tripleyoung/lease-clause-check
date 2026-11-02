@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import type { ItemResult } from '../../shared/types';
 import { HighlightText } from './HighlightText';
+import { EmailReportModal } from './EmailReportModal';
 
 export interface DocAnnotationBox {
   left: number; // percentage (0 - 100)
@@ -717,6 +718,33 @@ export function SamplePreviewCard({
   );
 }
 
+export interface LawLookupStatute {
+  lawName: string;
+  article: string;
+  articleText: string;
+  officialUrl: string;
+  ministry: string;
+  proclamationNo?: string;
+  effectiveDate?: string;
+}
+
+export interface LawLookupPrecedent {
+  id?: string;
+  caseNumber: string;
+  courtName: string;
+  decisionDate: string;
+  caseName: string;
+  summary: string;
+  officialUrl: string;
+}
+
+export interface LawLookupData {
+  itemId: string;
+  statute: LawLookupStatute;
+  precedents: LawLookupPrecedent[];
+  engine?: string;
+}
+
 /**
  * 점검 결과 화면에서 실제 계약서/영수증 이미지(또는 문서 시트) 위의 조항을 번호 핀(①, ②, ③)으로 가리키며
  * 한결의 설명과 대안 특약·법령을 연동해 보여주는 인터랙티브 문서 포인터 컴포넌트
@@ -725,6 +753,12 @@ export function AnnotatedDocumentDeckCard({
   doc,
   uploadedImageUrl,
   items,
+  lawData,
+  safetyScore = 72,
+  totalClauses = 5,
+  riskCount = 2,
+  safeCount = 2,
+  cautionCount = 1,
   onSelectClauseForSpeech,
   onCopyAlternative,
   copiedKey,
@@ -732,6 +766,12 @@ export function AnnotatedDocumentDeckCard({
   doc?: SampleDocSpec;
   uploadedImageUrl?: string;
   items: ItemResult[];
+  lawData?: LawLookupData | null;
+  safetyScore?: number;
+  totalClauses?: number;
+  riskCount?: number;
+  safeCount?: number;
+  cautionCount?: number;
   onSelectClauseForSpeech?: (speech: string, mood: 'worry' | 'joy' | 'thinking') => void;
   onCopyAlternative: (key: string, text: string) => void;
   copiedKey: string | null;
@@ -740,6 +780,7 @@ export function AnnotatedDocumentDeckCard({
   const displayItems = highlightedItems.length > 0 ? highlightedItems : items.slice(0, 4);
   const [selectedIdx, setSelectedIdx] = useState(0);
   const [isFullscreenDoc, setIsFullscreenDoc] = useState(false);
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
 
   const safeIdx = Math.min(selectedIdx, Math.max(0, displayItems.length - 1));
   const activeItem = displayItems[safeIdx];
@@ -800,30 +841,72 @@ export function AnnotatedDocumentDeckCard({
 
   return (
     <>
-      <section className="visual-card annotated-doc-card" aria-label="문서 원문 위치 가리키기 및 조항별 해설" data-testid="annotated-doc-card">
-        <header className="annotated-doc-card__head">
-          <div>
-            <span className="visual-card__eyebrow">👆 계약서 실물 위 직접 표시 · 번호 핀을 누르면 한결이 해당 위치를 설명해요</span>
-            <h3 className="visual-card__title">
-              계약서 실물 원본 하이라이트 ({safeIdx + 1}/{displayItems.length}번 조항 짚는 중)
-            </h3>
+      <section className="visual-card annotated-doc-card wanted-doc-card" aria-label="통합 계약서 특약 점검 및 법령 인스펙터" data-testid="annotated-doc-card">
+        {/* Wanted Design System: 정돈된 KPI 안심 지수 및 상태 바 */}
+        <div className="wanted-status-bar inspection-status-strip" data-testid="inspection-status-strip">
+          <div className="wanted-status-bar__metrics">
+            <div className={`wanted-metric-card wanted-metric-card--${riskCount > 0 ? 'risk' : 'safe'}`}>
+              <span className="wanted-metric-card__label">종합 안심 지수</span>
+              <div className="wanted-metric-card__val-row">
+                <span className="wanted-metric-card__value">{safetyScore}점</span>
+                <span className={`wanted-badge wanted-badge--${riskCount > 0 ? 'risk' : 'safe'}`}>
+                  {riskCount > 0 ? '수정 권장' : '안전 확인'}
+                </span>
+              </div>
+            </div>
+
+            <div className="wanted-metric-card">
+              <span className="wanted-metric-card__label">위험 특약</span>
+              <div className="wanted-metric-card__val-row">
+                <span className="wanted-metric-card__value text-risk">{riskCount}건</span>
+                <span className="wanted-badge wanted-badge--risk-subtle">독소 조항</span>
+              </div>
+            </div>
+
+            <div className="wanted-metric-card">
+              <span className="wanted-metric-card__label">보호 조항</span>
+              <div className="wanted-metric-card__val-row">
+                <span className="wanted-metric-card__value text-safe">{safeCount}건</span>
+                <span className="wanted-badge wanted-badge--safe-subtle">권리 보장</span>
+              </div>
+            </div>
+
+            <div className="wanted-metric-card">
+              <span className="wanted-metric-card__label">법률 검토 기준</span>
+              <div className="wanted-metric-card__val-row">
+                <span className="wanted-metric-card__value text-neutral">국가법령</span>
+                <span className="wanted-badge wanted-badge--mcp-subtle">실시간 대조</span>
+              </div>
+            </div>
           </div>
-          {doc?.scannedImageUrl && (
+
+          <div className="wanted-status-bar__actions">
             <button
               type="button"
-              className="copy-chip"
-              onClick={() => setIsFullscreenDoc(true)}
-              title="스캔 계약서 고해상도 전체화면으로 크게 보기"
-              data-testid="annotated-doc-fullscreen-btn"
+              className="wanted-btn wanted-btn--primary"
+              onClick={() => setIsEmailModalOpen(true)}
+              title="점검 리포트 및 대안 특약 이메일로 전달"
+              data-testid="open-email-modal-btn"
             >
-              ⛶ 스캔문서 전체화면
+              이메일로 전달
             </button>
-          )}
-        </header>
+            {doc?.scannedImageUrl && (
+              <button
+                type="button"
+                className="wanted-btn wanted-btn--secondary"
+                onClick={() => setIsFullscreenDoc(true)}
+                title="스캔 계약서 고해상도 전체화면으로 크게 보기"
+                data-testid="annotated-doc-fullscreen-btn"
+              >
+                문서 전체화면
+              </button>
+            )}
+          </div>
+        </div>
 
-      <div className="annotated-doc-grid">
+      <div className="annotated-doc-grid wanted-grid">
         {/* 왼쪽: 실제 A4 정비율 스캔본 문서 위 직접 하이라이트 핀 오버레이 */}
-        <div className="paper-doc-result-view">
+        <div className="paper-doc-result-view wanted-left-col">
           {hasScannedDoc ? (
             <div
               className="paper-doc-scanned-container is-result-mode"
@@ -840,7 +923,6 @@ export function AnnotatedDocumentDeckCard({
               {/* 스캔 문서 위 직접 표시되는 핀 레이어 */}
               <div className="doc-annotation-layer" aria-label="점검 결과 문서 위 위치 오버레이">
                 {displayItems.map((item, idx) => {
-                  // doc에 매칭되는 clause가 있으면 그 박스 사용, 없으면 순서 매핑
                   const matchedClause = doc?.clauses[idx] ?? doc?.clauses.find((c) =>
                     c.text.includes(item.quote?.slice(0, 8) || '') ||
                     c.num === idx + 1
@@ -877,7 +959,7 @@ export function AnnotatedDocumentDeckCard({
                       {isSelected && (
                         <span className="doc-annotation-tooltip">
                           <strong>#{idx + 1} {item.title}</strong>
-                          <small>{isRisk ? '🔴 수정 권장 독소 특약' : '🟢 권리 보호 조항'}</small>
+                          <small>{isRisk ? '수정 권장 독소 특약' : '권리 보호 조항'}</small>
                         </span>
                       )}
                     </button>
@@ -889,15 +971,16 @@ export function AnnotatedDocumentDeckCard({
             <div className="paper-doc paper-doc--compact">
               <div className="paper-doc__header">
                 <span className="paper-doc__title">{doc?.docHeader ?? '점검 대상 계약서 · 특약 원문'}</span>
-                <span className="paper-doc__stamp" aria-hidden="true">
-                  印
-                </span>
               </div>
             </div>
           )}
 
-          {/* 문서 하단에 조항 선택 버튼 바 */}
-          <div className="paper-doc__clauses">
+          {/* 문서 하단에 조항 선택 리스트 (Wanted 디자인 시스템) */}
+          <div className="wanted-clause-list" aria-label="검토 특약 목록">
+            <div className="wanted-clause-list__head">
+              <span className="wanted-clause-list__title">검토된 특약 항목</span>
+              <span className="wanted-clause-list__count">총 {displayItems.length}건</span>
+            </div>
             {displayItems.map((item, idx) => {
               const isSelected = idx === safeIdx;
               const isRisk = item.verdict === '위험';
@@ -907,21 +990,23 @@ export function AnnotatedDocumentDeckCard({
                   key={item.itemId}
                   type="button"
                   onClick={() => handleSelect(idx)}
-                  className={`paper-doc__clause paper-doc__clause--${tone} ${isSelected ? 'is-pointed' : ''}`}
+                  className={`wanted-clause-item wanted-clause-item--${tone} ${isSelected ? 'is-selected' : ''}`}
                   data-testid={`doc-pin-${idx + 1}`}
                 >
-                  <span className={`paper-doc__pin paper-doc__pin--${tone}`}>{idx + 1}</span>
-                  <div className="paper-doc__clause-body">
-                    <p className="paper-doc__clause-text">
+                  <span className={`wanted-clause-item__pin wanted-clause-item__pin--${tone}`}>{idx + 1}</span>
+                  <div className="wanted-clause-item__body">
+                    <div className="wanted-clause-item__meta">
+                      <span className={`wanted-badge wanted-badge--${isRisk ? 'risk' : 'safe'}`}>
+                        {isRisk ? '위험' : '보호'}
+                      </span>
+                      <strong className="wanted-clause-item__title">{item.title}</strong>
+                    </div>
+                    <p className="wanted-clause-item__quote">
                       <HighlightText
                         text={item.quote || item.title || ''}
                         tone={tone}
                       />
                     </p>
-                    <span className={`paper-doc__clause-badge paper-doc__clause-badge--${tone}`}>
-                      {isRisk ? '🔴 수정 권장' : '🟢 보호 조항'} · {item.title}
-                      {isSelected ? ' 👈 한결이 설명 중' : ''}
-                    </span>
                   </div>
                 </button>
               );
@@ -929,25 +1014,29 @@ export function AnnotatedDocumentDeckCard({
           </div>
         </div>
 
-        {/* 오른쪽: 현재 가리키고 있는 핀(조항)의 상세 진단 & 대안 문구 복사 */}
+        {/* 오른쪽: 가리키고 있는 핀(조항)의 상세 진단 & 대안 문구 (Wanted Inspector Card) */}
         {activeItem && (
-          <div className="pointed-detail" ref={detailRef}>
-            <div className="pointed-detail__badge-row">
-              <span className={`pointed-detail__pin-pill pointed-detail__pin-pill--${activeItem.verdict === '위험' ? 'risk' : 'safe'}`}>
-                문서 위치 #{safeIdx + 1} · {activeItem.verdict === '위험' ? '위험 특약' : '보호 조항'}
-              </span>
-              <strong>{activeItem.title}</strong>
+          <div className="wanted-inspector-panel" ref={detailRef}>
+            <div className="wanted-inspector-panel__header">
+              <div className="wanted-inspector-panel__tag-row">
+                <span className={`wanted-badge wanted-badge--${activeItem.verdict === '위험' ? 'risk' : 'safe'}`}>
+                  {activeItem.verdict === '위험' ? '위험 특약' : '보호 조항'} #{safeIdx + 1}
+                </span>
+                <span className="wanted-inspector-panel__subtag">임대차 표준계약서 기준</span>
+              </div>
+              <h3 className="wanted-inspector-panel__title">{activeItem.title}</h3>
             </div>
 
-            <p className="pointed-detail__desc">
+            <p className="wanted-inspector-panel__desc">
               {activeItem.riskReason
                 ? `${activeItem.riskReason} ${activeItem.riskConsequence ?? ''}`
-                : '임차인·소비자의 법정 권리를 보호하는 안전한 특약 문구입니다.'}
+                : '임차인의 권리를 법적으로 보호하는 안전한 표준 특약 조항입니다.'}
             </p>
 
-            <div className="clause-box clause-box--risk">
-              <span className="clause-box__label">문서에서 짚은 원문 (#{safeIdx + 1})</span>
-              <p className="clause-box__text">
+            {/* 1. 계약서 원문 박스 */}
+            <div className="wanted-card-box wanted-card-box--neutral">
+              <span className="wanted-card-box__label">계약서 기재 원문</span>
+              <p className="wanted-card-box__content">
                 <HighlightText
                   text={activeItem.quote || activeItem.title || ''}
                   tone={activeItem.verdict === '위험' ? 'risk' : 'safe'}
@@ -955,21 +1044,41 @@ export function AnnotatedDocumentDeckCard({
               </p>
             </div>
 
+            {/* 2. 법률 검토 근거 (국가법령정보센터 실시간 법령 MCP) */}
+            {lawData?.statute && (
+              <div className="wanted-card-box wanted-card-box--law">
+                <div className="wanted-card-box__header-row">
+                  <span className="wanted-card-box__label text-blue">법률 검토 근거 (국가법령정보센터)</span>
+                  <a href={lawData.statute.officialUrl} target="_blank" rel="noreferrer" className="wanted-ext-link">
+                    {lawData.statute.lawName} {lawData.statute.article} ↗
+                  </a>
+                </div>
+                <p className="wanted-card-box__content text-muted">{lawData.statute.articleText}</p>
+                {Array.isArray(lawData.precedents) && lawData.precedents[0] && (
+                  <div className="wanted-precedent-row">
+                    <strong>대법원 판례 ({lawData.precedents[0].caseNumber}):</strong>
+                    <span>{lawData.precedents[0].summary}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 3. 권장 대안 특약 문구 & 원클릭 복사 */}
             {activeItem.fixText && (
-              <div className="clause-box clause-box--safe">
-                <span className="clause-box__label">
-                  <span>권장 대안 특약 문구</span>
+              <div className="wanted-card-box wanted-card-box--fix">
+                <div className="wanted-card-box__header-row">
+                  <span className="wanted-card-box__label text-safe">수정 권장 대안 특약</span>
                   <button
                     type="button"
-                    className="copy-chip"
+                    className="wanted-copy-btn"
                     onClick={() =>
                       onCopyAlternative(`pin-${activeItem.itemId}-${safeIdx}`, activeItem.fixText)
                     }
                   >
-                    {copiedKey === `pin-${activeItem.itemId}-${safeIdx}` ? '복사됨 ✓' : '대안 문구 복사'}
+                    {copiedKey === `pin-${activeItem.itemId}-${safeIdx}` ? '복사 완료 ✓' : '대안 문구 복사'}
                   </button>
-                </span>
-                <p className="clause-box__text">
+                </div>
+                <p className="wanted-card-box__content font-medium">
                   <HighlightText
                     text={activeItem.fixText}
                     tone="safe"
@@ -977,10 +1086,28 @@ export function AnnotatedDocumentDeckCard({
                 </p>
               </div>
             )}
+
+            {/* 4. 공인중개사용 현장 협상 가이드 */}
+            {activeItem.fixText && (
+              <div className="wanted-negotiation-box">
+                <span className="wanted-negotiation-box__label">공인중개사·임대인 협상 멘트</span>
+                <p className="wanted-negotiation-box__text">
+                  &ldquo;공인중개사님, 특약 #{safeIdx + 1}항 문구는 주택임대차보호법 권고에 맞춰 &lsquo;{activeItem.fixText}&rsquo;(으)로 반영해 주시면 바로 날인하겠습니다.&rdquo;
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>
     </section>
+
+    {/* 점검 결과 이메일 전달 모달 */}
+    <EmailReportModal
+      isOpen={isEmailModalOpen}
+      onClose={() => setIsEmailModalOpen(false)}
+      docTitle={doc?.title || '주택임대차 계약서'}
+      items={items}
+    />
 
     {/* 결과 화면에서 스캔 원본 크게 보기 라이트박스 */}
     {doc?.scannedImageUrl && (

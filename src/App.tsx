@@ -528,12 +528,18 @@ export function App() {
     const deck: DeckItem[] = [
       {
         key: 'annotated-doc',
-        label: '문서 위치 · 포인터 해설',
+        label: '통합 법률 점검 · 문서 인스펙터',
         node: (
           <AnnotatedDocumentDeckCard
             doc={matchedDoc}
             uploadedImageUrl={uploadedImageUrl}
             items={result.items}
+            lawData={lawData}
+            safetyScore={safetyScore}
+            totalClauses={total}
+            riskCount={red}
+            safeCount={green}
+            cautionCount={amber}
             onSelectClauseForSpeech={handleSelectClauseForSpeech}
             onCopyAlternative={(key, text) => void copyText(key, text)}
             copiedKey={copiedKey}
@@ -541,132 +547,64 @@ export function App() {
         ),
       },
       {
-        key: 'summary',
-        label: '계약 안전도 · 요약',
+        key: 'checklist-card',
+        label: '현장 협상 가이드 & 체크리스트',
         node: (
-          <section className="visual-card" aria-label="계약서 특약 안전도 및 점검 요약">
-            <header>
-              <span className="visual-card__eyebrow">계약서 특약 점검 요약</span>
-              <h3 className="visual-card__title">{headline}</h3>
-            </header>
-            <div className="today">
-              <ScoreRing
-                value={safetyScore}
-                size="large"
-                label="계약 안전도"
-                tone={red > 0 ? 'negative' : 'positive'}
-              />
-              <div className="today__subs">
-                <ScoreRing
-                  value={red}
-                  max={total}
-                  size="small"
-                  label="위험 특약"
-                  tone="negative"
-                />
-                <ScoreRing
-                  value={green}
-                  max={total}
-                  size="small"
-                  label="보호 조항"
-                  tone="positive"
-                />
-                <ScoreRing
-                  value={amber}
-                  max={total}
-                  size="small"
-                  label="보완 가능"
-                  tone="caution"
-                />
-              </div>
-            </div>
-          </section>
+          <InsightCard
+            eyebrow="공인중개사·임대인 협의 가이드"
+            title="계약서 날인 전 반드시 확인해야 할 체크포인트"
+            content={{
+              kind: 'checklist',
+              items: [
+                ...riskItems.map((r) => `[독소 특약 수정 요청] ${r.title}: "${r.fixText}"(으)로 변경 요청`),
+                ...missingItems.slice(0, 3).map((m) => `[권리 보호 특약 추가] ${m.title}: "${m.fixText}"`),
+              ].slice(0, 5),
+            }}
+          />
         ),
       },
     ];
 
-    riskItems.forEach((item, idx) => {
-      const copyKey = `clause-${item.itemId}-${idx}`;
+    if (lawData?.statute) {
       deck.push({
-        key: copyKey,
-        label: `위험 특약 ${idx + 1} · ${item.title ?? item.itemId}`,
+        key: 'law-citations',
+        label: '국가법령정보센터 법령·판례 전문',
         node: (
-          <section className="visual-card" aria-label={item.title ?? item.itemId}>
+          <section className="visual-card" aria-label="국가법령정보센터 실시간 법령 및 판례">
             <header>
-              <span className="visual-card__eyebrow">🔴 수정 권장 특약</span>
-              <h3 className="visual-card__title">{item.title ?? item.itemId}</h3>
+              <span className="visual-card__eyebrow">⚡ 국가법령정보센터 실시간 법령 MCP 연동</span>
+              <h3 className="visual-card__title">
+                {lawData.statute.lawName} {lawData.statute.article} 법령 및 대법원 판례
+              </h3>
             </header>
-            <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.55, color: 'var(--ink-soft)' }}>
-              {item.riskReason} {item.riskConsequence}
-            </p>
-            <div className="clause-compare">
-              <div className="clause-box clause-box--risk">
-                <span className="clause-box__label">계약서 원문 인용</span>
-                <p className="clause-box__text">{item.quote || '원문 특약 조항'}</p>
+            <div className="law-cite-list">
+              <div className="law-cite-item">
+                <strong>
+                  <span>
+                    📘 {lawData.statute.lawName} ({lawData.statute.article})
+                  </span>
+                  <a href={lawData.statute.officialUrl} target="_blank" rel="noreferrer">
+                    국가법령정보센터 원문 ↗
+                  </a>
+                </strong>
+                <span>{lawData.statute.articleText}</span>
               </div>
-              <div className="clause-box clause-box--safe">
-                <span className="clause-box__label">
-                  <span>권장 대안 특약 문구</span>
-                  <button
-                    type="button"
-                    className="copy-chip"
-                    onClick={() => void copyText(copyKey, item.fixText)}
-                  >
-                    {copiedKey === copyKey ? '복사됨 ✓' : '대안 문구 복사'}
-                  </button>
-                </span>
-                <p className="clause-box__text">{item.fixText}</p>
-              </div>
-            </div>
-            {idx === 0 && lawData && (
-              <div className="law-cite-list">
-                <div className="law-cite-item">
-                  <strong>
-                    <span>
-                      ⚖️ {lawData.statute.lawName} · {lawData.statute.article}
-                    </span>
-                    <a href={lawData.statute.officialUrl} target="_blank" rel="noreferrer">
-                      국가법령정보센터 ↗
-                    </a>
-                  </strong>
-                  <span>{lawData.statute.articleText}</span>
-                </div>
-                {lawData.precedents[0] && (
-                  <div className="law-cite-item">
+              {Array.isArray(lawData.precedents) &&
+                lawData.precedents.map((pr, idx) => (
+                  <div key={`prec-full-${idx}`} className="law-cite-item">
                     <strong>
                       <span>
-                        🏛️ 대법원 {lawData.precedents[0].caseNumber}
+                        🏛️ {pr.courtName} {pr.caseNumber} · {pr.caseName}
                       </span>
-                      <a href={lawData.precedents[0].officialUrl} target="_blank" rel="noreferrer">
-                        판례 원문 ↗
+                      <a href={pr.officialUrl} target="_blank" rel="noreferrer">
+                        판례 전문 ↗
                       </a>
                     </strong>
-                    <span>{lawData.precedents[0].summary}</span>
+                    <span>{pr.summary}</span>
                   </div>
-                )}
-              </div>
-            )}
+                ))}
+            </div>
           </section>
-        ),
-      });
-    });
-
-    if (protectItems.length > 0 || missingItems.length > 0) {
-      deck.push({
-        key: 'checklist-card',
-        label: '서명 전 체크리스트',
-        node: (
-          <InsightCard
-            eyebrow="서명 전 확인 질문"
-            title="임대인·사업자에게 꼭 확인해 보세요"
-            content={{
-              kind: 'checklist',
-              items: [
-                ...riskItems.map((r) => `${r.title}: "${r.question}"`),
-                ...missingItems.slice(0, 3).map((m) => `${m.title}: "${m.fixText}" 특약 추가 권장`),
-              ].slice(0, 5),
-            }}
-          />
         ),
       });
     }
