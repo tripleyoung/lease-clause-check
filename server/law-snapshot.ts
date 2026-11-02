@@ -568,5 +568,120 @@ export const LAW_OPENAPI_SNAPSHOT: Record<string, { statute: LiveStatuteInfo; pr
         "officialUrl": "https://www.law.go.kr/판례/(2024%EB%8B%A4305384)"
       }
     ]
+  },
+  "tax_rent_credit": {
+    "statute": {
+      "lawName": "조세특례제한법",
+      "article": "제95조의2(월세액에 대한 세액공제)",
+      "ministry": "기획재정부",
+      "effectiveDate": "2026.09.18",
+      "proclamationNo": "법률 제21467호",
+      "articleText": "제95조의2(월세액에 대한 세액공제) ① 과세기간 종료일 현재 무주택 세대의 세대주로서 해당 과세기간의 총급여액이 8천만원 이하인 근로소득이 있는 근로자가 국민주택규모의 주택 또는 기준시가 4억원 이하의 주택을 임차하기 위하여 지급하는 월세액(연 1천만원을 한도로 한다)의 100분의 15(총급여액이 5천500만원 이하인 경우 100분의 17)에 해당하는 금액을 종합소득산출세액에서 공제한다.",
+      "officialUrl": "https://www.law.go.kr/법령/%EC%A1%B0%EC%84%B8%ED%8A%B9%EB%A1%80%EC%A0%9C%ED%95%9C%EB%B2%95",
+      "sourceType": "law"
+    },
+    "precedents": [
+      {
+        "id": "618513",
+        "caseNumber": "2025두35585",
+        "caseName": "종합소득세부과처분취소[공동사업자가 출자비율에 따른 출자금을 마련하기 위해 대출을 받는 경우, 대출금의 이자가 공동사업장의 필요경비에 해당하는지가 문제 된 사건]",
+        "courtName": "대법원",
+        "decisionDate": "2026.03.12",
+        "summary": "소득세법 제27조 제1항, 제3항, 제33조 제1항 제13호, 소득세법 시행령 제55조 제1항 제13호, 제78조 제3호의 내용에 비추어 보면, 과세기간의 총수입금액에 대응하는 비용으로서 사업 관련성이 인정되는 지출인지 여부에 따라 필요경비 산입 여부가 결정된다.",
+        "officialUrl": "https://www.law.go.kr/판례/(2025%EB%91%9035585)"
+      }
+    ]
+  },
+  "tax_vat_deductible": {
+    "statute": {
+      "lawName": "부가가치세법",
+      "article": "제38조(공제하는 매입세액)",
+      "ministry": "기획재정부",
+      "effectiveDate": "2026.01.02",
+      "proclamationNo": "법률 제21065호",
+      "articleText": "제38조(공제하는 매입세액) ① 매출세액에서 공제하는 매입세액은 다음 각 호의 금액을 말한다.\n  1. 사업자가 자기의 사업을 위하여 사용하였거나 사용할 목적으로 공급받은 재화 또는 용역에 대한 부가가치세액\n  2. 사업자가 자기의 사업을 위하여 사용하였거나 사용할 목적으로 수입하는 재화의 수입에 대한 부가가치세액",
+      "officialUrl": "https://www.law.go.kr/법령/%EB%B6%80%EA%B0%80%EA%B0%80%EC%B9%98%EC%84%B8%EB%B2%95",
+      "sourceType": "law"
+    },
+    "precedents": [
+      {
+        "id": "624899",
+        "caseNumber": "2026두30542",
+        "caseName": "부가가치세부과처분무효확인등청구의소",
+        "courtName": "대법원",
+        "decisionDate": "2026.08.13",
+        "summary": "사전구제절차로서 과세전적부심사 제도가 도입된 경위와 취지 등을 고려하면, 세무조사 결과에 대한 서면통지 후 과세전적부심사 청구나 그에 대한 결정이 있기도 전에 이루어진 과세처분은 납세자의 절차적 권리를 침해하는 것으로서 그 절차상 하자가 중대하고도 명백하여 무효이다.",
+        "officialUrl": "https://www.law.go.kr/판례/(2026%EB%91%9030542)"
+      }
+    ]
+  },
+  "tax_vat_non_deductible": {
+    "statute": {
+      "lawName": "부가가치세법",
+      "article": "제39조(공제하지 아니하는 매입세액)",
+      "ministry": "기획재정부",
+      "effectiveDate": "2026.01.02",
+      "proclamationNo": "법률 제21065호",
+      "articleText": "제39조(공제하지 아니하는 매입세액) ① 제38조에도 불구하고 다음 각 호의 매입세액은 매출세액에서 공제하지 아니한다.\n  4. 사업과 직접 관련이 없는 지출로서 대통령령으로 정하는 것에 대한 매입세액\n  5. 개별소비세법 제1조제2항제3호에 따른 자동차(운수업, 자동차판매업 등 영업용 제외)의 구입과 임차 및 유지에 관한 매입세액\n  6. 기업업무추진비 및 이와 유사한 비용으로서 대통령령으로 정하는 비용의 지출에 관련된 매입세액",
+      "officialUrl": "https://www.law.go.kr/법령/%EB%B6%80%EA%B0%80%EA%B0%80%EC%B9%98%EC%84%B8%EB%B2%95",
+      "sourceType": "law"
+    },
+    "precedents": [
+      {
+        "id": "624313",
+        "caseNumber": "2025두34707",
+        "caseName": "부가가치세경정거부처분취소",
+        "courtName": "대법원",
+        "decisionDate": "2026.07.22",
+        "summary": "법률의 시행령은 모법인 법률에 의하여 위임받은 사항이나 법률이 규정한 범위 내에서 법률을 현실적으로 집행하는 데 필요한 세부적인 사항만을 규정할 수 있을 뿐, 법률에 의한 위임이 없는 한 개인의 납세의무 및 매입세액 공제 범위를 임의로 축소·변경할 수 없다.",
+        "officialUrl": "https://www.law.go.kr/판례/(2025%EB%91%9034707)"
+      }
+    ]
+  },
+  "tax_income_expense": {
+    "statute": {
+      "lawName": "소득세법",
+      "article": "제27조(사업소득의 필요경비의 계산)",
+      "ministry": "기획재정부",
+      "effectiveDate": "2026.07.01",
+      "proclamationNo": "법률 제21221호",
+      "articleText": "제27조(사업소득의 필요경비의 계산) ① 사업소득금액을 계산할 때 필요경비에 산입할 금액은 해당 과세기간의 총수입금액에 대응하는 비용으로서 일반적으로 용인되는 통상적인 것의 합계액으로 한다.",
+      "officialUrl": "https://www.law.go.kr/법령/%EC%86%8C%EB%93%9D%EC%84%B8%EB%B2%95",
+      "sourceType": "law"
+    },
+    "precedents": [
+      {
+        "id": "618513",
+        "caseNumber": "2025두35585",
+        "caseName": "종합소득세부과처분취소[공동사업장 필요경비 해당 여부]",
+        "courtName": "대법원",
+        "decisionDate": "2026.03.12",
+        "summary": "소득세법 제27조 제1항, 제3항, 제33조 제1항 제13호의 내용에 비추어 보면, 총수입금액에 대응하는 사업 관련 비용만이 필요경비로 인정되며 개인적 채무 부담 비용은 필요경비에 산입되지 않는다.",
+        "officialUrl": "https://www.law.go.kr/판례/(2025%EB%91%9035585)"
+      }
+    ]
+  },
+  "tax_personal_disallowed": {
+    "statute": {
+      "lawName": "소득세법",
+      "article": "제33조(필요경비 불산입)",
+      "ministry": "기획재정부",
+      "effectiveDate": "2026.07.01",
+      "proclamationNo": "법률 제21221호",
+      "articleText": "제33조(필요경비 불산입) ① 거주자가 해당 과세기간에 지급하였거나 지급할 금액 중 다음 각 호에 해당하는 것은 사업소득금액을 계산할 때 필요경비에 산입하지 아니한다.\n  5. 대통령령으로 정하는 가사의 경비와 이에 관련되는 경비",
+      "officialUrl": "https://www.law.go.kr/법령/%EC%86%8C%EB%93%9D%EC%84%B8%EB%B2%95",
+      "sourceType": "law"
+    },
+    "precedents": [
+      {
+        "id": "618513",
+        "caseNumber": "2025두35585",
+        "caseName": "종합소득세부과처분취소",
+        "courtName": "대법원",
+        "decisionDate": "2026.03.12",
+        "summary": "소득세법 제27조 제1항 및 제33조 제1항에 비추어 가사 관련 경비 또는 개인적 지출은 사업장의 소득금액을 계산할 때 필요경비에 산입할 수 없다.",
+        "officialUrl": "https://www.law.go.kr/판례/(2025%EB%91%9035585)"
+      }
+    ]
   }
 };

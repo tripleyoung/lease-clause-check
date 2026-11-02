@@ -492,6 +492,137 @@ textarea:focus {
   white-space: pre-wrap;
 }
 
+/* 다온사주 스타일 법률 상담 & 세무 자동 판정 패널 */
+.mcp-live-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #0066ff;
+  background: rgba(0, 102, 255, 0.08);
+  border: 1px solid rgba(0, 102, 255, 0.2);
+  white-space: nowrap;
+}
+
+.advisor-result {
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.advisor-headline-box {
+  padding: 16px;
+  border-radius: 10px;
+  background: #f7f7f8;
+  border: 1px solid var(--line-soft);
+}
+
+.advisor-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.advisor-law-tag {
+  font-size: 12px;
+  font-weight: 600;
+  color: #46474c;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.advisor-draft-box {
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+}
+
+.advisor-draft-text {
+  margin: 0;
+  padding: 12px;
+  border-radius: 8px;
+  background: #f7f7f8;
+  border: 1px solid var(--line-soft);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.65;
+  color: #171719;
+  white-space: pre-wrap;
+}
+
+.followup-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.followup-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.followup-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: #ffffff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: #171719;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.followup-chip:hover {
+  border-color: #0066ff;
+  background: rgba(0, 102, 255, 0.03);
+}
+
+.tax-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.tax-metric {
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tax-metric-label {
+  font-size: 12px;
+  color: #70737c;
+  font-weight: 500;
+}
+
+.tax-metric-val {
+  font-size: 14px;
+  color: #171719;
+  font-weight: 700;
+}
+
 /* SafeRadar 와 동일한 출처 표 & 원칙 리스트 */
 .sources {
   width: 100%;
@@ -541,8 +672,9 @@ textarea:focus {
 }
 
 @media (max-width: 640px) {
-  .stats {
-    grid-template-columns: repeat(2, 1fr);
+  .stats,
+  .tax-grid {
+    grid-template-columns: 1fr;
   }
   .spec-item {
     grid-template-columns: 1fr;

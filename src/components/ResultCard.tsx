@@ -41,7 +41,15 @@ const STATUS_META: Record<string, { cls: string; label: string }> = {
   보호됨: { cls: 'safe', label: '보호됨' },
 };
 
-export function ResultCard({ item, info }: { item: ItemResult; info?: PackItemInfo }) {
+export function ResultCard({
+  item,
+  info,
+  onConsult,
+}: {
+  item: ItemResult;
+  info?: PackItemInfo;
+  onConsult?: (item: ItemResult, title: string) => void;
+}) {
   const [copied, setCopied] = useState(false);
   const [lawData, setLawData] = useState<LawLookupResponse | null>(null);
   const [lawLoading, setLawLoading] = useState(false);
@@ -128,16 +136,26 @@ export function ResultCard({ item, info }: { item: ItemResult; info?: PackItemIn
             <dt>대안 문구</dt>
             <dd className="fix">
               <span>{item.fixText}</span>
-              <Button
-                variant="outlined"
-                color="assistive"
-                size="small"
-                onClick={copy}
-                leadingContent={copied ? <IconCheck /> : <IconCopy />}
-                sx={{ flexShrink: 0 }}
-              >
-                {copied ? '복사했어요' : '문구 복사'}
-              </Button>
+              <FlexBox gap={8} sx={{ flexShrink: 0, flexWrap: 'wrap' }}>
+                <Button
+                  variant="outlined"
+                  color="assistive"
+                  size="small"
+                  onClick={copy}
+                  leadingContent={copied ? <IconCheck /> : <IconCopy />}
+                >
+                  {copied ? '복사했어요' : '문구 복사'}
+                </Button>
+                {onConsult && (
+                  <Button
+                    variant="solid"
+                    size="small"
+                    onClick={() => onConsult(item, info?.title ?? item.itemId)}
+                  >
+                    이 조항 대처법 상담하기
+                  </Button>
+                )}
+              </FlexBox>
             </dd>
           </div>
         </dl>

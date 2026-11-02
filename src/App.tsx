@@ -1,7 +1,7 @@
 import { Button, Chip, FlexBox, Typography } from '@montage-ui/core';
-import { IconCamera, IconImage } from '@montage-ui/icon';
+import { IconCamera, IconCheck, IconCopy, IconImage } from '@montage-ui/icon';
 import { useEffect, useRef, useState } from 'react';
-import type { CheckResult, Version } from '../shared/types.ts';
+import type { CheckResult, ItemResult, Version } from '../shared/types.ts';
 import { ResultCard, type PackItemInfo } from './components/ResultCard.tsx';
 import { SAMPLES } from './samples.ts';
 
@@ -9,6 +9,66 @@ type PackInfo = { id: string; name: string; kinds: string[]; itemCount: number; 
 type MaskResult = { masked: string; found: { kind: string; sample: string }[] };
 type OcrResult = { text: string; masked: string; found: { kind: string; sample: string }[] };
 type VerdictFilter = 'all' | '위험' | '언급 없음' | '보호됨';
+
+type ConsultResult = {
+  itemId: string;
+  itemTitle: string;
+  maskedQuestion: string;
+  headline: string;
+  analysis: string;
+  messageDraft: string;
+  followups: string[];
+  law: {
+    engine?: string;
+    mcpEndpoint?: string;
+    liveConnected: boolean;
+    statute: {
+      lawName: string;
+      article: string;
+      ministry: string;
+      effectiveDate: string;
+      proclamationNo: string;
+      officialUrl: string;
+    };
+    precedents: Array<{
+      id: string;
+      caseNumber: string;
+      caseName: string;
+      courtName: string;
+      decisionDate: string;
+      summary: string;
+      officialUrl: string;
+    }>;
+  };
+};
+
+type TaxCheckResult = {
+  taxLawItemId: string;
+  maskedText: string;
+  filerType: 'individual_biz' | 'wage_earner' | 'freelancer';
+  headline: string;
+  vatVerdict: string;
+  incomeTaxVerdict: string;
+  accountTitle: string;
+  evidenceStatus: string;
+  analysis: string;
+  hometaxGuide: string;
+  followups: string[];
+  law: ConsultResult['law'];
+};
+
+const CONSULT_PRESETS = [
+  '집주인이 다음 세입자가 들어와야 보증금을 돌려준다고 특약에 넣자는데 서명해도 되나요?',
+  '보일러 배관 누수 수리비를 모든 수선은 세입자 부담이라는 특약 때문에 제가 다 내야 하나요?',
+  '헬스장 PT 20회 중 3회만 받고 환불하려는데 할인가가 아닌 정상가로 차감한다는데 맞나요?',
+];
+
+const TAX_PRESETS = [
+  { label: '무주택 근로자 월세 85만원 이체', text: '무주택 세대주 직장인입니다. 매달 오피스텔 월세 85만원을 임대인 계좌로 무통장 입금하고 있는데 집주인 동의 없이 연말정산 세액공제가 되나요?', filer: 'wage_earner' as const },
+  { label: '업무용 노트북 176만원 세금계산서', text: '개인사업자입니다. 업무용 맥북 프로 1,760,000원(부가세 포함)을 구입하고 전자세금계산서를 발급받았습니다.', filer: 'individual_biz' as const },
+  { label: '거래처 식대 68,000원 법인카드', text: '거래처 미팅 저녁 식사로 68,000원을 사업용 신용카드로 결제했습니다. 부가세 매입세액 공제와 종소세 경비 처리가 모두 가능한가요?', filer: 'individual_biz' as const },
+  { label: '가정용 마트 생필품 92,000원 결제', text: '주말에 가족 식료품과 생필품 92,000원을 사업용 카드로 결제했습니다. 비용 처리가 가능한가요?', filer: 'individual_biz' as const },
+];
 
 async function post<T>(body: unknown): Promise<T> {
   const res = await fetch('/api/check', {
@@ -41,7 +101,8 @@ const LAYERS = [
 const SOURCES = [
   ['전월세 임대차 (11개 항목)', '법제처 국가법령정보센터 · 법무부', '주택임대차보호법 제3조·제4조·제6조의3·제7조·제10조, 민법 제623조, 주택임대차표준계약서'],
   ['헬스장·PT 약관 (7개 항목)', '공정거래위원회 · 한국소비자원', '소비자분쟁해결기준(체력단련장업), 계속거래 해지·해제 산정기준, 약관규제법'],
-  ['법령 데이터 연동', '법제처 국가법령정보 공동활용 (OpenAPI)', '현행 법령(law) · 대법원 판례(prec) · 행정규칙(admrul) 기준 조문 대조'],
+  ['세무·적격증빙 자동 판정', '기획재정부 · 국세청 · 대법원', '부가가치세법 제38조·제39조, 소득세법 제27조·제33조·제160조의2, 조세특례제한법 제95조의2'],
+  ['법령 데이터 연동 (OKE MCP)', '법제처 국가법령정보 공동활용 (OpenAPI)', '현행 법령(law) · 대법원 판례(prec) · 행정규칙(admrul) 단일 Rust Law MCP 파드 실시간 대조'],
   ['개인정보 비식별화', '브라우저·서버 정규식 선처리', '주민등록번호, 전화번호, 계좌번호, 동·호수를 AI 호출 전 로컬에서 즉시 치환'],
 ];
 
@@ -85,14 +146,26 @@ export function App() {
   const [version, setVersion] = useState<Version>('v2');
   const [preview, setPreview] = useState<MaskResult | null>(null);
   const [result, setResult] = useState<CheckResult | null>(null);
-  const [busy, setBusy] = useState<'mask' | 'check' | 'ocr' | null>(null);
+  const [busy, setBusy] = useState<'mask' | 'check' | 'ocr' | 'consult' | 'tax' | null>(null);
   const [error, setError] = useState('');
   const [filter, setFilter] = useState<VerdictFilter>('all');
+
+  const [advisorTab, setAdvisorTab] = useState<'consult' | 'tax'>('consult');
+  const [consultItemId, setConsultItemId] = useState<string | undefined>(undefined);
+  const [consultQuote, setConsultQuote] = useState('');
+  const [consultQuestion, setConsultQuestion] = useState(CONSULT_PRESETS[0]);
+  const [consultResult, setConsultResult] = useState<ConsultResult | null>(null);
+  const [draftCopied, setDraftCopied] = useState(false);
+
+  const [filerType, setFilerType] = useState<'individual_biz' | 'wage_earner' | 'freelancer'>('wage_earner');
+  const [taxText, setTaxText] = useState(TAX_PRESETS[0].text);
+  const [taxResult, setTaxResult] = useState<TaxCheckResult | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const previewRef = useRef<HTMLElement>(null);
   const resultRef = useRef<HTMLElement>(null);
+  const advisorRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     fetch('/api/packs')
@@ -181,6 +254,69 @@ export function App() {
     }
   }
 
+  async function submitConsult(overrideQuestion?: string, overrideItemId?: string, overrideQuote?: string) {
+    const q = (overrideQuestion ?? consultQuestion).trim();
+    if (!q) return;
+    setBusy('consult');
+    setError('');
+    try {
+      const data = await post<ConsultResult>({
+        action: 'consult',
+        pack: packId,
+        itemId: overrideItemId ?? consultItemId,
+        question: q,
+        quote: overrideQuote ?? consultQuote,
+      });
+      setConsultResult(data);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  function handleConsultFromCard(item: ItemResult, title: string) {
+    setAdvisorTab('consult');
+    setConsultItemId(item.itemId);
+    setConsultQuote(item.quote ?? '');
+    const q = item.quote
+      ? `계약서에 "${item.quote}"라고 적혀 있는데 (${title}), 법적으로 불리한 이유와 상대방에게 수정을 요청할 방법이 궁금합니다.`
+      : `"${title}" 항목이 계약서에 빠져 있는데, 어떻게 특약 추가를 요청하면 좋을까요?`;
+    setConsultQuestion(q);
+    advisorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    void submitConsult(q, item.itemId, item.quote ?? '');
+  }
+
+  async function copyDraft(draft: string) {
+    try {
+      await navigator.clipboard.writeText(draft);
+      setDraftCopied(true);
+      setTimeout(() => setDraftCopied(false), 1800);
+    } catch {
+      setDraftCopied(false);
+    }
+  }
+
+  async function submitTax(overrideText?: string, overrideFiler?: 'individual_biz' | 'wage_earner' | 'freelancer') {
+    const targetText = (overrideText ?? taxText).trim();
+    const targetFiler = overrideFiler ?? filerType;
+    if (!targetText) return;
+    setBusy('tax');
+    setError('');
+    try {
+      const data = await post<TaxCheckResult>({
+        action: 'tax',
+        text: targetText,
+        filerType: targetFiler,
+      });
+      setTaxResult(data);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(null);
+    }
+  }
+
   const allItems = result ? [...result.items].sort((a, b) => ORDER[a.verdict] - ORDER[b.verdict]) : [];
   const filteredItems = filter === 'all' ? allItems : allItems.filter((it) => it.verdict === filter);
 
@@ -211,6 +347,11 @@ export function App() {
           <a href="#workspace" style={{ textDecoration: 'none' }}>
             <Typography variant="label1" weight="bold" color="semantic.foreground.neutral.strong">
               특약 점검
+            </Typography>
+          </a>
+          <a href="#consult-tax" style={{ textDecoration: 'none' }}>
+            <Typography variant="label1" weight="medium" color="semantic.foreground.neutral.tertiary">
+              법률 상담·세무 판정
             </Typography>
           </a>
           <a href="/demo-contract.html" style={{ textDecoration: 'none' }}>
@@ -522,11 +663,350 @@ export function App() {
 
             <div className="clause-list">
               {filteredItems.map((it) => (
-                <ResultCard key={it.itemId} item={it} info={pack?.items.find((i) => i.id === it.itemId)} />
+                <ResultCard
+                  key={it.itemId}
+                  item={it}
+                  info={pack?.items.find((i) => i.id === it.itemId)}
+                  onConsult={handleConsultFromCard}
+                />
               ))}
             </div>
           </section>
         )}
+
+        <section ref={advisorRef} id="consult-tax" className="workspace-section" aria-labelledby="consult-tax-title">
+          <FlexBox alignItems="baseline" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
+            <div>
+              <Typography id="consult-tax-title" as="h2" variant="title3" weight="bold">
+                법령·판례 실시간 상담 &amp; 세무 자동 판정
+              </Typography>
+              <Typography variant="body2" color="semantic.foreground.neutral.secondary" sx={{ marginTop: 4 }}>
+                OKE 클러스터 단일 Rust Law MCP 파드(<code>https://webrtc.ugot.uk/law/mcp</code>)에서 현행 법령·세법 조문과 대법원 판례를 실시간 조회해 고정한 뒤, 문자 초안과 후속 질문까지 이어서 안내합니다.
+              </Typography>
+            </div>
+            <span className="mcp-live-badge">OKE Rust Law MCP 연동 · 파드 증설 0</span>
+          </FlexBox>
+
+          <div className="pack-bar" role="tablist" aria-label="상담 및 세무 모드 선택">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={advisorTab === 'consult'}
+              className={advisorTab === 'consult' ? 'pack-tab on' : 'pack-tab'}
+              onClick={() => setAdvisorTab('consult')}
+            >
+              <Typography variant="headline2" weight="bold" color={advisorTab === 'consult' ? 'semantic.foreground.neutral.strong' : 'semantic.foreground.neutral.secondary'}>
+                계약·특약 법률 상담
+              </Typography>
+              <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
+                법령·대법원 판례 근거 해설 + 상대방 전달용 문자 초안 + 후속 질문 3선
+              </Typography>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={advisorTab === 'tax'}
+              className={advisorTab === 'tax' ? 'pack-tab on' : 'pack-tab'}
+              onClick={() => setAdvisorTab('tax')}
+            >
+              <Typography variant="headline2" weight="bold" color={advisorTab === 'tax' ? 'semantic.foreground.neutral.strong' : 'semantic.foreground.neutral.secondary'}>
+                영수증·계약서 세무 자동 판정
+              </Typography>
+              <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
+                부가가치세법·소득세법·조세특례제한법 + 적격증빙(3만원) + 홈택스 실무 가이드
+              </Typography>
+            </button>
+          </div>
+
+          {advisorTab === 'consult' ? (
+            <div className="input-card" data-testid="consult-panel">
+              <FlexBox alignItems="center" gap={8} sx={{ flexWrap: 'wrap' }}>
+                <Typography variant="label2" color="semantic.foreground.neutral.tertiary">
+                  자주 묻는 상담
+                </Typography>
+                {CONSULT_PRESETS.map((q, idx) => (
+                  <Chip
+                    key={idx}
+                    variant="outlined"
+                    size="small"
+                    onClick={() => {
+                      setConsultItemId(undefined);
+                      setConsultQuote('');
+                      setConsultQuestion(q);
+                      void submitConsult(q, undefined, '');
+                    }}
+                  >
+                    {q.slice(0, 26)}…
+                  </Chip>
+                ))}
+              </FlexBox>
+
+              <textarea
+                aria-label="법률 상담 질문"
+                value={consultQuestion}
+                onChange={(e) => setConsultQuestion(e.target.value)}
+                rows={3}
+                placeholder="특약 조항이나 계약 분쟁 상황을 입력해 주세요. (주민번호·전화번호·계좌번호는 자동 마스킹됩니다)"
+              />
+
+              <FlexBox alignItems="center" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
+                <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
+                  국가법령정보센터(open.law.go.kr) 현행 조문·대법원 판례 고정 대조 방식
+                </Typography>
+                <Button variant="solid" size="medium" disabled={busy !== null} onClick={() => void submitConsult()}>
+                  {busy === 'consult' ? '법령·판례 조회 및 상담 생성 중…' : '법령·판례 근거로 상담받기'}
+                </Button>
+              </FlexBox>
+
+              {consultResult && (
+                <div className="advisor-result" data-testid="consult-result">
+                  <div className="advisor-headline-box">
+                    <div className="advisor-meta-row">
+                      <span className="verdict-chip safe">{consultResult.itemTitle}</span>
+                      <span className="advisor-law-tag">
+                        {consultResult.law.statute.lawName} · {consultResult.law.statute.article}
+                      </span>
+                      <a
+                        href={consultResult.law.statute.officialUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="law-ext-link"
+                      >
+                        법령 원문 ↗
+                      </a>
+                    </div>
+                    <Typography as="h3" variant="headline1" weight="bold" color="semantic.foreground.neutral.strong" sx={{ marginTop: 8 }}>
+                      {consultResult.headline}
+                    </Typography>
+                    <Typography variant="body2" color="semantic.foreground.neutral.secondary" sx={{ marginTop: 8 }}>
+                      {consultResult.analysis}
+                    </Typography>
+                  </div>
+
+                  <div className="advisor-draft-box">
+                    <FlexBox alignItems="center" justifyContent="space-between" gap={8} sx={{ marginBottom: 8 }}>
+                      <Typography variant="label2" weight="bold" color="semantic.foreground.neutral.strong">
+                        임대인·중개사·사업자 전달용 정중 문자 초안
+                      </Typography>
+                      <Button
+                        variant="outlined"
+                        color="assistive"
+                        size="small"
+                        onClick={() => void copyDraft(consultResult.messageDraft)}
+                        leadingContent={draftCopied ? <IconCheck /> : <IconCopy />}
+                      >
+                        {draftCopied ? '복사 완료' : '문자 초안 복사'}
+                      </Button>
+                    </FlexBox>
+                    <pre className="advisor-draft-text">{consultResult.messageDraft}</pre>
+                  </div>
+
+                  {consultResult.law.precedents.length > 0 && (
+                    <div className="prec-block">
+                      <div className="prec-head">인용된 대법원 판례 (OKE Rust Law MCP 실시간 연동)</div>
+                      <ul className="prec-list">
+                        {consultResult.law.precedents.slice(0, 2).map((p) => (
+                          <li key={p.id || p.caseNumber} className="prec-item">
+                            <div className="prec-title-row">
+                              <span className="prec-case">
+                                {p.courtName} {p.decisionDate} 선고 <strong>{p.caseNumber}</strong>
+                              </span>
+                              <a href={p.officialUrl} target="_blank" rel="noreferrer" className="law-ext-link">
+                                판례 전문 ↗
+                              </a>
+                            </div>
+                            {p.caseName && <div className="prec-name">{p.caseName}</div>}
+                            {p.summary && <p className="prec-summary">{p.summary}</p>}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  <div className="followup-block">
+                    <Typography variant="label2" weight="bold" color="semantic.foreground.neutral.secondary">
+                      이어서 물어보기 (클릭 시 즉시 법령 대조)
+                    </Typography>
+                    <div className="followup-list">
+                      {consultResult.followups.map((fq, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          className="followup-chip"
+                          onClick={() => {
+                            setConsultQuestion(fq);
+                            void submitConsult(fq, consultResult.itemId, '');
+                          }}
+                        >
+                          <span>Q{i + 1}. {fq}</span>
+                          <span aria-hidden="true">→</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="input-card" data-testid="tax-panel">
+              <FlexBox alignItems="center" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
+                <FlexBox alignItems="center" gap={8} sx={{ flexWrap: 'wrap' }}>
+                  <Typography variant="label2" color="semantic.foreground.neutral.tertiary">
+                    납세자 유형
+                  </Typography>
+                  {([
+                    ['wage_earner', '근로소득자 (연말정산·월세공제)'],
+                    ['individual_biz', '개인사업자 (일반과세·종소세)'],
+                    ['freelancer', '프리랜서 (3.3% 사업소득)'],
+                  ] as const).map(([id, label]) => (
+                    <Chip
+                      key={id}
+                      variant={filerType === id ? 'solid' : 'outlined'}
+                      size="small"
+                      onClick={() => setFilerType(id)}
+                    >
+                      {label}
+                    </Chip>
+                  ))}
+                </FlexBox>
+              </FlexBox>
+
+              <FlexBox alignItems="center" gap={8} sx={{ flexWrap: 'wrap' }}>
+                <Typography variant="label2" color="semantic.foreground.neutral.tertiary">
+                  영수증·거래 예시
+                </Typography>
+                {TAX_PRESETS.map((preset) => (
+                  <Chip
+                    key={preset.label}
+                    variant="outlined"
+                    size="small"
+                    onClick={() => {
+                      setFilerType(preset.filer);
+                      setTaxText(preset.text);
+                      void submitTax(preset.text, preset.filer);
+                    }}
+                  >
+                    {preset.label}
+                  </Chip>
+                ))}
+              </FlexBox>
+
+              <textarea
+                aria-label="세무 판정 대상 문구"
+                value={taxText}
+                onChange={(e) => setTaxText(e.target.value)}
+                rows={3}
+                placeholder="영수증·거래명세서 내역이나 월세·경비 지출 내역을 입력해 주세요."
+              />
+
+              <FlexBox alignItems="center" justifyContent="space-between" gap={12} sx={{ flexWrap: 'wrap' }}>
+                <Typography variant="caption1" color="semantic.foreground.neutral.tertiary">
+                  부가가치세법 제38·39조 · 소득세법 제27·33·160조의2 · 조세특례제한법 제95조의2 실시간 대조
+                </Typography>
+                <Button variant="solid" size="medium" disabled={busy !== null} onClick={() => void submitTax()}>
+                  {busy === 'tax' ? '세법 조문·세무 판례 대조 중…' : '세법·홈택스 기준 판정하기'}
+                </Button>
+              </FlexBox>
+
+              {taxResult && (
+                <div className="advisor-result" data-testid="tax-result">
+                  <div className="tax-grid">
+                    <div className="tax-metric">
+                      <span className="tax-metric-label">부가가치세 판정</span>
+                      <strong className="tax-metric-val">{taxResult.vatVerdict}</strong>
+                    </div>
+                    <div className="tax-metric">
+                      <span className="tax-metric-label">소득세·연말정산 판정</span>
+                      <strong className="tax-metric-val">{taxResult.incomeTaxVerdict}</strong>
+                    </div>
+                    <div className="tax-metric">
+                      <span className="tax-metric-label">권장 계정과목·분류</span>
+                      <strong className="tax-metric-val">{taxResult.accountTitle}</strong>
+                    </div>
+                  </div>
+
+                  <div className="advisor-headline-box">
+                    <div className="advisor-meta-row">
+                      <span className="advisor-law-tag">
+                        {taxResult.law.statute.lawName} · {taxResult.law.statute.article}
+                      </span>
+                      <a
+                        href={taxResult.law.statute.officialUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="law-ext-link"
+                      >
+                        세법 조문 원문 ↗
+                      </a>
+                    </div>
+                    <Typography as="h3" variant="headline1" weight="bold" color="semantic.foreground.neutral.strong" sx={{ marginTop: 8 }}>
+                      {taxResult.headline}
+                    </Typography>
+                    <Typography variant="body2" color="semantic.foreground.neutral.secondary" sx={{ marginTop: 8 }}>
+                      {taxResult.analysis}
+                    </Typography>
+                  </div>
+
+                  <div className="advisor-draft-box">
+                    <Typography variant="label2" weight="bold" color="semantic.foreground.neutral.strong">
+                      적격증빙(3만 원 기준) 점검 및 국세청 홈택스(Hometax) 처리 가이드
+                    </Typography>
+                    <p style={{ margin: '6px 0 4px', fontSize: 13, color: '#171719', fontWeight: 600 }}>
+                      · 증빙 상태: {taxResult.evidenceStatus}
+                    </p>
+                    <p style={{ margin: 0, fontSize: 13, color: 'rgba(46,47,51,0.88)', lineHeight: 1.6 }}>
+                      · 홈택스 경로: {taxResult.hometaxGuide}
+                    </p>
+                  </div>
+
+                  {taxResult.law.precedents.length > 0 && (
+                    <div className="prec-block">
+                      <div className="prec-head">관련 대법원 세무 판례 (OKE Rust Law MCP 실시간 연동)</div>
+                      <ul className="prec-list">
+                        {taxResult.law.precedents.slice(0, 2).map((p) => (
+                          <li key={p.id || p.caseNumber} className="prec-item">
+                            <div className="prec-title-row">
+                              <span className="prec-case">
+                                {p.courtName} {p.decisionDate} 선고 <strong>{p.caseNumber}</strong>
+                              </span>
+                              <a href={p.officialUrl} target="_blank" rel="noreferrer" className="law-ext-link">
+                                판례 전문 ↗
+                              </a>
+                            </div>
+                            {p.caseName && <div className="prec-name">{p.caseName}</div>}
+                            {p.summary && <p className="prec-summary">{p.summary}</p>}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  <div className="followup-block">
+                    <Typography variant="label2" weight="bold" color="semantic.foreground.neutral.secondary">
+                      이어서 물어보기 (클릭 시 세법 조문 즉시 대조)
+                    </Typography>
+                    <div className="followup-list">
+                      {taxResult.followups.map((fq, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          className="followup-chip"
+                          onClick={() => {
+                            setTaxText(fq);
+                            void submitTax(fq, filerType);
+                          }}
+                        >
+                          <span>Q{i + 1}. {fq}</span>
+                          <span aria-hidden="true">→</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </section>
 
         <section id="sources" aria-labelledby="sources-title">
           <Typography id="sources-title" as="h2" variant="title3" weight="bold">

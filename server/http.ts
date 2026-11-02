@@ -3,8 +3,10 @@ import { PACKS, openKnowledge } from './packs.js';
 import { maskPii } from './pii.js';
 import { validateInput } from './validate.js';
 import { check } from './check.js';
+import { runConsult } from './consult.js';
 import { extractTextFromImage } from './ocr.js';
 import { lookupLawByItemId } from './law-api.js';
+import { runTaxCheck } from './tax.js';
 import { CheckError } from './errors.js';
 import type { Version } from '../shared/types.js';
 
@@ -25,7 +27,17 @@ export function handlePacks(): Response {
 
 export async function handleCheck(request: Request): Promise<Response> {
   if (request.method !== 'POST') return json(405, { error: 'POST 요청만 받아요.' });
-  let body: { action?: string; pack?: string; text?: string; image?: string; version?: string; itemId?: string };
+  let body: {
+    action?: string;
+    pack?: string;
+    text?: string;
+    image?: string;
+    version?: string;
+    itemId?: string;
+    question?: string;
+    quote?: string;
+    filerType?: 'individual_biz' | 'wage_earner' | 'freelancer';
+  };
   try {
     body = await request.json();
   } catch {
@@ -36,10 +48,34 @@ export async function handleCheck(request: Request): Promise<Response> {
   const pack = typeof body.pack === 'string' ? body.pack : '';
 
   try {
-    // 0. 국가법령정보센터 실시간 법령·대법원 판례 조회 요청
+    // 0-1. 국가법령정보센터 실시간 법령·대법원 판례 조회 요청 (OKE Rust Law MCP)
     if (body.action === 'law') {
       const itemId = typeof body.itemId === 'string' && body.itemId.trim() ? body.itemId.trim() : 'no_new_mortgage';
       return json(200, await lookupLawByItemId(itemId));
+    }
+
+    // 0-2. 다온사주 스타일 법령·판례 고정형 법률 상담 요청 (OKE Rust Law MCP)
+    if (body.action === 'consult') {
+      return json(
+        200,
+        await runConsult({
+          itemId: body.itemId,
+          pack,
+          question: typeof body.question === 'string' ? body.question : text,
+          quote: body.quote,
+        }),
+      );
+    }
+
+    // 0-3. 영수증·거래내역·계약서 세무 자동 판정 요청 (OKE Rust Law MCP 세법·세무판례 연동)
+    if (body.action === 'tax') {
+      return json(
+        200,
+        await runTaxCheck({
+          text: text || (typeof body.question === 'string' ? body.question : ''),
+          filerType: body.filerType,
+        }),
+      );
     }
     // 1. 사진(OCR) 텍스트 추출 요청
     if (body.action === 'ocr') {

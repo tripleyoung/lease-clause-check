@@ -247,6 +247,56 @@ const ITEM_LAW_MAP: Record<string, ItemLawMapping> = {
     precQuery: '계약 해지 원상회복 반환',
     mcpPrecKeyword: '부당이득',
   },
+  tax_rent_credit: {
+    target: 'law',
+    lawId: '001584',
+    articlePrefix: '제95조의2(',
+    lawName: '조세특례제한법',
+    articleLabel: '제95조의2(월세액에 대한 세액공제)',
+    ministryFallback: '기획재정부',
+    precQuery: '조세특례제한법 월세 세액공제 주택임대차',
+    mcpPrecKeyword: '종합소득세',
+  },
+  tax_vat_deductible: {
+    target: 'law',
+    lawId: '001571',
+    articlePrefix: '제38조(',
+    lawName: '부가가치세법',
+    articleLabel: '제38조(공제하는 매입세액)',
+    ministryFallback: '기획재정부',
+    precQuery: '부가가치세법 제38조 매입세액 공제',
+    mcpPrecKeyword: '부가가치세',
+  },
+  tax_vat_non_deductible: {
+    target: 'law',
+    lawId: '001571',
+    articlePrefix: '제39조(',
+    lawName: '부가가치세법',
+    articleLabel: '제39조(공제하지 아니하는 매입세액)',
+    ministryFallback: '기획재정부',
+    precQuery: '부가가치세법 제39조 매입세액 불공제',
+    mcpPrecKeyword: '부가가치세',
+  },
+  tax_income_expense: {
+    target: 'law',
+    lawId: '001565',
+    articlePrefix: '제27조(',
+    lawName: '소득세법',
+    articleLabel: '제27조(사업소득의 필요경비의 계산)',
+    ministryFallback: '기획재정부',
+    precQuery: '소득세법 제27조 필요경비 산입',
+    mcpPrecKeyword: '종합소득세',
+  },
+  tax_personal_disallowed: {
+    target: 'law',
+    lawId: '001565',
+    articlePrefix: '제33조(',
+    lawName: '소득세법',
+    articleLabel: '제33조(필요경비 불산입)',
+    ministryFallback: '기획재정부',
+    precQuery: '소득세법 제33조 가사경비 필요경비 불산입',
+    mcpPrecKeyword: '종합소득세',
+  },
 };
 
 const CACHE = new Map<string, { expiresAt: number; data: LawLookupResponse }>();
@@ -331,7 +381,7 @@ async function tryOkeRustLawMcp(itemId: string, mapping: ItemLawMapping, snapsho
       const unitsRaw = lawData?.법령?.조문?.조문단위;
       const units: any[] = Array.isArray(unitsRaw) ? unitsRaw : unitsRaw ? [unitsRaw] : [];
       const matchedUnit =
-        units.find((u) => typeof u?.조문내용 === 'string' && mapping.articlePrefix && u.조문내용.startsWith(mapping.articlePrefix)) ||
+        units.find((u) => typeof u?.조문내용 === 'string' && mapping.articlePrefix && u.조문내용.trim().startsWith(mapping.articlePrefix)) ||
         units[0];
 
       if (basic && matchedUnit) {
