@@ -57,7 +57,7 @@ export async function check(input: CheckInput, deps: { model?: LanguageModel } =
   const pack = getPack(input.pack);
   const model = deps.model ?? (await resolveModel()).model;
   const started = Date.now();
-  const opts = (m: LanguageModel, timeoutMs = 6_000) => ({
+  const opts = (m: LanguageModel, timeoutMs = 15_000) => ({
     model: m,
     temperature: 0,
     maxRetries: 0,
@@ -75,15 +75,15 @@ export async function check(input: CheckInput, deps: { model?: LanguageModel } =
   const p = version === 'v0' ? promptV0(pack, masked) : version === 'v1' ? promptV1(pack, masked) : promptV2(pack, masked, ruleScan(masked, pack));
   let raw: { itemId: string; verdict: Verdict; quote: string }[] | null = null;
   try {
-    const res = await call(() => generateText({ ...opts(model, 6_000), ...p, output: Output.object({ schema: schemaFor(pack) }) }), false);
+    const res = await call(() => generateText({ ...opts(model, 15_000), ...p, output: Output.object({ schema: schemaFor(pack) }) }), false);
     raw = res.output.items;
   } catch (e) {
     if (!deps.model) {
-      const fallbackModels = ['gemini-3.6-flash', 'gemini-3.1-flash-lite', 'gemini-flash-lite-latest'];
+      const fallbackModels = ['gemini-flash-lite-latest', 'gemini-3.6-flash', 'gemini-3.1-flash-lite'];
       for (const m of fallbackModels) {
         try {
           const fallback = await resolveModel(process.env, m);
-          const res = await call(() => generateText({ ...opts(fallback.model, m.includes('lite') ? 14_000 : 5_000), ...p, output: Output.object({ schema: schemaFor(pack) }) }), false);
+          const res = await call(() => generateText({ ...opts(fallback.model, 15_000), ...p, output: Output.object({ schema: schemaFor(pack) }) }), false);
           raw = res.output.items;
           if (raw) break;
         } catch (e2) {

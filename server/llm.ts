@@ -13,14 +13,13 @@ export const CALL_TIMEOUT_MS = 25_000;
 export const MAX_RETRIES = 1;
 
 export const GEMINI_FALLBACK_MODELS = [
-  'gemini-3.8-flash',
+  'gemini-flash-lite-latest',
   'gemini-3.6-flash',
   'gemini-3.1-flash-lite',
-  'gemini-flash-lite-latest',
 ] as const;
 
 const PROVIDERS = {
-  gemini: { keyEnv: 'GEMINI_API_KEY', modelEnv: 'GEMINI_MODEL', defaultModel: 'gemini-3.8-flash' },
+  gemini: { keyEnv: 'GEMINI_API_KEY', modelEnv: 'GEMINI_MODEL', defaultModel: 'gemini-flash-lite-latest' },
   openai: { keyEnv: 'OPENAI_API_KEY', modelEnv: 'OPENAI_MODEL', defaultModel: 'gpt-4o-mini' },
 } as const;
 
@@ -59,7 +58,7 @@ export async function resolveModel(
         const dynamicKey = await getGeminiWifApiKey();
         if (dynamicKey) {
           const configuredModel = overrideModelId?.trim() || env.GEMINI_MODEL?.trim();
-          return getModel(env, dynamicKey, configuredModel || 'gemini-3.8-flash');
+          return getModel(env, dynamicKey, configuredModel || 'gemini-flash-lite-latest');
         }
       } catch (err) {
         console.error('[WIF] Dynamic Gemini API key acquisition failed:', err);

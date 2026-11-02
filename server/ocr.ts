@@ -49,11 +49,11 @@ export async function extractTextFromImage(imageDataUrl: string): Promise<string
     });
   };
 
-  const models = ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.1-flash-lite', 'gemini-flash-lite-latest'];
+  const models = ['gemini-flash-lite-latest', 'gemini-3.6-flash', 'gemini-3.1-flash-lite'];
   let res;
   for (const m of models) {
     try {
-      res = await tryCall(m, m.includes('lite') ? 12_000 : 4_000);
+      res = await tryCall(m, 12_000);
       if (res?.text?.trim()) break;
     } catch (err) {
       console.warn(`[OCR] ${m} delayed/failed, trying next fallback:`, (err as Error)?.message);

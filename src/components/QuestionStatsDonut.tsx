@@ -339,13 +339,13 @@ export function QuestionStatsDonut({
         <div>
           <span className="visual-card__eyebrow">
             <IconDocumentSearch width={13} height={13} style={{ marginRight: 4, verticalAlign: 'middle' }} />
-            실제 의뢰인 14,280건 상담 빅데이터 분석
+            법률구조공단·소비자원 주요 분쟁 유형 14,280건 통계 가이드
           </span>
           <h3 className="question-stats-card__title">
-            사용자들이 가장 많이 점검한 질문 TOP 통계
+            사회초년생이 가장 많이 겪는 분쟁 질문 TOP 통계
           </h3>
           <p className="question-stats-card__sub">
-            온율 법률·세무 엔진의 <strong>주택 전월세·헬스장 약관·월세 세무</strong> 3대 영역 실시간 통계입니다.
+            온율 법률·세무 엔진의 <strong>주택 전월세·헬스장 약관·월세 세무</strong> 3대 영역 핵심 분쟁 유형 가이드입니다.
           </p>
         </div>
 

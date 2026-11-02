@@ -30,7 +30,7 @@ try {
   const { resolveModel } = await vite.ssrLoadModule('/server/llm.ts');
   let model;
   try {
-    model = await resolveModel(process.env, process.env.GEMINI_MODEL || 'gemini-3.1-flash-lite');
+    model = await resolveModel(process.env, process.env.GEMINI_MODEL || 'gemini-flash-lite-latest');
   } catch (e) {
     console.error(`${e.message}\n.env 에 LLM_PROVIDER 와 키를 넣고 다시 실행해 주세요(.env.example 참고).`);
     process.exitCode = 1;
@@ -39,15 +39,21 @@ try {
   const cases = loadCases(split);
   mkdirSync('results', { recursive: true });
 
+  const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
   const rows = [];
   for (const version of versions) {
     const results = [];
     for (const c of cases) {
       process.stdout.write(`${version} ${c.id} … `);
       try {
-        const r = await check({ text: c.text, pack: c.pack, version }, { model: model.model });
+        let r = await check({ text: c.text, pack: c.pack, version }, { model: model.model });
+        for (let attempt = 1; attempt <= 4 && r.items.length > 0 && r.items.every((i) => i.autoFailed); attempt++) {
+          await sleep(5000 * attempt);
+          r = await check({ text: c.text, pack: c.pack, version }, { model: model.model });
+        }
         results.push(r);
         console.log(`${(r.elapsedMs / 1000).toFixed(1)}s`);
+        await sleep(500);
       } catch (e) {
         // 호출 실패는 결과를 지어내지 않고 '빠진 항목'으로 센다(점수에 그대로 드러난다)
         console.log(`실패: ${e.message}`);

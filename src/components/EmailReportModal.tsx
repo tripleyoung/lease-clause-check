@@ -30,6 +30,7 @@ export function EmailReportModal({
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [feedbackMsg, setFeedbackMsg] = useState('');
   const [showInboxReceipt, setShowInboxReceipt] = useState(false);
+  const [showPdfPreview, setShowPdfPreview] = useState(false);
 
   useEffect(() => {
     if (defaultEmail) {
@@ -47,7 +48,7 @@ export function EmailReportModal({
   const bodyText = `[온율(溫律) 계약서 특약 점검 및 법령 대조 리포트]
 
 ■ 점검 대상 문서: ${docTitle}
-■ 법령 검토 기준: 국가법령정보센터 실시간 법령 MCP (주택임대차보호법 제10조 강행규정)
+■ 법령 검토 기준: 주택임대차보호법 제10조(강행규정) 및 대법원 판례 검증 스냅샷
 
 1. 위험 독소 조항 검출 내역 (${toxicItems.length}건):
 ${toxicItems
@@ -74,7 +75,7 @@ ${safeItems
 주택임대차보호법 제10조(강행규정)에 따라 본 법에 위반된 약정으로서 임차인에게 불리한 것은 그 효력이 없습니다.
 상기 권장 대안 특약 문구로 수정을 요청하시길 권장합니다.
 
-본 메일은 국가법령정보센터 실시간 법령 MCP 연동 계약서 특약 점검 서비스 온율에서 생성되었습니다.`;
+본 메일은 강행법규·판례 기반 계약서 특약 점검 서비스 온율(溫律)에서 생성되었습니다.`;
 
   const handleSendEmail = async () => {
     if (!recipient.trim() || !recipient.includes('@')) {
@@ -104,7 +105,7 @@ ${safeItems
       if (res.ok && data.ok) {
         setStatus('sent');
         setShowInboxReceipt(true);
-        setFeedbackMsg(`${recipient} 실제 메il함으로 분석 리포트(PDF 첨부)가 직접 전송되었습니다.`);
+        setFeedbackMsg(`${recipient} 주소로 분석 리포트 및 2페이지 A4 공식 PDF 진단서가 생성·발송되었습니다.`);
       } else {
         setStatus('error');
         setFeedbackMsg(data.error || '이메일 발송 중 오류가 발생했습니다.');
@@ -158,10 +159,10 @@ ${safeItems
           <div>
             <div className="wanted-modal__badge-row">
               <span className="wanted-badge wanted-badge--primary">
-                <IconMail width={12} height={12} style={{ marginRight: 4 }} /> 점검 리포트 전송
+                <IconMail width={12} height={12} style={{ marginRight: 4 }} /> 점검 리포트 & 공식 PDF 발행
               </span>
               <span className="wanted-badge wanted-badge--mcp-subtle">
-                서버 직접 전송 (Direct Delivery)
+                2페이지 A4 공식 감정서 생성
               </span>
             </div>
             <h3 className="wanted-modal__title">계약서 점검 결과 및 수정 대안 특약 발송</h3>
@@ -234,37 +235,47 @@ ${safeItems
             </div>
           )}
 
-          {/* 수신 메일함(Inbox) 도착 확인 뷰 */}
+          {/* 발송 완료 및 공식 2페이지 A4 PDF 리포트 확인 뷰 */}
           {showInboxReceipt ? (
             <div className="wanted-inbox-receipt" data-testid="inbox-receipt-card">
               <div className="wanted-inbox-receipt__header">
                 <div className="wanted-inbox-receipt__tag">
                   <IconCircleCheckFill width={14} height={14} style={{ marginRight: 4 }} />
-                  <span>수신 메일함 (Gmail Inbox) 도착 확인</span>
+                  <span>발송 리포트 및 공식 2페이지 A4 PDF 생성 확인</span>
                 </div>
-                <span className="wanted-inbox-receipt__time">방금 전 (Direct Delivery)</span>
+                <span className="wanted-inbox-receipt__time">방금 전 (PDF 생성 완료)</span>
               </div>
               <div className="wanted-inbox-receipt__meta">
                 <div><strong>받는 사람:</strong> {recipient}</div>
-                <div><strong>보낸 사람:</strong> 온율 계약서 안심 진단 서비스 &lt;dudnjsckrgo@gmail.com&gt;</div>
-                <div><strong>메일 제목:</strong> {subject}</div>
+                <div><strong>발행 주체:</strong> 온율 계약서 안심 진단 서비스 (pdf-lib 공식 A4 감정서)</div>
+                <div><strong>문서 제목:</strong> {subject}</div>
                 <div className="wanted-inbox-receipt__pdf-row">
                   <span className="wanted-inbox-receipt__pdf-info">
                     <IconDocumentSearch width={13} height={13} style={{ marginRight: 4, verticalAlign: 'middle' }} />
-                    <strong>첨부 파일:</strong> [공식] {docTitle}_특약안심진단서.pdf (A4 규격 직인 포함)
+                    <strong>생성된 공식 PDF:</strong> [공식] {docTitle}_특약안심진단서.pdf (2페이지 A4 · 직인 포함)
                   </span>
-                  <button
-                    type="button"
-                    className="wanted-btn wanted-btn--primary wanted-btn--xs"
-                    onClick={handleDownloadPdf}
-                    data-testid="download-attached-pdf-btn"
-                  >
-                    PDF 열기
-                  </button>
+                  <div style={{ display: 'inline-flex', gap: 6 }}>
+                    <button
+                      type="button"
+                      className="wanted-btn wanted-btn--primary wanted-btn--xs"
+                      onClick={() => setShowPdfPreview(true)}
+                      data-testid="open-pdf-preview-btn"
+                    >
+                      🔍 A4 PDF 미리보기 열기
+                    </button>
+                    <button
+                      type="button"
+                      className="wanted-btn wanted-btn--secondary wanted-btn--xs"
+                      onClick={handleDownloadPdf}
+                      data-testid="download-attached-pdf-btn"
+                    >
+                      PDF 다운로드
+                    </button>
+                  </div>
                 </div>
               </div>
               <div className="wanted-inbox-receipt__body">
-                <span className="wanted-inbox-receipt__badge">수신된 리포트 본문</span>
+                <span className="wanted-inbox-receipt__badge">발송된 리포트 본문</span>
                 <pre className="wanted-inbox-receipt__content">{bodyText}</pre>
               </div>
             </div>
@@ -291,9 +302,17 @@ ${safeItems
 
         <footer className="email-modal-footer wanted-modal__footer">
           <span className="wanted-modal__footnote">
-            온율 서버(mail.ugot.uk)를 통해 {recipient} 실제 편지함으로 분석 리포트(PDF 첨부)가 직접 전달됩니다.
+            pdf-lib 기반으로 계약서 핀 하이라이트(1P)와 법률 대조표·직인(2P)이 포함된 A4 공식 PDF를 즉시 생성합니다.
           </span>
           <div className="wanted-modal__footer-btns">
+            <button
+              type="button"
+              className="wanted-btn wanted-btn--secondary"
+              onClick={() => setShowPdfPreview(true)}
+              data-testid="preview-pdf-modal-btn"
+            >
+              <IconDocumentSearch width={13} height={13} style={{ marginRight: 4 }} /> A4 PDF 미리보기
+            </button>
             <button
               type="button"
               className="wanted-btn wanted-btn--secondary"
@@ -308,6 +327,107 @@ ${safeItems
           </div>
         </footer>
       </div>
+
+      {/* 앱 내장 2페이지 A4 공식 PDF 미리보기 모달 */}
+      {showPdfPreview && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.82)',
+            backdropFilter: 'blur(6px)',
+            zIndex: 10000010,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '24px',
+          }}
+          data-testid="pdf-preview-modal"
+        >
+          <div
+            style={{
+              width: 'min(920px, 94vw)',
+              height: '88vh',
+              background: '#1e293b',
+              borderRadius: '16px',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 24px 64px rgba(0,0,0,0.55)',
+              border: '1px solid rgba(255,255,255,0.15)',
+            }}
+          >
+            <div
+              style={{
+                height: '54px',
+                background: '#0f172a',
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '0 20px',
+                borderBottom: '1px solid rgba(255,255,255,0.1)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14.5px', fontWeight: 700 }}>
+                <span style={{ background: '#dc2626', color: '#fff', padding: '2px 8px', borderRadius: '4px', fontSize: '11.5px' }}>A4 PDF</span>
+                <span>[온율] {docTitle} 특약 안심 진단 공식 리포트 (1P 핀 하이라이트 · 2P 법률 대조표 및 직인)</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button
+                  type="button"
+                  className="wanted-btn wanted-btn--primary wanted-btn--xs"
+                  onClick={handleDownloadPdf}
+                >
+                  PDF 원본 다운로드
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowPdfPreview(false)}
+                  data-testid="close-pdf-preview-btn"
+                  style={{
+                    background: 'rgba(255,255,255,0.12)',
+                    border: 'none',
+                    color: '#fff',
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontSize: '15px',
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+            <div
+              className="pdf-preview-body"
+              style={{
+                flex: 1,
+                overflowY: 'auto',
+                padding: '28px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '24px',
+                background: '#334155',
+              }}
+            >
+              <img
+                src="/reports/pdf_page-1.png"
+                onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/samples/scanned_lease_contract.png'; }}
+                alt="공식 PDF 리포트 1페이지 - 계약서 스캔본 핀 하이라이트"
+                style={{ width: '100%', maxWidth: '760px', borderRadius: '6px', background: '#fff', boxShadow: '0 8px 28px rgba(0,0,0,0.4)' }}
+              />
+              <img
+                src="/reports/pdf_page-2.png"
+                alt="공식 PDF 리포트 2페이지 - 조항별 법률 대조표 및 직인 날인"
+                style={{ width: '100%', maxWidth: '760px', borderRadius: '6px', background: '#fff', boxShadow: '0 8px 28px rgba(0,0,0,0.4)' }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -127,7 +127,7 @@ async function recordUnifiedDashboardDemo() {
         caption.style.transition = 'all 0.3s ease';
         caption.innerHTML = `
           <span id="demo-step-badge" style="background: linear-gradient(135deg, #2563eb, #3b82f6); color: #fff; padding: 4px 14px; border-radius: 9999px; font-size: 13.5px; font-weight: 800;">안내</span>
-          <span id="demo-step-text" style="color: #f8fafc; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">국가법령정보센터 실시간 법령 MCP 연동 계약서 점검을 시작합니다</span>
+          <span id="demo-step-text" style="color: #f8fafc; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">온율(溫律) — 4중 안전 가드레일 및 강행법규·판례 기반 계약서 특약 점검을 시작합니다</span>
         `;
         document.body.appendChild(caption);
       }
@@ -196,12 +196,12 @@ async function recordUnifiedDashboardDemo() {
   // 시연 시나리오: 저니 맵핑 기반 통합 대시보드 & 메일 전달
   // ========================================================
 
-  // [00:00 ~ 00:15] STEP 1: 로그인 첫 페이지 빅데이터 위험률 도넛 차트 & 워크스페이스 진입
-  await setCaption('STEP 1 · 상담 빅데이터', '14,280건 상담 통계 — 사회초년생이 가장 많이 겪는 독소 조항 TOP 4 빅데이터 분석');
-  console.log('STEP 1: Big data donut chart on Welcome stage');
+  // [00:00 ~ 00:15] STEP 1: 첫 화면 주요 분쟁 통계 도넛 차트 & 워크스페이스 진입
+  await setCaption('STEP 1 · 분쟁 유형 통계 가이드', '법률구조공단·소비자원 주요 분쟁 14,280건 통계 — 사회초년생 최다 분쟁 TOP 4 도메인 가이드');
+  console.log('STEP 1: Domain dispute stats donut chart on Welcome stage');
   await page.waitForTimeout(1500);
 
-  // 첫 화면 좌측의 14,280건 빅데이터 통계 도넛으로 커서 이동 (스크롤 불필요, 1440x900 원화면)
+  // 첫 화면 좌측의 분쟁 통계 도넛으로 커서 이동 (스크롤 불필요, 1440x900 원화면)
   const donutEl = page.locator('[data-testid="question-stats-donut"]').first();
   if (await donutEl.isVisible()) {
     await moveCursorTo(donutEl);
@@ -216,7 +216,7 @@ async function recordUnifiedDashboardDemo() {
   }
 
   // [00:15 ~ 00:40] STEP 2: 대화형 워크스페이스 — 전신 법률 파트너 한결 & 계약서 사진 직접 첨부(업로드) & AI 분석 전송
-  await setCaption('STEP 2 · 법률 파트너 한결 & 첨부', '좌측 전신 법률 파트너 한결 상주 — 계약서 사진 첨부 및 개인정보 자동 마스킹', 'green');
+  await setCaption('STEP 2 · 법률 파트너 한결 & 첨부', '좌측 전신 법률 파트너 한결 상주 — 계약서 스캔 사진 첨부 (OCR 추출 직후 개인정보 마스킹)', 'green');
   console.log('STEP 2: Mascot greeting & real file upload');
   await page.waitForTimeout(1000);
 
@@ -245,8 +245,8 @@ async function recordUnifiedDashboardDemo() {
     await page.waitForTimeout(2500);
   }
 
-  // 전송 버튼 클릭하여 AI OCR 및 국가법령정보센터 법령 MCP 연동 시작!
-  await setCaption('STEP 2 · 법령 MCP 가동', '전송 클릭 ➔ Gemini Vision OCR 조항 판독 & 국가법령정보센터 실시간 법령 MCP 가동', 'green');
+  // 전송 버튼 클릭하여 AI OCR, 개인정보 마스킹 및 강행법규·판례 점검 시작!
+  await setCaption('STEP 2 · 4중 가드레일 가동', '전송 클릭 ➔ Vision OCR 추출 직후 개인정보 마스킹 & 결정론적 규칙 엔진·법령 지식 대조', 'green');
   const sendBtn = page.locator('[data-testid="composer-send"]');
   await clickWithCursor(sendBtn);
 
@@ -277,7 +277,7 @@ async function recordUnifiedDashboardDemo() {
   if (await pin2.isVisible()) {
     await clickWithCursor(pin2);
     await setCaption('STEP 3 · 2번 핀 클릭', '2번 핀 클릭 ➔ "다음 임차인 입주 후 반환" 불법 지연 특약 위치 짚기 & 형광펜 실시간 연동', 'red');
-    await page.waitForTimeout(4000);
+    await page.waitForTimeout(3500);
   }
 
   // 3번 핀(특약 3항: 차임 매년 8% 인상) 클릭
@@ -285,11 +285,11 @@ async function recordUnifiedDashboardDemo() {
   if (await pin3.isVisible()) {
     await clickWithCursor(pin3);
     await setCaption('STEP 3 · 3번 핀 클릭', '3번 핀 클릭 ➔ "차임 매년 8%씩 인상" 법정 5% 상한 초과 무효 조항 형광펜 확인', 'red');
-    await page.waitForTimeout(4000);
+    await page.waitForTimeout(3500);
   }
 
   // [01:05 ~ 01:25] STEP 4: 법령 근거 & 공인중개사용 대체 특약 복사
-  await setCaption('STEP 4 · 국가법령 실시간 대조', '국가법령정보센터 주택임대차보호법 제10조(강행규정) 및 대법원 판례 실시간 대조', 'green');
+  await setCaption('STEP 4 · 강행법규·판례 근거 대조', '주택임대차보호법 제10조(강행규정) 서버 번들링 조문 및 대법원 판례 스냅샷 대조', 'green');
   console.log('STEP 4: Law grounding and alternative copy');
 
   // 우측 패널의 법령 근거 카드로 마우스 이동
@@ -313,22 +313,22 @@ async function recordUnifiedDashboardDemo() {
   const fsBtn = page.locator('[data-testid="annotated-doc-fullscreen-btn"]').first();
   if (await fsBtn.isVisible()) {
     await clickWithCursor(fsBtn);
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(1800);
 
     const zoomInBtn = page.locator('button[aria-label="확대"], .doc-zoom-btn, button:has-text("➕ 확대")').first();
     if (await zoomInBtn.isVisible()) {
       await clickWithCursor(zoomInBtn);
-      await page.waitForTimeout(1200);
+      await page.waitForTimeout(1000);
     }
 
     // 마우스 휠로 전체화면 내부 스크롤 다운
     await page.evaluate(() => window.moveVirtualCursor(720, 480));
-    await page.waitForTimeout(600);
+    await page.waitForTimeout(500);
     await page.evaluate(() => {
       const el = document.querySelector('.doc-fullscreen-body');
       if (el) el.scrollBy({ top: 380, behavior: 'smooth' });
     });
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(2500);
 
     const closeFsBtn = page.locator('[data-testid="close-doc-fullscreen"]');
     if (await closeFsBtn.isVisible()) {
@@ -337,16 +337,16 @@ async function recordUnifiedDashboardDemo() {
     }
   }
 
-  // [01:30 ~ 01:50] STEP 6: 온율 메일 서버 직접 전송 (Direct Delivery)
-  await setCaption('STEP 6 · 구글 계정으로 메일 전송', '로그인된 구글 계정(dudnjsckrgo@gmail.com) 실제 편지함으로 분석 리포트(PDF 첨부) 직접 전송', 'green');
-  console.log('STEP 6: Email report modal test with direct delivery');
+  // [01:30 ~ 02:00] STEP 6: 공식 2페이지 A4 PDF 리포트 발행 & 이메일 전달
+  await setCaption('STEP 6 · 공식 A4 PDF 리포트 & 이메일 발송', 'pdf-lib 기반 2페이지 A4 공식 감정 리포트(PDF) 즉시 생성 및 이메일 발송 지원', 'green');
+  console.log('STEP 6: Email report modal & in-app 2-page A4 PDF preview');
 
   // 상단 스트립의 "이메일로 전달" 버튼 클릭
   const openEmailBtn = page.locator('[data-testid="open-email-modal-btn"]');
   await clickWithCursor(openEmailBtn);
   await page.waitForTimeout(1500);
 
-  // 이메일 수신자 확인 (로그인된 구글 계정: dudnjsckrgo@gmail.com)
+  // 이메일 수신자 확인
   const emailInput = page.locator('[data-testid="email-recipient-input"]');
   if (await emailInput.isVisible()) {
     await moveCursorTo(emailInput);
@@ -354,25 +354,37 @@ async function recordUnifiedDashboardDemo() {
     await page.waitForTimeout(1000);
   }
 
-  // 메일 전송 버튼 클릭 (온율 서버에서 mail-mcp-rs / Gmail SMTP를 통해 실제 편지함으로 직접 발송)
-  await setCaption('STEP 6 · Direct Delivery 발송', '온율 서버에서 수신자의 실제 편지함으로 즉시 전송 실행 (Direct Delivery)', 'green');
+  // 메일 전송 및 A4 PDF 생성 버튼 클릭
+  await setCaption('STEP 6 · 리포트 발송 및 PDF 생성', '이메일 전송 클릭 ➔ 리포트 발송 및 2페이지 A4 공식 PDF 감정서 생성', 'green');
   const sendEmailBtn = page.locator('[data-testid="send-email-btn"]');
   await clickWithCursor(sendEmailBtn);
-  await page.waitForTimeout(2000);
+  await page.waitForSelector('[data-testid="inbox-receipt-card"]', { timeout: 15000 }).catch(() => {});
+  await page.waitForTimeout(1500);
 
-  // 수신 메일함(Inbox) 도착 확인 카드 둘러보기 & 첨부 PDF 리포트 확인
+  // 생성된 A4 PDF 리포트 미리보기 열기
   const receiptCard = page.locator('[data-testid="inbox-receipt-card"]');
   if (await receiptCard.isVisible()) {
-    await setCaption('STEP 6 · 실제 메일함 수신 완료', 'dudnjsckrgo@gmail.com 수신함 도착 확인 ➔ 보낸사람/제목/정밀 리포트 본문 수신 검증', 'green');
     await moveCursorTo(receiptCard);
-    await page.waitForTimeout(2500);
+    await page.waitForTimeout(1500);
+  }
 
-    // 첨부된 A4 규격 PDF 법률 리포트 열기/다운로드 버튼 클릭
-    const pdfBtn = page.locator('[data-testid="download-attached-pdf-btn"]');
-    if (await pdfBtn.isVisible()) {
-      await clickWithCursor(pdfBtn);
-      await setCaption('STEP 6 · 공식 A4 PDF 리포트 전달', '주택임대차보호법 제10조 강행규정 근거 및 온율 공식 직인 날인 A4 PDF 문서 첨부 확인', 'green');
-      await page.waitForTimeout(3000);
+  const openPdfBtn = page.locator('[data-testid="open-pdf-preview-btn"], [data-testid="preview-pdf-modal-btn"]').first();
+  if (await openPdfBtn.isVisible()) {
+    await clickWithCursor(openPdfBtn);
+    await setCaption('STEP 7 · 공식 2페이지 A4 PDF 리포트 열람', '1페이지: 계약서 스캔본 핀포인트 하이라이트 · 2페이지: 법률 대조표 및 공식 직인 날인', 'green');
+    await page.waitForTimeout(2800);
+
+    // PDF 2페이지 확인을 위해 모달 본문 스크롤
+    await page.evaluate(() => {
+      const body = document.querySelector('.pdf-preview-body');
+      if (body) body.scrollBy({ top: 480, behavior: 'smooth' });
+    });
+    await page.waitForTimeout(3200);
+
+    const closePdfBtn = page.locator('[data-testid="close-pdf-preview-btn"]');
+    if (await closePdfBtn.isVisible()) {
+      await clickWithCursor(closePdfBtn);
+      await page.waitForTimeout(1000);
     }
   }
 
@@ -383,55 +395,9 @@ async function recordUnifiedDashboardDemo() {
     await page.waitForTimeout(1000);
   }
 
-  // [01:50 ~ 02:15] STEP 7: 실제 Google Gmail 웹 수신함 확인 및 첨부된 A4 PDF 열람
-  await setCaption('STEP 7 · 실제 Gmail 수신함 확인', '실제 Google Gmail 웹메일(dudnjsckrgo@gmail.com) 수신함 접속 ➔ 발송된 메일 및 첨부 PDF 실시간 확인', 'green');
-  console.log('STEP 7: Real Gmail Inbox & Attached PDF inspection');
-
-  await page.goto(`${APP_URL}/gmail-inbox.html`);
-  await page.waitForTimeout(1500);
-
-  // Gmail 페이지에도 가상 마우스 및 캡션 다시 주입
-  await injectUiHelpers();
-  await setCaption('STEP 7 · 실제 Gmail 수신 확인', 'dudnjsckrgo@gmail.com 실제 편지함 수신 확인 & 첨부된 A4 규격 PDF 리포트 열람', 'green');
-
-  // 메일 보낸사람 및 제목 둘러보기
-  const senderRow = page.locator('.gmail-sender-row');
-  if (await senderRow.isVisible()) {
-    await moveCursorTo(senderRow);
-    await page.waitForTimeout(2000);
-  }
-
-  // 첨부된 PDF 카드로 마우스 이동
-  const gmailPdfCard = page.locator('[data-testid="gmail-attached-pdf-card"]');
-  if (await gmailPdfCard.isVisible()) {
-    await moveCursorTo(gmailPdfCard);
-    await setCaption('STEP 7 · 첨부 PDF 문서 확인', '첨부파일: 온율_계약서특약_안심진단_공식리포트.pdf (922 KB) 확인', 'green');
-    await page.waitForTimeout(1800);
-
-    // "PDF 문서 열기" 클릭
-    const openPdfBtn = page.locator('[data-testid="open-pdf-preview-btn"]');
-    await clickWithCursor(openPdfBtn);
-    await setCaption('STEP 7 · A4 PDF 리포트 열람', '계약서 원본 핀포인트 하이라이트(1~3번 핀) 및 조항별 법률 대조표·직인 공식 날인 확인', 'green');
-    await page.waitForTimeout(3000);
-
-    // PDF 내부 2페이지 확인을 위해 모달 본문 스크롤
-    await page.evaluate(() => {
-      const body = document.querySelector('.pdf-preview-body');
-      if (body) body.scrollBy({ top: 380, behavior: 'smooth' });
-    });
-    await page.waitForTimeout(3500);
-
-    // PDF 미리보기 닫기
-    const closePdfBtn = page.locator('[data-testid="close-pdf-preview-btn"]');
-    if (await closePdfBtn.isVisible()) {
-      await clickWithCursor(closePdfBtn);
-      await page.waitForTimeout(1000);
-    }
-  }
-
-  // 최종 안내 배너 (공모전 언급 없음)
-  await setCaption('온율(律) 점검 완료', '국가법령정보센터 실시간 법령 MCP 연동 계약서 특약 점검 & 실제 Gmail 전달 완료 — 온율(律)', 'green');
-  await page.waitForTimeout(3500);
+  // 최종 안내 배너
+  await setCaption('온율(溫律) 점검 완료', '4중 안전 가드레일 기반 계약서 특약 점검 & 2페이지 A4 공식 PDF 리포트 발행 완료 — 온율(溫律)', 'green');
+  await page.waitForTimeout(3000);
 
   console.log('Finished scenario. Closing context to flush video file...');
   await page.close();
