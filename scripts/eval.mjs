@@ -27,10 +27,10 @@ try {
   const { check } = await vite.ssrLoadModule('/server/check.ts');
   const { loadCases } = await vite.ssrLoadModule('/server/cases.ts');
   const { score } = await vite.ssrLoadModule('/server/score.ts');
-  const { getModel } = await vite.ssrLoadModule('/server/llm.ts');
+  const { resolveModel } = await vite.ssrLoadModule('/server/llm.ts');
   let model;
   try {
-    model = getModel();
+    model = await resolveModel(process.env, process.env.GEMINI_MODEL || 'gemini-3.1-flash-lite');
   } catch (e) {
     console.error(`${e.message}\n.env 에 LLM_PROVIDER 와 키를 넣고 다시 실행해 주세요(.env.example 참고).`);
     process.exitCode = 1;

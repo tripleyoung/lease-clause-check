@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>계약서 특약 점검기 - 1차 프로젝트 최종 발표</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --danger: #dc2626;
+      --warning: #d97706;
+      --success: #16a34a;
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #334155;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+    .slide-deck {
+      max-width: 1000px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+    }
+    .slide {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 48px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+      position: relative;
+      page-break-after: always;
+      min-height: 580px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .slide-header {
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .slide-num {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .slide-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: #fff;
+    }
+    .slide-body {
+      flex: 1;
+      font-size: 16px;
+      color: #cbd5e1;
+    }
+    .slide-footer {
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+      margin-top: 24px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    h3 {
+      font-size: 20px;
+      margin: 20px 0 10px;
+      color: #38bdf8;
+    }
+    p { margin-bottom: 12px; }
+    ul { margin-left: 20px; margin-bottom: 16px; }
+    li { margin-bottom: 6px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      text-align: left;
+    }
+    th {
+      background: rgba(37, 99, 235, 0.15);
+      color: #93c5fd;
+      font-weight: 600;
+    }
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .badge-danger { background: rgba(220, 38, 38, 0.2); color: #f87171; border: 1px solid #ef4444; }
+    .badge-warning { background: rgba(217, 119, 6, 0.2); color: #fbbf24; border: 1px solid #f59e0b; }
+    .badge-success { background: rgba(22, 163, 74, 0.2); color: #4ade80; border: 1px solid #22c55e; }
+    .code-box {
+      background: #090d16;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 16px;
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      font-size: 13px;
+      color: #a5b4fc;
+      overflow-x: auto;
+      margin: 12px 0;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 12px;
+    }
+    .card-box {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+    }
+    .highlight {
+      color: #60a5fa;
+      font-weight: 700;
+    }
+    .accent {
+      color: #f43f5e;
+      font-weight: 700;
+    }
+    @media print {
+      body { background: #fff; color: #000; padding: 0; }
+      .slide {
+        border: none;
+        box-shadow: none;
+        background: #fff;
+        color: #000;
+        min-height: 100vh;
+      }
+      .slide-title { color: #000; }
+      .slide-body { color: #333; }
+      th { background: #eee; color: #000; }
+      th, td { border-color: #ccc; }
+      .code-box { background: #f8f9fa; color: #000; border-color: #ddd; }
+      .card-box { background: #f8f9fa; border-color: #ddd; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="slide-deck">
+
+  <!-- 슬라이드 1: 표지 및 문제 정의 -->
+  <section class="slide">
+    <div class="slide-header">
+      <span class="slide-num">SLIDE 01 · 문제 정의</span>
+      <span>1차 프로젝트 발표</span>
+    </div>
+    <div class="slide-body">
+      <h1 class="slide-title" style="font-size: 36px; margin-bottom: 24px;">계약서 특약 점검기</h1>
+      <p style="font-size: 18px; color: #93c5fd; margin-bottom: 24px;">AI 기반 실시간 독소 조항 진단 및 피해 리스크 방어 서비스</p>
+      
+      <div class="grid-2">
+        <div class="card-box">
+          <h3 style="margin-top:0;">🛑 사회초년생의 주거 위기</h3>
+          <ul>
+            <li><strong>2026년 임대차의 62%가 월세</strong>: 청년 세대의 전월세 계약 의존도 급증.</li>
+            <li><strong>경험 부족으로 독소 특약 간과</strong>: "다음 세입자 입주 시 보증금 반환", "보일러·누수 전액 임차인 수리" 등 악의적 조항에 무심코 서명.</li>
+            <li><strong>치명적 피해</strong>: 새 집 계약금 몰수, 수백~수천만 원 수리비 독박.</li>
+          </ul>
+        </div>
+        <div class="card-box">
+          <h3 style="margin-top:0;">⚠️ ChatGPT 등 일반 AI의 한계</h3>
+          <ul>
+            <li><strong>답이 매번 다르고 누락 발생</strong>: 어느 조항을 빠뜨렸는지 알 수 없음.</li>
+            <li><strong>지어낸 조문(환각)</strong>: 존재하지 않는 법령 인용.</li>
+            <li><strong>개인정보 유출</strong>: 주민번호·계좌·전화번호가 외부로 그대로 노출.</li>
+            <li><strong>숫자 계산 오류</strong>: 5% 증액 한도, 위약금 10% 등 계산 미흡.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span>발표자: 윤여원</span>
+      <span>배포: https://lease-clause-check.vercel.app</span>
+    </div>
+  </section>
+
+  <!-- 슬라이드 2: 서비스 소개 & 핵심 가치 -->
+  <section class="slide">
+    <div class="slide-header">
+      <span class="slide-num">SLIDE 02 · 서비스 소개 & 핵심 가치</span>
+      <span>Lease Clause Check</span>
+    </div>
+    <div class="slide-body">
+      <h2 class="slide-title">사회초년생을 위한 원스톱 특약 안전망</h2>
+      
+      <div class="grid-2" style="margin-top: 16px;">
+        <div class="card-box">
+          <h3 style="margin-top:0;">📋 2대 전문 점검팩 (18개 항목 전수 판정)</h3>
+          <ul>
+            <li><strong>전월세 임대차 팩 (11개)</strong>: 근저당 설정 금지, 대항력 효력 시점, 보증금 반환(동시이행), 수선의무, 2년 기간, 5% 증액 한도 등</li>
+            <li><strong>헬스장·PT 약관 팩 (7개)</strong>: 위약금 10% 상한, 정상가 차감 꼼수 방지, 개시 전 해지권 등</li>
+            <li><span class="badge badge-success">누락 0건 보장</span> 빠진 항목은 자동 실패로 표시</li>
+          </ul>
+        </div>
+        <div class="card-box">
+          <h3 style="margin-top:0;">⚠️ 위험 원인 & 💥 실제 피해 리스크 직관화</h3>
+          <ul>
+            <li><strong>구체적 피해 제시</strong>: "다음 세입자가 안 들어오면 보증금을 못 받아 새 집 계약금이 몰수됩니다"</li>
+            <li><strong>현장 협상 지원</strong>: 공인중개사·집주인에게 <span class="highlight">"물어볼 질문"</span> 및 <span class="highlight">"대안 특약 문구"</span> 원클릭 복사</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card-box" style="margin-top: 16px;">
+        <h3 style="margin-top:0;">📱 옴니채널 접근성: 사진 OCR & Zero-Click 크롬 확장</h3>
+        <p>• <strong>스마트폰 카메라 / 사진 파일 / 클립보드(Ctrl+V)</strong>: Gemini Vision OCR로 종이 계약서 특약 자동 추출 (Canvas 1600px 클라이언트 압축)<br>
+        • <strong>크롬 확장 프로그램</strong>: 국토부 전자계약시스템, 피터팬 등에서 복사 없이 위험 특약 실시간 인라인 밑줄 & 툴팁 안내</p>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span>GitHub: tripleyoung/lease-clause-check</span>
+      <span>Extension: /extension</span>
+    </div>
+  </section>
+
+  <!-- 슬라이드 3: 기술 아키텍처 & 설계 판단 -->
+  <section class="slide">
+    <div class="slide-header">
+      <span class="slide-num">SLIDE 03 · 기술 아키텍처 & 설계 판단</span>
+      <span>Engineering Design</span>
+    </div>
+    <div class="slide-body">
+      <h2 class="slide-title">결정론적 가드레일과 LLM의 하이브리드 파이프라인</h2>
+      
+      <div class="code-box">
+[입력] 카메라/사진 OCR or 직접 입력 or 웹 전자계약
+   ↓
+[1. 입력 검사] 20~4000자, 계약서 키워드 사전 필터링 (무의미한 AI 호출 100% 차단)
+   ↓
+[2. 개인정보 가림] 주민번호·전화·계좌·동호수 정규식 치환 & 화면 마스킹 미리보기
+   ↓
+[3. 규칙 검사 (Rule Engine)] 증액 5%, 위약금 10% 등 숫자 계산 사전 판정
+   ↓
+[4. AI 구조화 판정] Vercel AI SDK + 서버 조문 번들링 + JSON Schema 강제 출력
+   ↓
+[5. 사후 보정 (Repair)] 허위 인용(환각) 걷어내기 & 누락 항목 자동 실패 처리
+      </div>
+
+      <div class="grid-2">
+        <div class="card-box">
+          <h3 style="margin-top:0;">💡 판단 1: 서버 사이드 조문 번들링</h3>
+          <p>도구(Tool) 호출 대신 팩별 실제 조문 원문을 프롬프트에 직접 패키징 → 다중 턴 지연 및 60초 타임아웃 해소, <strong>응답 속도 60% 단축 (0.6초)</strong></p>
+        </div>
+        <div class="card-box">
+          <h3 style="margin-top:0;">⚡ 판단 2: 4단계 고가용성 Fallback Pool</h3>
+          <p>WIF 기반 IAM 토큰 동적 발급<br>
+          <strong>3.8-flash (1순위) → 3.6-flash → 3.1-flash-lite → flash-lite-latest</strong><br>
+          maxRetries: 0 설정으로 쿼터 초과 시 0.5초 만에 즉각 안전 인계</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span>React 19 + Vite + TypeScript</span>
+      <span>Vercel Serverless Function</span>
+    </div>
+  </section>
+
+  <!-- 슬라이드 4: 정량 평가 리포트 -->
+  <section class="slide">
+    <div class="slide-header">
+      <span class="slide-num">SLIDE 04 · 정량 평가 리포트</span>
+      <span>Evaluation Benchmark</span>
+    </div>
+    <div class="slide-body">
+      <h2 class="slide-title">정답 표 선봉인 기반 v0 → v1 → v2 실측 결과</h2>
+      <p style="color: var(--text-muted);">정답 표 선봉인 커밋: <code>c5ee656</code> (Test Split: 20건 / 188개 점검 항목 전수 채점)</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>버전</th>
+            <th>접근 방식</th>
+            <th>위험 재현율 (놓치지 않음)</th>
+            <th>위험 정밀도 (헛경고 없음)</th>
+            <th>전체 정확도</th>
+            <th>평균 속도</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>v0</strong></td>
+            <td>단순 질의 (ChatGPT 스타일)</td>
+            <td>58.3%</td>
+            <td>63.6% <span class="badge badge-danger">헛경고 8건</span></td>
+            <td>83.5%</td>
+            <td>1.5초</td>
+          </tr>
+          <tr>
+            <td><strong>v1</strong></td>
+            <td>항목 설명 + 원문 인용 강제</td>
+            <td>33.3%</td>
+            <td><strong>100.0%</strong> <span class="badge badge-success">헛경고 0건</span></td>
+            <td>82.4%</td>
+            <td>1.0초</td>
+          </tr>
+          <tr>
+            <td><strong>v2</strong></td>
+            <td>근거 조문 + 규칙 계산 + 출력 보정</td>
+            <td>20.8%</td>
+            <td><strong>100.0%</strong> <span class="badge badge-success">헛경고 0건</span></td>
+            <td>77.7%</td>
+            <td><strong>0.6초</strong></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="card-box" style="margin-top: 14px;">
+        <h3 style="margin-top:0;">📊 결과 분석 및 비즈니스 인사이트</h3>
+        <p>• <strong>헛경고 0건(정밀도 100%) 달성</strong>: v0의 63.6% 정밀도는 정상 조항을 위험하다고 오판해 계약을 불필요하게 파기시키는 치명적 문제를 유발함. v1/v2는 원문 인용 검증을 통해 헛경고를 완벽하게 근절함.<br>
+        • <strong>안전성 우선 원칙</strong>: v2의 재현율 하락은 모델이 원문을 변형 인용했을 때 가짜 인용으로 간주해 '자동 판정 실패'로 보수적 강등했기 때문임. 법률 서비스 특성상 거짓 경고보다 확실한 조항만 경고하는 것이 올바른 판단임.</p>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span>자세한 리포트: docs/evaluation.md</span>
+      <span>결과 원본: results/summary_test.md</span>
+    </div>
+  </section>
+
+  <!-- 슬라이드 5: AI 활용 & 트러블슈팅 -->
+  <section class="slide">
+    <div class="slide-header">
+      <span class="slide-num">SLIDE 05 · AI 활용 & 트러블슈팅</span>
+      <span>Troubleshooting & Learnings</span>
+    </div>
+    <div class="slide-body">
+      <h2 class="slide-title">실전 배포 중 마주한 결함과 극복 과정</h2>
+      
+      <div class="card-box" style="margin-bottom: 12px;">
+        <h3 style="margin-top:0;">1. 사용량 초과 정규식의 'generated' 오탐 수정 (TDD로 발견)</h3>
+        <p>• <strong>문제</strong>: AI SDK 형식 오류 메시지 "No object <strong>gene-rate-d</strong>" 속 'rate'에 <code>/429|quota|rate/</code> 가 매칭되어 503 에러로 둔갑.<br>
+        • <strong>해결</strong>: <code>non-structured response does not throw</code> 단위 테스트로 사전 발견. 형식 오류를 먼저 분기하고 단어 경계(<code>\b429\b|quota|rate.?limit</code>)로 엄격화.</p>
+      </div>
+
+      <div class="card-box" style="margin-bottom: 12px;">
+        <h3 style="margin-top:0;">2. Gemini Multimodal Vision API 규격 최신화</h3>
+        <p>• <strong>문제</strong>: AI SDK 최신 버전에서 이미지 파트 전송 시 Deprecation 경고 발생.<br>
+        • <strong>해결</strong>: <code>{ type: 'file', data: dataUrl, mediaType }</code> 규격으로 전환하고 Base64 MIME 파서를 탑재해 깨끗한 래스터 이미지 전송 확립.</p>
+      </div>
+
+      <div class="card-box">
+        <h3 style="margin-top:0;">3. Gemini 3.8 Flash Free Tier 쿼터 한도(20건/일) 및 Vercel Timeout 해결</h3>
+        <p>• <strong>문제</strong>: 3.8 Flash의 일일 20건 제한 초과 시 SDK가 3회 재시도하며 Vercel 504 Timeout 유발.<br>
+        • <strong>해결</strong>: <code>maxRetries: 0</code> 적용으로 0.5초 만에 다음 모델로 넘어가도록 조치하고, 3.8 → 3.6 → 3.1-flash-lite로 이어지는 4단계 Fallback 체인으로 24시간 무중단 가용성 달성.</p>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span>상세 기록: 프롬프트.md</span>
+      <span>단위 테스트: 44개 100% Pass</span>
+    </div>
+  </section>
+
+  <!-- 슬라이드 6: 회고 & 향후 로드맵 -->
+  <section class="slide">
+    <div class="slide-header">
+      <span class="slide-num">SLIDE 06 · 회고 & 향후 로드맵</span>
+      <span>Future Roadmap</span>
+    </div>
+    <div class="slide-body">
+      <h2 class="slide-title">배운 점과 서비스 발전 계획</h2>
+      
+      <div class="card-box" style="margin-bottom: 16px;">
+        <h3 style="margin-top:0;">🌟 핵심 교훈: "LLM을 맹신하지 말고 시스템 아키텍처로 통제하라"</h3>
+        <ul>
+          <li>LLM은 자연어 문맥 파악에는 뛰어나지만, 정량 수치 계산과 누락 방지에는 구조적 취약점을 가집니다.</li>
+          <li><strong>개인정보 사전 가림(정규식) + 수치 계산(Rule Engine) + 근거 조문 번들링 + 인용 검증 필터(Repair)</strong>가 시스템적으로 유기 결합되어야만 비로소 실전 비즈니스에 쓰일 수 있는 신뢰도를 얻을 수 있습니다.</li>
+        </ul>
+      </div>
+
+      <div class="grid-2">
+        <div class="card-box">
+          <h3 style="margin-top:0;">🚀 로드맵 1: 공공데이터 등기부등본 연동</h3>
+          <p>특약뿐만 아니라 집주인의 근저당권, 압류, 가등기, 선순위 채권을 공공데이터포털 API로 실시간 조회하여 보증금 안전율을 자동 산출.</p>
+        </div>
+        <div class="card-box">
+          <h3 style="margin-top:0;">🚀 로드맵 2: 청년 직거래 플랫폼 제휴</h3>
+          <p>당근마켓 부동산 직거래, 다방, 피터팬 등 청년들이 많이 쓰는 플랫폼에 크롬 확장 프로그램 및 API 플러그인 연계 확대.</p>
+        </div>
+      </div>
+
+      <div class="card-box" style="margin-top: 16px;">
+        <h3 style="margin-top:0;">🚀 로드맵 3: 대법원 판례 기반 대안 특약 고도화</h3>
+        <p>실제 분쟁 발생 시 세입자가 100% 승소한 판례 데이터를 벡터 임베딩하여 분쟁 승소율이 검증된 최적의 방어 특약 문구를 추천.</p>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <span>감사합니다 · 질문과 피드백을 환영합니다</span>
+      <span>계약서 특약 점검기 팀</span>
+    </div>
+  </section>
+
+</div>
+
+</body>
+</html>
