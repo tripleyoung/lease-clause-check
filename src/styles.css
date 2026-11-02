@@ -1647,24 +1647,258 @@ ol.rt-list {
 /* 실제 스캔본 계약서·영수증 이미지 전용 컨테이너 */
 .paper-doc-scanned-wrap {
   width: 100%;
-  max-height: 520px;
+  max-height: 580px;
   overflow-y: auto;
   border-radius: 12px;
   border: 1px solid var(--hairline-strong);
   background: #ecebe6;
-  padding: 12px;
+  padding: 16px;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* A4 정비율 (1 : 1.414) 스캔 문서 컨테이너 */
+.paper-doc-scanned-container {
+  position: relative;
+  width: 100%;
+  max-width: 660px;
+  aspect-ratio: 1 / 1.414;
+  background: #ffffff;
+  border-radius: 6px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.16), 0 1px 3px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  user-select: none;
+}
+
+.paper-doc-scanned-container.is-result-mode {
+  max-width: 100%;
+  margin-bottom: 12px;
 }
 
 .paper-doc-scanned-img {
   width: 100%;
-  max-width: 720px;
-  height: auto;
+  height: 100%;
+  object-fit: contain;
   display: block;
+}
+
+/* 계약서 문서 '위'에 올라가는 조항 하이라이트 레이어 */
+.doc-annotation-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* 문서 위 개별 조항 하이라이트 박스 */
+.doc-annotation-box {
+  position: absolute;
+  pointer-events: auto;
+  cursor: pointer;
   border-radius: 4px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: 2px solid transparent;
+  transition: all 180ms cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: flex-start;
+  z-index: 10;
+}
+
+.doc-annotation-box:focus {
+  outline: none;
+}
+
+/* 위험 특약 하이라이트 박스 */
+.doc-annotation-box--risk {
+  background: rgba(201, 54, 54, 0.15);
+  border-color: rgba(201, 54, 54, 0.7);
+}
+
+.doc-annotation-box--risk:hover {
+  background: rgba(201, 54, 54, 0.25);
+  border-color: #c93636;
+  box-shadow: 0 0 12px rgba(201, 54, 54, 0.4);
+}
+
+.doc-annotation-box--risk.is-selected {
+  background: rgba(201, 54, 54, 0.32);
+  border-color: #c93636;
+  box-shadow: 0 0 0 2px rgba(201, 54, 54, 0.4), 0 0 16px rgba(201, 54, 54, 0.5);
+}
+
+/* 권리 보호 조항 하이라이트 박스 */
+.doc-annotation-box--safe {
+  background: rgba(35, 66, 110, 0.14);
+  border-color: rgba(35, 66, 110, 0.6);
+}
+
+.doc-annotation-box--safe:hover {
+  background: rgba(35, 66, 110, 0.24);
+  border-color: #23426e;
+  box-shadow: 0 0 12px rgba(35, 66, 110, 0.35);
+}
+
+.doc-annotation-box--safe.is-selected {
+  background: rgba(35, 66, 110, 0.28);
+  border-color: #23426e;
+  box-shadow: 0 0 0 2px rgba(35, 66, 110, 0.35), 0 0 14px rgba(35, 66, 110, 0.45);
+}
+
+/* 주의 조항 하이라이트 박스 */
+.doc-annotation-box--caution {
+  background: rgba(217, 119, 6, 0.16);
+  border-color: rgba(217, 119, 6, 0.65);
+}
+
+.doc-annotation-box--caution:hover {
+  background: rgba(217, 119, 6, 0.26);
+  border-color: #d97706;
+}
+
+.doc-annotation-box--caution.is-selected {
+  background: rgba(217, 119, 6, 0.3);
+  border-color: #d97706;
+  box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.35), 0 0 14px rgba(217, 119, 6, 0.45);
+}
+
+/* 선택된 핀의 펄스 효과 */
+.doc-annotation-box.is-active-pulse {
+  animation: docAnnotationPulse 2s infinite ease-in-out;
+}
+
+@keyframes docAnnotationPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(201, 54, 54, 0.6), 0 0 12px rgba(201, 54, 54, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(201, 54, 54, 0), 0 0 20px rgba(201, 54, 54, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(201, 54, 54, 0), 0 0 12px rgba(201, 54, 54, 0.4);
+  }
+}
+
+/* 문서 위 동그란 번호 핀 배지 */
+.doc-annotation-pin {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  border: 1.5px solid #fff;
+  transition: transform 160ms ease;
+  z-index: 12;
+}
+
+.doc-annotation-box:hover .doc-annotation-pin,
+.doc-annotation-box.is-selected .doc-annotation-pin {
+  transform: scale(1.2);
+}
+
+.doc-annotation-pin--risk {
+  background: #c93636;
+}
+
+.doc-annotation-pin--safe {
+  background: #23426e;
+}
+
+.doc-annotation-pin--caution {
+  background: #d97706;
+}
+
+/* 문서 위 툴팁 풍선 */
+.doc-annotation-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(22, 24, 29, 0.94);
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.3;
+}
+
+.doc-annotation-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: rgba(22, 24, 29, 0.94) transparent transparent transparent;
+}
+
+.doc-annotation-tooltip strong {
+  font-weight: 700;
+}
+
+.doc-annotation-tooltip small {
+  font-size: 11px;
+  color: #e2e8f0;
+}
+
+/* 스캔 핀 요약 하단 바 */
+.scan-pin-summary-bar {
+  margin-top: 12px;
+  width: 100%;
+  max-width: 660px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--paper-raised);
+  border: 1px solid var(--hairline-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.scan-pin-summary-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 13px;
+}
+
+.scan-pin-summary-body strong {
+  color: var(--ink);
+  font-size: 13.5px;
+}
+
+.scan-pin-summary-body p {
+  margin: 0;
+  color: var(--ink-soft);
+  line-height: 1.4;
+}
+
+.scan-pin-summary-point {
+  display: block;
+  font-size: 12px;
+  color: var(--indigo-text);
+  font-weight: 600;
+  margin-top: 2px;
 }
 
 .paper-doc__scanned-scanview {
@@ -2543,3 +2777,236 @@ button.paper-doc__clause:hover {
     transition: none !important;
   }
 }
+
+/* ========================================================
+ * 질문 유형 빅데이터 도넛 통계 (.question-stats-card)
+ * ======================================================== */
+.question-stats-card {
+  width: 100%;
+  border-radius: 18px;
+  background: var(--paper-raised);
+  border: 1px solid var(--hairline-strong);
+  box-shadow: var(--shadow-md);
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 12px 0;
+}
+
+.question-stats-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.question-stats-card__title {
+  margin: 4px 0 2px;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+}
+
+.question-stats-card__sub {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.4;
+}
+
+.question-stats-card__sub strong {
+  color: var(--indigo-text);
+  font-weight: 700;
+}
+
+.question-stats-grid {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 20px;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .question-stats-grid {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+}
+
+.question-stats-chart-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.question-donut-container {
+  position: relative;
+  width: 220px;
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.question-donut-svg {
+  transform: rotate(-90deg);
+  overflow: visible;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.08));
+}
+
+.question-donut-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  pointer-events: none;
+}
+
+.question-donut-center__tag {
+  font-size: 11.5px;
+  font-weight: 700;
+  margin-bottom: 2px;
+  letter-spacing: -0.01em;
+}
+
+.question-donut-center__val {
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--ink);
+  line-height: 1.25;
+}
+
+.question-donut-center__sub {
+  font-size: 10.5px;
+  color: var(--ink-faint);
+  margin-top: 3px;
+}
+
+/* 오른쪽 디테일 박스 */
+.question-stats-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  width: 100%;
+}
+
+.question-stats-detail__spotlight {
+  background: var(--paper);
+  border-radius: 14px;
+  border: 1.5px solid var(--indigo);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 200ms ease;
+}
+
+.question-stats-detail__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.question-stats-badge {
+  font-size: 12px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid;
+}
+
+.question-stats-law {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+.question-stats-detail__q {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ink);
+  line-height: 1.35;
+}
+
+.question-stats-detail__desc {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+
+.question-stats-detail__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.question-stats-detail__actions button {
+  font-size: 12.5px;
+}
+
+/* 하단 카테고리 범례 탭 */
+.question-stats-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.question-legend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--hairline);
+  background: var(--paper);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.question-legend-chip:hover {
+  border-color: var(--indigo);
+  color: var(--indigo-text);
+  transform: translateY(-1px);
+}
+
+.question-legend-chip.is-active {
+  font-weight: 800;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.question-legend-chip__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.question-legend-chip__title {
+  white-space: nowrap;
+}
+
+.question-legend-chip__pct {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  margin-left: 2px;
+}
+

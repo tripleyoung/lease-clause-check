@@ -31,6 +31,7 @@ import {
   SamplePreviewCard,
   type SampleDocSpec,
 } from './components/DocumentVisualizer';
+import { QuestionStatsDonut } from './components/QuestionStatsDonut';
 import {
   cachedCheckPost,
   createQuickSession,
@@ -313,6 +314,7 @@ export function App() {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const followupRef = useRef<HTMLDetailsElement>(null);
 
   const activeTurn = turns[turnIndex] ?? null;
@@ -1327,7 +1329,25 @@ export function App() {
           void syncAuthToSession();
           setPhase('ready');
         }}
-      />
+      >
+        <div style={{ marginTop: '20px' }}>
+          <QuestionStatsDonut
+            onSelectCategory={(question) => {
+              onyulAuth.devLogin();
+              void syncAuthToSession();
+              setPhase('ready');
+              setInput(question);
+            }}
+            onOpenSample={(docId) => {
+              onyulAuth.devLogin();
+              void syncAuthToSession();
+              setPhase('ready');
+              const found = SAMPLE_DOCS.find((d) => d.id === docId);
+              if (found) openSamplePreview(found);
+            }}
+          />
+        </div>
+      </WelcomeStage>
     );
   }
 
@@ -1449,6 +1469,18 @@ export function App() {
                     계약서·영수증 사진을 올리거나 샘플 문서를 눌러 미리보기로 살펴보세요
                   </h2>
                 </div>
+
+                {/* 누적 의뢰인 질문 통계 원(도넛) 차트 */}
+                <QuestionStatsDonut
+                  onSelectCategory={(question) => {
+                    setInput(question);
+                    inputRef.current?.focus();
+                  }}
+                  onOpenSample={(docId) => {
+                    const found = SAMPLE_DOCS.find((d) => d.id === docId);
+                    if (found) openSamplePreview(found);
+                  }}
+                />
 
                 <div
                   className="photo-dropcard"
@@ -1655,6 +1687,7 @@ export function App() {
                   <span>사진 첨부</span>
                 </button>
                 <textarea
+                  ref={inputRef}
                   rows={1}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}

@@ -1,6 +1,13 @@
 import { useState } from 'react';
 import type { ItemResult } from '../../shared/types';
 
+export interface DocAnnotationBox {
+  left: number; // percentage (0 - 100)
+  top: number;  // percentage (0 - 100)
+  width: number; // percentage (0 - 100)
+  height: number; // percentage (0 - 100)
+}
+
 export interface SampleDocSpec {
   id: 'lease_sample' | 'gym_sample' | 'tax_sample';
   topic: 'lease' | 'gym' | 'tax';
@@ -17,6 +24,7 @@ export interface SampleDocSpec {
     tone: 'risk' | 'safe' | 'caution';
     tag: string;
     shortPoint: string;
+    annotationBox?: DocAnnotationBox;
   }>;
   rawText: string;
 }
@@ -62,6 +70,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'safe',
         tag: '보호 · 최우선 권리 확보 (법무부 권고)',
         shortPoint: '전입신고 대항력이 생길 때까지 내 보증금 순위를 지켜주는 필수 보호 조항이에요.',
+        annotationBox: { left: 6.8, top: 54.0, width: 86.4, height: 3.2 },
       },
       {
         num: 2,
@@ -69,6 +78,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'safe',
         tag: '보호 · 통상 마모 면책 (대법원 2005다51389)',
         shortPoint: '대법원 판례 기준에 따라 일상적인 생활 마모 책임을 면책해 주는 표준 조항이에요.',
+        annotationBox: { left: 6.8, top: 57.8, width: 86.4, height: 3.4 },
       },
       {
         num: 3,
@@ -76,6 +86,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'risk',
         tag: '위험 · 보증금 반환 지연 (주임법 위반)',
         shortPoint: '새 세입자가 안 구해지면 보증금을 제때 못 돌려받는 대표적 불법 독소 조항이에요.',
+        annotationBox: { left: 6.8, top: 62.4, width: 86.4, height: 2.8 },
       },
       {
         num: 4,
@@ -83,6 +94,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'risk',
         tag: '위험 · 원상복구 과다 전가 (약관규제법 위반)',
         shortPoint: '자연 노후화까지 세입자에게 물려 보증금을 부당 차감하는 불리한 특약이에요.',
+        annotationBox: { left: 6.8, top: 65.6, width: 86.4, height: 2.8 },
       },
       {
         num: 5,
@@ -90,6 +102,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'risk',
         tag: '위험 · 법정 5% 상한 초과 (주임법 제7조)',
         shortPoint: '주택임대차보호법상 법정 증액 상한(5%)을 초과하여 법적 효력이 없는 무효 조항이에요.',
+        annotationBox: { left: 6.8, top: 68.8, width: 86.4, height: 2.8 },
       },
     ],
     rawText:
@@ -129,6 +142,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'safe',
         tag: '보호 · 법정 환불 기준 (공정위 표준약관)',
         shortPoint: '실제 결제 금액 기준으로 10% 위약금만 공제하고 남은 금액을 돌려받는 표준 권리예요.',
+        annotationBox: { left: 6.8, top: 48.2, width: 86.4, height: 4.2 },
       },
       {
         num: 2,
@@ -136,6 +150,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'risk',
         tag: '위험 · 정상가 꼼수 차감 및 위약금 10% 초과',
         shortPoint: '실제 결제한 할인가가 아닌 부풀린 정상가로 계산해 환불금을 0원으로 만드는 대표적 꼼수예요.',
+        annotationBox: { left: 6.8, top: 54.6, width: 86.4, height: 3.5 },
       },
       {
         num: 3,
@@ -143,6 +158,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'risk',
         tag: '위험 · 환불 일체 불가 및 사업자 귀책 면책',
         shortPoint: '센터 사정으로 운동을 못 하게 되었는데도 환불을 전면 거부하는 원천 무효 조항이에요.',
+        annotationBox: { left: 6.8, top: 58.8, width: 86.4, height: 3.2 },
       },
       {
         num: 4,
@@ -150,6 +166,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'risk',
         tag: '위험 · 사은품 과다 위약금 전가',
         shortPoint: '공짜 사은품 명목으로 정가의 몇 배를 청구해 환불금을 대폭 깎는 부당 조항이에요.',
+        annotationBox: { left: 6.8, top: 62.8, width: 86.4, height: 3.2 },
       },
     ],
     rawText:
@@ -195,6 +212,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'safe',
         tag: '공제 요건 충족 · 연 1,000만 원 한도',
         shortPoint: '총급여 8,000만 원 이하 무주택 세대주 요건을 충족해 조세특례제한법상 월세 세액공제 대상이에요.',
+        annotationBox: { left: 6.8, top: 46.5, width: 86.4, height: 4.0 },
       },
       {
         num: 2,
@@ -202,6 +220,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'safe',
         tag: '환급 예상액 · 연 135만 원 (지방세 포함 148.5만 원)',
         shortPoint: '연 900만 원 × 15% = 지방소득세 포함 총 148.5만 원을 연말정산에서 돌려받아요.',
+        annotationBox: { left: 6.8, top: 51.8, width: 86.4, height: 4.0 },
       },
       {
         num: 3,
@@ -209,6 +228,7 @@ export const SAMPLE_DOCS: SampleDocSpec[] = [
         tone: 'caution',
         tag: '주의 · 전입신고 필수 (집주인 동의 불필요)',
         shortPoint: '임대인의 동의나 서명 없이도 국세청 홈택스 또는 회사 연말정산 간소화에서 직접 신청할 수 있어요.',
+        annotationBox: { left: 6.8, top: 57.2, width: 86.4, height: 4.4 },
       },
     ],
     rawText:
@@ -232,12 +252,16 @@ export function SamplePreviewCard({
 }) {
   const [viewMode, setViewMode] = useState<'scan' | 'structured'>('scan');
   const [showMasked, setShowMasked] = useState(true);
+  const [showPinsOnScan, setShowPinsOnScan] = useState(true);
+  const [selectedClauseNum, setSelectedClauseNum] = useState<number>(3); // 기본 위험 3번 조항 선택
+
+  const activeClause = doc.clauses.find((c) => c.num === selectedClauseNum) ?? doc.clauses[0];
 
   return (
     <section className="doc-preview-shell" aria-label={`${doc.title} 미리보기`} data-testid="sample-preview-card">
       <div className="doc-preview-shell__top">
         <div>
-          <span className="visual-card__eyebrow">📄 샘플 문서 이미지 미리보기</span>
+          <span className="visual-card__eyebrow">📄 공식 계약서 스캔 원본 및 위험 조항 위치 확인</span>
           <h3 className="visual-card__title">{doc.title}</h3>
           <p className="doc-preview-shell__sub">{doc.subtitle}</p>
         </div>
@@ -250,7 +274,7 @@ export function SamplePreviewCard({
                 onClick={() => setViewMode('scan')}
                 data-testid="toggle-view-scan"
               >
-                📄 스캔 원본
+                📄 스캔 원본 (A4 정비율)
               </button>
               <button
                 type="button"
@@ -258,9 +282,19 @@ export function SamplePreviewCard({
                 onClick={() => setViewMode('structured')}
                 data-testid="toggle-view-structured"
               >
-                📋 조항 분석
+                📋 조항 분석 텍스트
               </button>
             </div>
+          )}
+          {viewMode === 'scan' && (
+            <button
+              type="button"
+              className={showPinsOnScan ? 'copy-chip copy-chip--active' : 'copy-chip'}
+              onClick={() => setShowPinsOnScan((v) => !v)}
+              data-testid="toggle-scan-pins"
+            >
+              {showPinsOnScan ? '🎯 조항 위치 핀 표시 켜짐' : '🎯 조항 핀 숨기기'}
+            </button>
           )}
           {viewMode === 'structured' && (
             <button
@@ -279,11 +313,64 @@ export function SamplePreviewCard({
 
       {viewMode === 'scan' && doc.scannedImageUrl ? (
         <div className="paper-doc-scanned-wrap">
-          <img
-            src={doc.scannedImageUrl}
-            alt={`${doc.title} 실제 스캔본 계약서`}
-            className="paper-doc-scanned-img"
-          />
+          {/* A4 정비율 스캔 문서 래퍼 */}
+          <div className="paper-doc-scanned-container" data-testid="scanned-a4-container">
+            <img
+              src={doc.scannedImageUrl}
+              alt={`${doc.title} 실제 스캔본 계약서`}
+              className="paper-doc-scanned-img"
+            />
+
+            {/* 계약서 문서 '위'에 직접 오버레이되는 조항 하이라이트 박스 및 번호 핀 */}
+            {showPinsOnScan && (
+              <div className="doc-annotation-layer" aria-label="문서 위 조항 위치 하이라이트">
+                {doc.clauses.map((c) => {
+                  if (!c.annotationBox) return null;
+                  const isSelected = c.num === selectedClauseNum;
+                  return (
+                    <button
+                      key={c.num}
+                      type="button"
+                      className={`doc-annotation-box doc-annotation-box--${c.tone} ${isSelected ? 'is-selected' : ''}`}
+                      style={{
+                        left: `${c.annotationBox.left}%`,
+                        top: `${c.annotationBox.top}%`,
+                        width: `${c.annotationBox.width}%`,
+                        height: `${c.annotationBox.height}%`,
+                      }}
+                      onClick={() => setSelectedClauseNum(c.num)}
+                      title={`${c.num}번: ${c.tag}`}
+                      data-testid={`scan-overlay-pin-${c.num}`}
+                    >
+                      <span className={`doc-annotation-pin doc-annotation-pin--${c.tone}`}>
+                        {c.num}
+                      </span>
+                      {isSelected && (
+                        <span className="doc-annotation-tooltip">
+                          <strong>#{c.num} {c.tag}</strong>
+                          <small>{c.shortPoint}</small>
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* 스캔본 바로 아래: 현재 문서 위에서 선택된 핀의 해설 요약 */}
+          {showPinsOnScan && activeClause && (
+            <div className="scan-pin-summary-bar">
+              <span className={`paper-doc__pin paper-doc__pin--${activeClause.tone}`}>
+                {activeClause.num}
+              </span>
+              <div className="scan-pin-summary-body">
+                <strong>{activeClause.tag}</strong>
+                <p>{activeClause.text}</p>
+                <span className="scan-pin-summary-point">💡 {activeClause.shortPoint}</span>
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <div className="paper-doc">
@@ -326,7 +413,7 @@ export function SamplePreviewCard({
 
       <div className="doc-preview-shell__footer">
         <span className="doc-preview-shell__hint">
-          👆 {viewMode === 'scan' ? '스캔 원본 이미지를 확인하셨다면' : '위 계약서·명세서에서 위험 조항 위치(①~⑤)를 확인하고'} 한결의 정밀 분석을 시작해 보세요.
+          👆 {viewMode === 'scan' ? '스캔 계약서 위 핀(①~⑤)을 눌러 위치를 확인한 후' : '위 계약서·명세서에서 위험 조항 위치(①~⑤)를 확인하고'} 한결의 정밀 분석을 시작해 보세요.
         </span>
         <button
           type="button"
@@ -385,50 +472,92 @@ export function AnnotatedDocumentDeckCard({
     }
   };
 
+  // 스캔본 이미지가 있고 doc의 clauses에 annotationBox가 있으면 핀 오버레이 제공
+  const hasScannedDoc = Boolean(doc?.scannedImageUrl || uploadedImageUrl);
+  const effectiveImageUrl = uploadedImageUrl || doc?.scannedImageUrl;
+
   return (
     <section className="visual-card annotated-doc-card" aria-label="문서 원문 위치 가리키기 및 조항별 해설" data-testid="annotated-doc-card">
       <header className="annotated-doc-card__head">
         <div>
-          <span className="visual-card__eyebrow">👆 문서 위치 가리키며 보기 · 번호를 누르면 한결이 해당 조항을 설명해요</span>
+          <span className="visual-card__eyebrow">👆 계약서 실물 위 직접 표시 · 번호 핀을 누르면 한결이 해당 위치를 설명해요</span>
           <h3 className="visual-card__title">
-            계약서 원문 하이라이트 ({safeIdx + 1}/{displayItems.length}번 조항 가리키는 중)
+            계약서 실물 원본 하이라이트 ({safeIdx + 1}/{displayItems.length}번 조항 짚는 중)
           </h3>
         </div>
       </header>
 
       <div className="annotated-doc-grid">
-        {/* 왼쪽: 실제 문서 시트 또는 첨부 이미지 + 번호 핀 하이라이트 */}
-        <div className="paper-doc paper-doc--compact">
-          <div className="paper-doc__header">
-            <span className="paper-doc__title">{doc?.docHeader ?? '점검 대상 계약서 · 특약 원문'}</span>
-            <span className="paper-doc__stamp" aria-hidden="true">
-              印
-            </span>
-          </div>
-
-          {(uploadedImageUrl || doc?.scannedImageUrl) && (
-            <div className="paper-doc__scanned-scanview">
-              <span className="paper-doc__scan-badge">📄 계약서·약관 실물 스캔본</span>
+        {/* 왼쪽: 실제 A4 정비율 스캔본 문서 위 직접 하이라이트 핀 오버레이 */}
+        <div className="paper-doc-result-view">
+          {hasScannedDoc ? (
+            <div className="paper-doc-scanned-container is-result-mode" data-testid="result-scanned-container">
               <img
-                src={uploadedImageUrl || doc?.scannedImageUrl}
+                src={effectiveImageUrl}
                 alt="계약서·약관 실제 스캔 이미지"
-                className="paper-doc__uploaded-img"
-                style={{ height: 'auto', maxHeight: '180px', objectFit: 'contain' }}
+                className="paper-doc-scanned-img"
               />
+
+              {/* 스캔 문서 위 직접 표시되는 핀 레이어 */}
+              <div className="doc-annotation-layer" aria-label="점검 결과 문서 위 위치 오버레이">
+                {displayItems.map((item, idx) => {
+                  // doc에 매칭되는 clause가 있으면 그 박스 사용, 없으면 균등 분할 위치
+                  const matchedClause = doc?.clauses.find((c) =>
+                    c.text.includes(item.quote?.slice(0, 8) || '') ||
+                    c.num === idx + 1
+                  );
+                  const box = matchedClause?.annotationBox ?? {
+                    left: 6.8,
+                    top: 50 + idx * 5.5,
+                    width: 86.4,
+                    height: 3.2,
+                  };
+
+                  const isSelected = idx === safeIdx;
+                  const isRisk = item.verdict === '위험';
+                  const tone = isRisk ? 'risk' : 'safe';
+
+                  return (
+                    <button
+                      key={item.itemId}
+                      type="button"
+                      className={`doc-annotation-box doc-annotation-box--${tone} ${isSelected ? 'is-selected is-active-pulse' : ''}`}
+                      style={{
+                        left: `${box.left}%`,
+                        top: `${box.top}%`,
+                        width: `${box.width}%`,
+                        height: `${box.height}%`,
+                      }}
+                      onClick={() => handleSelect(idx)}
+                      title={`#${idx + 1}: ${item.title}`}
+                      data-testid={`result-pin-${idx + 1}`}
+                    >
+                      <span className={`doc-annotation-pin doc-annotation-pin--${tone}`}>
+                        {idx + 1}
+                      </span>
+                      {isSelected && (
+                        <span className="doc-annotation-tooltip">
+                          <strong>#{idx + 1} {item.title}</strong>
+                          <small>{isRisk ? '🔴 수정 권장 독소 특약' : '🟢 권리 보호 조항'}</small>
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div className="paper-doc paper-doc--compact">
+              <div className="paper-doc__header">
+                <span className="paper-doc__title">{doc?.docHeader ?? '점검 대상 계약서 · 특약 원문'}</span>
+                <span className="paper-doc__stamp" aria-hidden="true">
+                  印
+                </span>
+              </div>
             </div>
           )}
 
-          {doc && (
-            <div className="paper-doc__meta">
-              {doc.metaLines.slice(0, 2).map((m) => (
-                <div key={m.label} className="paper-doc__meta-row">
-                  <span className="paper-doc__meta-label">{m.label}</span>
-                  <span className="paper-doc__meta-val is-masked">{m.maskedValue}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
+          {/* 문서 하단에 조항 선택 버튼 바 */}
           <div className="paper-doc__clauses">
             {displayItems.map((item, idx) => {
               const isSelected = idx === safeIdx;
@@ -500,3 +629,4 @@ export function AnnotatedDocumentDeckCard({
     </section>
   );
 }
+

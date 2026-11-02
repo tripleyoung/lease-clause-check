@@ -34,6 +34,8 @@ export interface WelcomeStageProps {
   devLoginLabel?: string;
   /** 하단 작은 안내 문구 */
   finePrint?: ReactNode;
+  /** 추가 컴포넌트 슬롯 (예: 누적 통계 도넛 차트 등) */
+  children?: ReactNode;
   /** 로그인 성공 시 호출되는 콜백 */
   onSignedIn: () => void;
   /** 초기 인증 오류 메시지 */
@@ -120,6 +122,7 @@ export function WelcomeStage({
   loginButtonLabel = '계정으로 시작하기',
   devLoginLabel,
   finePrint,
+  children,
   onSignedIn,
   initialNotice = null,
 }: WelcomeStageProps) {
@@ -197,6 +200,7 @@ export function WelcomeStage({
             </button>
           )}
           {finePrint && <p className="welcome__fine">{finePrint}</p>}
+          {children}
         </div>
       </section>
     </div>
