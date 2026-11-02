@@ -3,6 +3,7 @@ import { PACKS, openKnowledge } from './packs.js';
 import { maskPii } from './pii.js';
 import { validateInput } from './validate.js';
 import { check } from './check.js';
+import { extractTextFromImage } from './ocr.js';
 import { CheckError } from './errors.js';
 import type { Version } from '../shared/types.js';
 
@@ -23,25 +24,43 @@ export function handlePacks(): Response {
 
 export async function handleCheck(request: Request): Promise<Response> {
   if (request.method !== 'POST') return json(405, { error: 'POST 요청만 받아요.' });
-  let body: { action?: string; pack?: string; text?: string; version?: string };
+  let body: { action?: string; pack?: string; text?: string; image?: string; version?: string };
   try {
     body = await request.json();
   } catch {
     return json(400, { error: '요청 내용을 읽지 못했어요.' });
   }
-  const text = typeof body.text === 'string' ? body.text : '';
+
+  let text = typeof body.text === 'string' ? body.text : '';
   const pack = typeof body.pack === 'string' ? body.pack : '';
+
   try {
+    // 1. 사진(OCR) 텍스트 추출 요청
+    if (body.action === 'ocr') {
+      if (!body.image) return json(400, { error: '분석할 계약서 사진(image)을 전송해 주세요.' });
+      const extractedText = await extractTextFromImage(body.image);
+      return json(200, { text: extractedText, ...maskPii(extractedText) });
+    }
+
+    // 텍스트가 없고 이미지가 전달된 경우 이미지로부터 텍스트 자동 추출
+    if (!text.trim() && body.image) {
+      text = await extractTextFromImage(body.image);
+    }
+
+    // 2. 개인정보 마스킹 요청
     if (body.action === 'mask') {
       const valid = validateInput(text);
       if (!valid.ok) return json(400, { error: valid.message });
       return json(200, maskPii(text));
     }
+
+    // 3. 계약서 점검 실행 요청
     if (body.action === 'check') {
       const version = (['v0', 'v1', 'v2'] as const).includes(body.version as Version) ? (body.version as Version) : undefined;
       return json(200, await check({ text, pack, version }));
     }
-    return json(400, { error: 'action 은 mask 또는 check 예요.' });
+
+    return json(400, { error: 'action 은 ocr, mask 또는 check 예요.' });
   } catch (e) {
     if (e instanceof CheckError) return json(e.status, { error: e.message });
     console.error('[check] unexpected', e);

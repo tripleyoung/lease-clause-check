@@ -40,3 +40,9 @@ test('api rejects bad json and unknown action', async () => {
   assert.equal((await handleCheck(new Request('http://x', { method: 'POST', body: '{' }))).status, 400);
   assert.equal((await handleCheck(post({ action: 'x', text: '특약 보증금 반환' }))).status, 400);
 });
+
+test('api rejects ocr without image (400)', async () => {
+  const res = await handleCheck(post({ action: 'ocr' }));
+  assert.equal(res.status, 400);
+  assert.ok((await res.json()).error.includes('사진'));
+});
