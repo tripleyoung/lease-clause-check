@@ -32,7 +32,10 @@ test('preview masks personal data before sending', async ({ page }) => {
 });
 
 test('check without a server key explains the cause and keeps input', async ({ page }) => {
-  test.skip(!!process.env.GEMINI_API_KEY || !!process.env.OPENAI_API_KEY, '키가 있으면 실제 점검이 돈다');
+  test.skip(
+    !!process.env.GEMINI_API_KEY || !!process.env.OPENAI_API_KEY || !!process.env.ANTHROPIC_WIF_CLIENT_SECRET,
+    '키가 있으면 실제 점검이 돈다',
+  );
   await page.goto('/');
   await page.getByRole('radio', { name: /헬스장·PT 이용 약관/ }).click();
   await page.getByRole('button', { name: '헬스장 약관' }).click();
