@@ -251,6 +251,10 @@ function taxBadgeTone(verdict: string): string {
   return 'tax-badge tax-badge--ineligible';
 }
 
+function safeBearer(token: string): string {
+  return /[^\x00-\x7F]/.test(token) ? encodeURI(token) : token;
+}
+
 const WELCOME_ITEMS: WelcomeFeatureItem[] = [
   {
     num: '一',
@@ -376,7 +380,7 @@ export function App() {
 
   useEffect(() => {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (session?.token) headers.Authorization = `Bearer ${session.token}`;
+    if (session?.token) headers.Authorization = `Bearer ${safeBearer(session.token)}`;
     fetch('/api/check', {
       method: 'POST',
       headers,
@@ -981,7 +985,7 @@ export function App() {
       });
 
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (session?.token) headers.Authorization = `Bearer ${session.token}`;
+      if (session?.token) headers.Authorization = `Bearer ${safeBearer(session.token)}`;
       void fetch('/api/check', {
         method: 'POST',
         headers,
@@ -1207,7 +1211,7 @@ export function App() {
     setTopic(saved.topic);
 
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (session?.token) headers.Authorization = `Bearer ${session.token}`;
+    if (session?.token) headers.Authorization = `Bearer ${safeBearer(session.token)}`;
     void fetch('/api/check', {
       method: 'POST',
       headers,
@@ -1237,7 +1241,7 @@ export function App() {
       setTurnIndex(0);
     }
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (session?.token) headers.Authorization = `Bearer ${session.token}`;
+    if (session?.token) headers.Authorization = `Bearer ${safeBearer(session.token)}`;
     void fetch('/api/check', {
       method: 'POST',
       headers,

@@ -153,7 +153,8 @@ export async function cachedCheckPost<T>(
 
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (token) {
-    headers.Authorization = `Bearer ${token}`;
+    const safeToken = /[^\x00-\x7F]/.test(token) ? encodeURI(token) : token;
+    headers.Authorization = `Bearer ${safeToken}`;
   }
   const res = await fetch('/api/check', {
     method: 'POST',
@@ -202,7 +203,11 @@ export function writeSavedSession(session: OnyulSession | null) {
 export function createQuickSession(name: string, email?: string): OnyulSession {
   const cleanName = name.trim() || '온율 회원';
   const cleanEmail = email?.trim() || undefined;
-  const idSeed = (cleanEmail || cleanName).replace(/[^a-zA-Z0-9가-힣_-]/g, '').slice(0, 20) || 'member';
+  const asciiSeed = cleanEmail ? cleanEmail.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 20) : '';
+  const hashSeed = Math.abs(
+    cleanName.split('').reduce((acc, c) => (acc << 5) - acc + c.charCodeAt(0), 0),
+  ).toString(36);
+  const idSeed = asciiSeed || `u${hashSeed || 'user'}`;
   const token = `quick:${idSeed}:${encodeURIComponent(cleanName)}:${encodeURIComponent(cleanEmail ?? '')}`;
   const session: OnyulSession = {
     token,
