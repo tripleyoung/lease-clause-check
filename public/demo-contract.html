@@ -21,6 +21,7 @@
       border-radius: 12px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
       border: 1px solid #e2e8f0;
+      position: relative;
     }
     .header {
       text-align: center;
@@ -77,23 +78,183 @@
     .clause-box li {
       margin-bottom: 12px;
     }
-    .badge-test {
-      display: inline-block;
+    .banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       background: #eff6ff;
-      color: #1d4ed8;
       border: 1px solid #bfdbfe;
-      padding: 6px 14px;
-      border-radius: 9999px;
-      font-size: 12px;
+      padding: 12px 20px;
+      border-radius: 8px;
+      margin-bottom: 28px;
+    }
+    .btn-scan {
+      background: #2563eb;
+      color: #ffffff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
       font-weight: 600;
-      margin-bottom: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+    .btn-scan:hover {
+      background: #1d4ed8;
+    }
+    .btn-scan:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    /* ClauseGuard 인라인 하이라이트 스타일 */
+    .clause-guard-highlight-risk {
+      background-color: rgba(239, 68, 68, 0.15) !important;
+      border-bottom: 2.5px wavy #ef4444 !important;
+      cursor: pointer !important;
+      transition: background-color 0.2s ease;
+      position: relative;
+    }
+    .clause-guard-highlight-risk:hover {
+      background-color: rgba(239, 68, 68, 0.28) !important;
+    }
+
+    /* 툴팁 */
+    #cg-demo-tooltip {
+      position: absolute;
+      z-index: 9999;
+      max-width: 380px;
+      background: #ffffff;
+      color: #1e293b;
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      border: 1px solid #cbd5e1;
+      font-size: 13px;
+      line-height: 1.5;
+      display: none;
+    }
+    .cg-tooltip-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 6px;
+    }
+    .cg-badge-risk {
+      background: #fee2e2;
+      color: #b91c1c;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 12px;
+    }
+    .cg-tooltip-title {
+      font-weight: 700;
+      font-size: 15px;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+    .cg-tooltip-quote {
+      font-size: 12px;
+      color: #334155;
+      background: #f1f5f9;
+      padding: 8px;
+      border-radius: 4px;
+      font-style: italic;
+      margin-bottom: 8px;
+    }
+    .cg-tooltip-reason {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-left: 3.5px solid #f97316;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      color: #9a3412;
+      margin: 8px 0;
+      line-height: 1.45;
+    }
+    .cg-reason-label {
+      font-weight: 700;
+      font-size: 11px;
+      color: #ea580c;
+      margin-bottom: 2px;
+    }
+    .cg-tooltip-consequence {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-left: 3.5px solid #ef4444;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      color: #991b1b;
+      margin: 8px 0;
+      line-height: 1.45;
+    }
+    .cg-consequence-label {
+      font-weight: 700;
+      font-size: 11px;
+      color: #dc2626;
+      margin-bottom: 2px;
+    }
+    .cg-tooltip-law {
+      background: #f8fafc;
+      border-left: 3px solid #3b82f6;
+      padding: 6px 10px;
+      font-size: 11px;
+      color: #475569;
+      margin: 8px 0;
+      border-radius: 0 4px 4px 0;
+    }
+    .cg-tooltip-fix {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+    .cg-fix-label {
+      font-weight: 700;
+      font-size: 11px;
+      color: #1d4ed8;
+      margin-bottom: 4px;
+    }
+    .cg-fix-text {
+      font-size: 12px;
+      color: #1e3a8a;
+    }
+    .cg-copy-btn {
+      display: inline-block;
+      margin-top: 6px;
+      padding: 4px 10px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .cg-copy-btn:hover {
+      background: #1d4ed8;
     }
   </style>
 </head>
 <body>
   <div class="contract-container">
-    <div style="text-align: center;">
-      <span class="badge-test">🛡️ 크롬 확장 프로그램(ClauseGuard) 실전 테스트 페이지</span>
+    <div class="banner">
+      <div>
+        <strong style="color: #1e40af;">🛡️ ClauseGuard AI 특약 정밀 분석 데모</strong>
+        <div style="font-size: 12px; color: #3b82f6;">Google Cloud WIF (Gemini 3.8 Flash) 기반 실시간 위험 조항·피해 결과 탐지</div>
+      </div>
+      <button class="btn-scan" id="btn-run-check">
+        <span>🔍</span> <span id="btn-text">특약 정밀 분석 실행</span>
+      </button>
     </div>
 
     <div class="header">
@@ -130,7 +291,7 @@
     </table>
 
     <div class="section-title">3. 특약사항 (Special Agreements)</div>
-    <div class="clause-box">
+    <div class="clause-box" id="clause-content">
       <ol>
         <li>현 시설물 상태에서의 임대차 계약이며, 입주 후 보일러 고장, 배관 누수 등 일체의 수선 및 수리 비용은 임차인이 전액 부담하기로 한다.</li>
         <li>임대인은 잔금 당일 금융기관에서 담보 대출을 실행하고 근저당권을 설정할 수 있으며, 임차인은 이에 일체 동의한다.</li>
@@ -142,8 +303,139 @@
     </div>
 
     <div style="margin-top: 40px; text-align: center; color: #94a3b8; font-size: 12px;">
-      본 서식은 ClauseGuard 크롬 확장 프로그램의 실시간 인라인 위험 탐지 기능을 검증하기 위한 데모 페이지입니다.
+      빨간 물결선으로 밑줄 친 위험 특약을 클릭하면 <b>'왜 위험한지'</b>와 <b>'서명 시 발생할 실제 피해'</b>, 그리고 <b>'안전한 대안 문구'</b>를 확인하실 수 있습니다.
     </div>
+
+    <div id="cg-demo-tooltip"></div>
   </div>
+
+  <script>
+    const btn = document.getElementById('btn-run-check');
+    const btnText = document.getElementById('btn-text');
+    const tooltip = document.getElementById('cg-demo-tooltip');
+
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      btnText.innerText = 'Gemini 3.8 Flash 분석 중...';
+
+      const clauseText = document.getElementById('clause-content').innerText;
+      try {
+        const res = await fetch('/api/check', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ action: 'check', pack: 'lease', text: clauseText, version: 'v2' })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || '분석 실패');
+
+        const risks = (data.items || []).filter(i => i.verdict === '위험');
+        btnText.innerText = `🚨 위험 특약 ${risks.length}건 발견!`;
+        btn.style.background = '#dc2626';
+
+        highlightDemoRisks(risks);
+      } catch (err) {
+        console.error(err);
+        btnText.innerText = '⚠️ 점검 재시도';
+        btn.disabled = false;
+        alert('점검 오류: ' + err.message);
+      }
+    });
+
+    function highlightDemoRisks(risks) {
+      const container = document.getElementById('clause-content');
+      for (const risk of risks) {
+        if (!risk.quote || risk.quote.length < 5) continue;
+        const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+        let node;
+        while ((node = walker.nextNode())) {
+          if (node.parentElement && node.parentElement.classList.contains('clause-guard-highlight-risk')) continue;
+          const idx = node.textContent.indexOf(risk.quote);
+          if (idx !== -1) {
+            const span = document.createElement('span');
+            span.className = 'clause-guard-highlight-risk';
+            span.dataset.title = risk.title || risk.itemId || '불리한 특약';
+            span.dataset.reason = risk.riskReason || '';
+            span.dataset.consequence = risk.riskConsequence || '';
+            span.dataset.knowledge = risk.knowledge || '';
+            span.dataset.fix = risk.fixText || risk.fix || '';
+            span.dataset.quote = risk.quote;
+
+            const range = document.createRange();
+            range.setStart(node, idx);
+            range.setEnd(node, idx + risk.quote.length);
+            range.surroundContents(span);
+
+            span.addEventListener('click', (e) => {
+              e.stopPropagation();
+              showDemoTooltip(span);
+            });
+            break;
+          }
+        }
+      }
+    }
+
+    function showDemoTooltip(span) {
+      const title = span.dataset.title;
+      const quote = span.dataset.quote;
+      const reason = span.dataset.reason;
+      const consequence = span.dataset.consequence;
+      const knowledge = span.dataset.knowledge;
+      const fix = span.dataset.fix;
+
+      tooltip.innerHTML = `
+        <div class="cg-tooltip-header">
+          <span class="cg-badge-risk">🚨 주의 필요</span>
+          <span style="font-size:11px; color:#64748b;">${knowledge.split('#')[0] || '주택임대차보호법'}</span>
+        </div>
+        <div class="cg-tooltip-title">${title}</div>
+        <div class="cg-tooltip-quote">"${quote}"</div>
+
+        ${reason ? `
+          <div class="cg-tooltip-reason">
+            <div class="cg-reason-label">⚠️ 왜 위험한가요? (원인)</div>
+            <div>${reason}</div>
+          </div>
+        ` : ''}
+
+        ${consequence ? `
+          <div class="cg-tooltip-consequence">
+            <div class="cg-consequence-label">💥 서명 시 발생할 실제 피해 (결과의 리스크):</div>
+            <div><b>${consequence}</b></div>
+          </div>
+        ` : ''}
+
+        ${knowledge ? `<div class="cg-tooltip-law"><b>⚖️ 법적 근거:</b> ${knowledge.split('#')[1] || knowledge}</div>` : ''}
+
+        ${fix ? `
+          <div class="cg-tooltip-fix">
+            <div class="cg-fix-label">💡 이렇게 바꿔달라고 요구하세요:</div>
+            <div class="cg-fix-text" id="demo-fix-txt">${fix}</div>
+            <button class="cg-copy-btn" id="demo-copy-btn">대안 문구 복사</button>
+          </div>
+        ` : ''}
+      `;
+
+      const rect = span.getBoundingClientRect();
+      tooltip.style.display = 'block';
+      tooltip.style.top = (rect.bottom + window.scrollY + 8) + 'px';
+      tooltip.style.left = Math.max(20, Math.min(window.innerWidth - 400, rect.left + window.scrollX)) + 'px';
+
+      const copyBtn = document.getElementById('demo-copy-btn');
+      if (copyBtn) {
+        copyBtn.addEventListener('click', () => {
+          navigator.clipboard.writeText(fix);
+          copyBtn.innerText = '✓ 복사 완료!';
+          setTimeout(() => (copyBtn.innerText = '대안 문구 복사'), 2000);
+        });
+      }
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!tooltip.contains(e.target)) {
+        tooltip.style.display = 'none';
+      }
+    });
+  </script>
 </body>
 </html>
