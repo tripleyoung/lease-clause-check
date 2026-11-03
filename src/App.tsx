@@ -275,7 +275,7 @@ const WELCOME_ITEMS: WelcomeFeatureItem[] = [
   },
   {
     num: '二',
-    title: '법령·대법원 판례·세법 실시간 대조',
+    title: '법령·대법원 판례·세법 조문 대조',
     detail:
       '주택임대차보호법, 약관규제법, 소득세법·부가가치세법 조문을 근거로 정확히 판정해요.',
   },

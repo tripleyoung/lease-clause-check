@@ -17,7 +17,7 @@ export async function generateReportPdf(options: GeneratePdfOptions): Promise<Bu
     docTitle = '주택임대차 표준계약서',
     items = [],
     lawData,
-    safetyScore = 72,
+    safetyScore = 24,
     imagePath,
   } = options;
 
@@ -375,7 +375,7 @@ export async function generateReportPdf(options: GeneratePdfOptions): Promise<Bu
     <header class="report-header">
       <div>
         <div class="report-brand">온율 (溫律)</div>
-        <div class="report-subhead">국가법령정보센터 실시간 법령 MCP 연동 · 계약서 특약 안심 진단서</div>
+        <div class="report-subhead">국가법령·대법원 판례 검증 스냅샷 대조 · 계약서 특약 안심 진단서</div>
       </div>
       <div class="report-meta">
         <div><strong>문서번호:</strong> ${reportId}</div>

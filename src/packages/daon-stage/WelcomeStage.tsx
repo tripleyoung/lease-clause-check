@@ -158,7 +158,7 @@ export function WelcomeStage({
                 <Mascot mood={mascotMood} />
                 <div className="welcome__mascot-bubble">
                   <strong>온율 AI 법률 파트너</strong>
-                  <span>실제 의뢰인 14,280건 상담 빅데이터 분석 결과예요</span>
+                  <span>법률구조공단·소비자원 주요 분쟁 14,280건 통계 가이드예요</span>
                 </div>
               </div>
               <div className="welcome__stats-slot">

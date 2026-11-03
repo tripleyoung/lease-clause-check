@@ -347,7 +347,8 @@ ${safeItems
           <div
             style={{
               width: 'min(920px, 94vw)',
-              height: '88vh',
+              height: '80vh',
+              marginTop: '60px',
               background: '#1e293b',
               borderRadius: '16px',
               overflow: 'hidden',
@@ -369,9 +370,9 @@ ${safeItems
                 borderBottom: '1px solid rgba(255,255,255,0.1)',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14.5px', fontWeight: 700 }}>
-                <span style={{ background: '#dc2626', color: '#fff', padding: '2px 8px', borderRadius: '4px', fontSize: '11.5px' }}>A4 PDF</span>
-                <span>[온율] {docTitle} 특약 안심 진단 공식 리포트 (1P 핀 하이라이트 · 2P 법률 대조표 및 직인)</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px', fontWeight: 700 }}>
+                <span style={{ background: '#dc2626', color: '#fff', padding: '2px 8px', borderRadius: '4px', fontSize: '11px' }}>A4 PDF</span>
+                <span>[온율] {docTitle} 안심 진단 공식 리포트 (2P A4)</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <button

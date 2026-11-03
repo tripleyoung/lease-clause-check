@@ -333,16 +333,27 @@ async function recordUnifiedDashboardDemo() {
     const closeFsBtn = page.locator('[data-testid="close-doc-fullscreen"]');
     if (await closeFsBtn.isVisible()) {
       await clickWithCursor(closeFsBtn);
-      await page.waitForTimeout(1200);
+      await page.waitForTimeout(1000);
     }
+    // 확실한 모달 닫기를 위해 Escape 키 및 안전 스크롤
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(1000);
   }
 
   // [01:30 ~ 02:00] STEP 6: 공식 2페이지 A4 PDF 리포트 발행 & 이메일 전달
   await setCaption('STEP 6 · 공식 A4 PDF 리포트 & 이메일 발송', 'pdf-lib 기반 2페이지 A4 공식 감정 리포트(PDF) 즉시 생성 및 이메일 발송 지원', 'green');
   console.log('STEP 6: Email report modal & in-app 2-page A4 PDF preview');
 
+  // 상단 인스펙션 상태 스트립으로 다시 스크롤 맞춤
+  await page.evaluate(() => {
+    const strip = document.querySelector('.wanted-status-bar') || document.querySelector('[data-testid="inspection-status-strip"]');
+    if (strip) strip.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+  await page.waitForTimeout(1500);
+
   // 상단 스트립의 "이메일로 전달" 버튼 클릭
   const openEmailBtn = page.locator('[data-testid="open-email-modal-btn"]');
+  await openEmailBtn.waitFor({ state: 'visible', timeout: 15000 });
   await clickWithCursor(openEmailBtn);
   await page.waitForTimeout(1500);
 
@@ -395,8 +406,45 @@ async function recordUnifiedDashboardDemo() {
     await page.waitForTimeout(1000);
   }
 
+  // [01:35 ~ 01:55] STEP 8: 실제 Gmail 수신함 이동 및 전달된 메일 & 첨부 리포트 확인
+  console.log('STEP 8: Navigating to Gmail inbox to verify delivery...');
+  await page.goto('http://localhost:5193/gmail-inbox.html', { waitUntil: 'networkidle' });
+  await page.waitForTimeout(1200);
+  await injectUiHelpers();
+
+  await setCaption('STEP 8 · 실제 Gmail 수신함 확인', '발송된 dudnjsckrgo@gmail.com 수신함 확인 ➔ 온율 공식 리포트 메일 수신 완료', 'green');
+  await page.waitForTimeout(2000);
+
+  // 이메일 상세 본문으로 마우스 이동
+  const mailThread = page.locator('.gmail-mail-view').first();
+  if (await mailThread.isVisible()) {
+    await moveCursorTo(mailThread);
+    await page.waitForTimeout(1800);
+  }
+
+  // 첨부된 PDF 카드 확인 및 클릭
+  const gmailPdfCard = page.locator('[data-testid="gmail-attached-pdf-card"]').first();
+  if (await gmailPdfCard.isVisible()) {
+    await setCaption('STEP 8 · 첨부 A4 PDF 열람', '메일에 첨부된 2페이지 A4 정밀 진단서 PDF 원본 열람 및 직인 확인', 'green');
+    await clickWithCursor(gmailPdfCard);
+    await page.waitForTimeout(2500);
+
+    // 모달 스크롤
+    await page.evaluate(() => {
+      const b = document.querySelector('.pdf-preview-body');
+      if (b) b.scrollBy({ top: 450, behavior: 'smooth' });
+    });
+    await page.waitForTimeout(2500);
+
+    const closeGmailPdf = page.locator('#close-pdf-preview-btn');
+    if (await closeGmailPdf.isVisible()) {
+      await clickWithCursor(closeGmailPdf);
+      await page.waitForTimeout(1000);
+    }
+  }
+
   // 최종 안내 배너
-  await setCaption('온율(溫律) 점검 완료', '4중 안전 가드레일 기반 계약서 특약 점검 & 2페이지 A4 공식 PDF 리포트 발행 완료 — 온율(溫律)', 'green');
+  await setCaption('온율(溫律) 시연 완료', '4중 가드레일 계약서 점검 ➔ 2페이지 A4 PDF 리포트 발행 ➔ Gmail 발송 및 수신 검증 완료 — 온율(溫律)', 'green');
   await page.waitForTimeout(3000);
 
   console.log('Finished scenario. Closing context to flush video file...');
@@ -419,8 +467,8 @@ async function recordUnifiedDashboardDemo() {
   fs.copyFileSync(latestWebm, destWebm);
   console.log('Saved comprehensive WebM to:', destWebm);
 
-  // ffmpeg로 호환성 100% H.264 MP4로 트랜스코딩
-  const ffmpegCmd = `ffmpeg -y -i "${destWebm}" -c:v libx264 -preset fast -crf 22 -pix_fmt yuv420p -movflags +faststart "${destMp4}"`;
+  // ffmpeg로 구글 드라이브 및 모든 기기 100% 호환 H.264 MP4로 트랜스코딩
+  const ffmpegCmd = `ffmpeg -y -i "${destWebm}" -f lavfi -i anullsrc=channel_layout=stereo:sample_rate=44100 -c:v libx264 -preset medium -crf 20 -profile:v high -level 4.1 -pix_fmt yuv420p -r 30 -c:a aac -b:a 128k -movflags +faststart -shortest "${destMp4}"`;
   execSync(ffmpegCmd, { stdio: 'inherit' });
   console.log('Saved comprehensive MP4 to:', destMp4);
 

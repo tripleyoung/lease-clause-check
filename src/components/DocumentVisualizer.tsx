@@ -895,7 +895,7 @@ export function AnnotatedDocumentDeckCard({
 
             <div className="wanted-metric-pill wanted-metric-pill--mcp">
               <IconCircleInfoFill width={13} height={13} style={{ marginRight: 4, flexShrink: 0 }} />
-              <span className="wanted-metric-pill__label">국가법령 실시간 대조</span>
+              <span className="wanted-metric-pill__label">국가법령·판례 조문 대조</span>
             </div>
           </div>
 

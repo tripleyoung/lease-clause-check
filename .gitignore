@@ -13,3 +13,4 @@ playwright-report/
 mcp/law-mcp-rs/target/
 .art
 scripts/*.png
+temp-recordings/
