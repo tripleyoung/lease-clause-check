@@ -61,7 +61,7 @@ export async function generateReportPdf(options: GeneratePdfOptions): Promise<Bu
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<title>${docTitle} - 특약 안심 진단 공식 리포트</title>
+<title>${docTitle} - 특약 안심 진단 참고 리포트</title>
 <style>
   @page {
     size: A4;
@@ -410,8 +410,8 @@ export async function generateReportPdf(options: GeneratePdfOptions): Promise<Bu
         <div class="kpi-value" style="color: #1e64ff; font-size: 12.5px;">주임법 제10조</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">공식 날인 상태</div>
-        <div class="kpi-value" style="color: #0f172a; font-size: 12.5px;">검토 센터 확인</div>
+        <div class="kpi-label">문서 성격</div>
+        <div class="kpi-value" style="color: #0f172a; font-size: 12.5px;">의사결정 보조</div>
       </div>
     </div>
 
@@ -473,8 +473,8 @@ export async function generateReportPdf(options: GeneratePdfOptions): Promise<Bu
     </div>
 
     <footer class="report-footer">
-      <div>온율(律) 계약서 특약 안심 진단 서비스 · 1 / 2 페이지</div>
-      <div class="seal">온율 법률 검토 센터 [직인생략]</div>
+      <div>온율(溫律) 계약서 특약 안심 진단 서비스 · 1 / 2 페이지</div>
+      <div class="seal">AI 분석 참고자료 [법률자문 보조]</div>
     </footer>
   </div>
 
@@ -548,11 +548,15 @@ export async function generateReportPdf(options: GeneratePdfOptions): Promise<Bu
           ? `<br><br><strong>실시간 대조 법령:</strong> ${lawData.statute.lawName} ${lawData.statute.article} (${lawData.statute.officialUrl})`
           : ''
       }
+      <br><br>
+      <span style="color: #b91c1c; font-size: 11px; line-height: 1.45; display: block;">
+        <strong>[유의사항 안내]</strong> 본 리포트는 국가법령 및 대법원 판례 공공데이터를 기반으로 생성된 계약 체결 전 사전 참고용 보조 문서이며, 변호사법상 개별 법률 자문을 대체하지 않습니다. 실제 법적 분쟁이나 구체적인 권리 구제는 대한법률구조공단(국번없이 132), 마을변호사 또는 법률 전문가에게 확인하시기 바랍니다.
+      </span>
     </div>
 
     <footer class="report-footer">
-      <div>본 리포트는 공인중개사 협상 및 임대차 계약서 날인 전 검토 목적으로 발급된 공식 진단서입니다. · 2 / 2 페이지</div>
-      <div class="seal">온율 법률 검토 센터 [직인생략]</div>
+      <div>본 리포트는 공인중개사 협상 및 계약서 날인 전 사전 검토 보조 목적으로 발급된 참고자료입니다. · 2 / 2 페이지</div>
+      <div class="seal">AI 분석 참고자료 [직인생략]</div>
     </footer>
   </div>
 </body>

@@ -75,6 +75,9 @@ ${safeItems
 주택임대차보호법 제10조(강행규정)에 따라 본 법에 위반된 약정으로서 임차인에게 불리한 것은 그 효력이 없습니다.
 상기 권장 대안 특약 문구로 수정을 요청하시길 권장합니다.
 
+[유의사항 및 법적 성격 안내]
+※ 본 리포트는 국가법령 및 판례 공공데이터를 기반으로 생성된 계약 체결 전 사전 참고용 보조 문서이며, 변호사법상 개별 법률 자문을 대체하지 않습니다. 구체적인 법적 분쟁이나 계약 체결 전 의문 사항은 대한법률구조공단(국번없이 132), 마을변호사 또는 법률 전문가에게 최종 확인하시기 바랍니다.
+
 본 메일은 강행법규·판례 기반 계약서 특약 점검 서비스 온율(溫律)에서 생성되었습니다.`;
 
   const handleSendEmail = async () => {
@@ -371,8 +374,8 @@ ${safeItems
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px', fontWeight: 700 }}>
-                <span style={{ background: '#dc2626', color: '#fff', padding: '2px 8px', borderRadius: '4px', fontSize: '11px' }}>A4 PDF</span>
-                <span>[온율] {docTitle} 안심 진단 공식 리포트 (2P A4)</span>
+                <span style={{ background: '#2563eb', color: '#fff', padding: '2px 8px', borderRadius: '4px', fontSize: '11px' }}>A4 PDF</span>
+                <span>[온율] {docTitle} 특약 안심 진단 리포트 (2P A4)</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <button

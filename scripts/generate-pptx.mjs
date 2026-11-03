@@ -485,8 +485,8 @@ async function buildPresentation() {
       { text: '감정싸움 없이 임대인·중개사에게 바로 보내는 협상 멘트 생성\n', options: { color: INK_MUTED, fontSize: 8.0 } },
       { text: '3. 헬스장·PT 환불 약관 확장: ', options: { bold: true, color: BRAND_INDIGO, fontSize: 8.2 } },
       { text: '소비자원 피해구제 1위 체육시설 위약금까지 원스톱 지원\n', options: { color: INK_MUTED, fontSize: 8.0 } },
-      { text: '4. 공식 2P A4 PDF & 메일 전송: ', options: { bold: true, color: BRAND_INDIGO, fontSize: 8.2 } },
-      { text: '계약 당일 지참하는 공신력 진단서 및 이메일 다이렉트 전송', options: { color: INK_MUTED, fontSize: 8.0 } }
+      { text: '4. 2P A4 안심 리포트 & 변호사법 준수: ', options: { bold: true, color: BRAND_INDIGO, fontSize: 8.2 } },
+      { text: '사전 검토 보조 도구 명시 및 면책 고지 완비, 이메일 다이렉트 전송', options: { color: INK_MUTED, fontSize: 8.0 } }
     ], { x: 0.7, y: 1.75, w: 4.1, h: 3.15, lineSpacing: 11, fontFace: 'Pretendard' });
 
     // Right Column: PDF Screenshot & Roadmap
@@ -499,7 +499,7 @@ async function buildPresentation() {
       x: 5.25, y: 1.7, w: 4.15, h: 1.85,
       sizing: { type: 'contain' }
     });
-    slide.addText('▲ 발행된 공식 2페이지 A4 감정 리포트 PDF (원문 스캔 하이라이트 내장, 실물 캡처)', {
+    slide.addText('▲ 발행된 2페이지 A4 안심 리포트 PDF (원문 스캔 하이라이트 내장, 법률 자문 보조 명시)', {
       x: 5.25, y: 3.58, w: 4.15, h: 0.18,
       fontSize: 7.2, color: INK_MUTED, align: 'center', fontFace: 'Pretendard'
     });

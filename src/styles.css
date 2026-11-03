@@ -1491,6 +1491,22 @@ ol.rt-list {
   cursor: default;
 }
 
+.composer-disclaimer {
+  display: block;
+  margin: 7px auto 0;
+  max-width: 640px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--ink-muted);
+  text-align: center;
+  opacity: 0.85;
+}
+
+.composer-disclaimer strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+
 /* 샘플 문서 카드 그리드 (첫 화면 미리보기 진입점) */
 .sample-cards-row {
   display: grid;

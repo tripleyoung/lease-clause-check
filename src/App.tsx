@@ -1648,6 +1648,9 @@ export function App() {
                   <IconArrowUp />
                 </button>
               </form>
+              <p className="composer-disclaimer">
+                ※ 온율은 변호사의 개별 법률 자문을 대체하지 않는 <strong>계약 검토 의사결정 보조 도구</strong>입니다. 실제 계약 체결 전 공인중개사 및 법률 전문가에게 최종 확인하세요.
+              </p>
             </div>
           </div>
         </main>

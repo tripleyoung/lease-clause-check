@@ -257,7 +257,7 @@ export async function handleCheck(request: Request): Promise<Response> {
           safetyScore: typeof body.safetyScore === 'number' ? body.safetyScore : 72,
         });
         writeFileSync(pdfPath, pdfBuf);
-        content += `\n\n[공식 첨부 문서]\n- 파일명: 온율_계약서특약_안심진단_공식리포트.pdf\n- 법적 효력: 주택임대차보호법 제10조 강행규정 기준 진단 완료\n- 본 문서는 공인중개사 협상 및 임대차 계약서 날인 전 공식 검토 목적으로 발급되었습니다.`;
+        content += `\n\n[첨부 문서 안내]\n- 파일명: 온율_계약서특약_안심진단_참고리포트.pdf\n- 기준 법령: 주택임대차보호법 제10조 강행규정 기준 진단\n- 본 문서는 공인중개사 협상 및 계약서 날인 전 사전 검토 보조 목적으로 발급된 참고자료이며, 변호사법상 개별 법률 자문을 대체하지 않습니다.`;
       } catch (pdfErr) {
         console.warn('[PDF Generation Notice]', (pdfErr as Error).message);
       }
