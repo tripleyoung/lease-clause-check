@@ -424,17 +424,17 @@
     </div>
   </section>
 
-  <!-- 슬라이드 5: 정량 평가 리포트 -->
+  <!-- 슬라이드 5: 정량 평가 리포트 & 단위 경제학 -->
   <section class="slide">
     <div class="slide-header">
       <div class="badge-group">
-        <span class="slide-pill">SLIDE 05 · 정량 평가 리포트</span>
+        <span class="slide-pill">SLIDE 05 · 정량 평가 & 단위 경제학(Unit Economics)</span>
       </div>
-      <span class="slide-meta">Evaluation Benchmark</span>
+      <span class="slide-meta">Evaluation Benchmark & Cost Metrics</span>
     </div>
     <div class="slide-body">
-      <h2 class="slide-title">정답표 선봉인(Commit c5ee656) 기반 정량 평가: 임대차 재현율·정밀도 100%</h2>
-      <p class="slide-subtitle">Test Split 20건 / 188개 점검 항목 전수 채점 결과 (프롬프트 코드 작성 전 정답 봉인)</p>
+      <h2 class="slide-title">정답표 선봉인(Commit c5ee656) 정량 평가 및 1건당 0.46원의 압도적 경제성</h2>
+      <p class="slide-subtitle">Test Split 20건 / 188개 점검 항목 전수 채점 결과 및 프로덕션 API 비용 실측</p>
 
       <table>
         <thead>
@@ -475,64 +475,121 @@
         </tbody>
       </table>
 
-      <div class="grid-2" style="margin-top: 10px;">
-        <div class="card-box" style="border-left: 4px solid var(--success); padding: 12px 16px;">
-          <h3 style="margin-top:0; color: var(--success);">🎯 v0 → v2 재현율(87.5%→95.8%)·정밀도 동시 달성</h3>
-          <p style="margin-bottom:0;">• <strong>전월세 임대차(lease) 100% 달성</strong>: 대법원 2005다51389 판례 번들링과 규칙 스캔으로 v0·v1이 놓친 원상복구·정상가 차감 꼼수까지 완벽 포착.<br>
-          • <strong>부정문 오독(헛경고) 제거</strong>: "담보물권을 설정하지 아니한다" 등 보호 조항을 위험으로 오판하던 헛경고 해결.</p>
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1.15fr; gap: 12px; margin-top: 10px;">
+        <div class="card-box" style="border-left: 4px solid var(--success); padding: 10px 14px;">
+          <h3 style="margin-top:0; font-size: 13.5px; color: var(--success);">🎯 임대차 100% 재현율·정밀도</h3>
+          <p style="margin-bottom:0; font-size: 12.5px; line-height: 1.5;">• <strong>전월세 임대차 100%</strong>: 대법원 2005다51389 판례와 규칙 스캔으로 원상복구·정상가 꼼수 포착.<br>
+          • <strong>헛경고 제거</strong>: "담보설정 안 함" 등 보호 조항 오판 해결.</p>
         </div>
-        <div class="card-box" style="border-left: 4px solid var(--primary); padding: 12px 16px;">
-          <h3 style="margin-top:0; color: var(--primary);">⚡ 배치 평가 Rate-Limit 제어 & 51개 TDD 검증</h3>
-          <p style="margin-bottom:0;">• <strong>자동 판정 실패 0건</strong>: 배치 평가 시 429 쿼터 제한 백오프 제어로 정상 계약서 19건(181개 항목) 누락·실패 0건 검증 (빠진 항목 7건은 비계약서 차단 케이스 <code>test-15</code>).<br>
-          • <strong>51개 단위 테스트 100% Pass</strong>: 회귀 버그 없는 엔지니어링 신뢰성 확립.</p>
+        <div class="card-box" style="border-left: 4px solid var(--primary); padding: 10px 14px;">
+          <h3 style="margin-top:0; font-size: 13.5px; color: var(--primary);">⚡ Rate-Limit 제어 & 51개 TDD</h3>
+          <p style="margin-bottom:0; font-size: 12.5px; line-height: 1.5;">• <strong>자동 판정 실패 0건</strong>: 지수 백오프로 19건(181개 항목) 정상 처리 (미판정 7건은 비계약서 차단).<br>
+          • <strong>단위 테스트 51개 100% Pass</strong>: 회귀 버그 원천 방지.</p>
+        </div>
+        <div class="card-box" style="border-left: 4px solid #f59e0b; background: #fffdfa; padding: 10px 14px;">
+          <h3 style="margin-top:0; font-size: 13.5px; color: #b45309;">💰 실측 API 비용 & 단위 경제학</h3>
+          <p style="margin-bottom:0; font-size: 12.5px; line-height: 1.5;">• <strong>질문 1회당 약 0.46원</strong> ($0.000315, 1,954토큰, Gemini Flash Lite 실측)<br>
+          • <strong>1,000건 처리 시 단 460원</strong> (GPT-4o-mini 대비 35% 이상 절감)<br>
+          • <strong>캐시 적중 시 0.000원</strong> (인메모리 SHA-256, 응답 &lt; 2ms)</p>
         </div>
       </div>
 
       <div class="evidence-box" style="margin-top: 10px;">
         <strong>🔍 팩트 검증 소스 (Ground Truth):</strong><br>
-        • Git Commit c5ee656 (정답표 선봉인 증명) | results/summary_test.md & summary_dev.md (Dev 10건 정확도 98.9%, Test 20건 정확도 94.7% 실측)<br>
-        • server/*.test.ts: 51개 단위 테스트(node:test) 100% Pass 실측 완료
+        • Git Commit c5ee656 (정답표 선봉인 증명) | results/summary_test.md & summary_dev.md (Dev 98.9%, Test 94.7% 실측)<br>
+        • scripts/measure-api-cost.ts (Gemini Flash Lite WIF 1회 실측 1,954토큰 / $0.000315 산출 완료) | server/*.test.ts: 51개 단위 테스트 100% Pass
       </div>
     </div>
     <div class="slide-footer">
       <span>자세한 리포트: docs/evaluation.md</span>
-      <span>단위 테스트: 51개 100% Pass</span>
+      <span>1,000회 질문 시 API 비용: 단 460원 (원가율 0.02% 미만)</span>
     </div>
   </section>
 
-  <!-- 슬라이드 6: 현장 액션 & 로드맵 -->
+  <!-- 슬라이드 6: 현장 액션 & 시장 차별점(Moat) -->
   <section class="slide">
     <div class="slide-header">
       <div class="badge-group">
-        <span class="slide-pill">SLIDE 06 · 현장 액션 & 로드맵</span>
+        <span class="slide-pill">SLIDE 06 · 현장 액션 & 시장 차별점(Moat)</span>
       </div>
-      <span class="slide-meta">Action Plan & Roadmap</span>
+      <span class="slide-meta">Action Plan & Competitive Advantage</span>
     </div>
     <div class="slide-body">
-      <h2 class="slide-title">진단을 넘어선 "현장 액션" — 공식 감정 리포트 발행과 미래 로드맵</h2>
-      <p class="slide-subtitle">원클릭 대안 특약 문구 복사와 공인중개사·임대인 제시용 공식 2페이지 A4 감정서 PDF</p>
+      <h2 class="slide-title">기존 시장의 한계를 넘는 "온율만의 4대 차별점"과 현장 액션 솔루션</h2>
+      <p class="slide-subtitle">프롭테크(등기부)와 B2B 리걸테크(기업용)의 틈새를 파고드는 계약 현장 10분 전 협상 솔루션</p>
       
       <div class="grid-2">
-        <div class="card-box">
+        <div class="card-box" style="padding: 14px 18px;">
           <div>
-            <h3 style="margin-top:0; color: var(--primary);">📄 현장 실전 대응과 향후 확장 계획</h3>
-            <ul>
-              <li><strong>공식 2페이지 A4 감정 리포트 PDF 발행</strong>: 계약서 스캔본 핀 하이라이트(1P)와 조항별 강행법규·판례 대조표 및 직인(2P)이 결합된 공식 A4 PDF를 즉시 생성·다운로드 및 이메일 발송.</li>
-              <li><strong>"이렇게 수정 요청하세요" 대안 특약 복사</strong>: 현장에서 공인중개사·임대인에게 바로 제시할 수 있는 방어 특약 원클릭 클립보드 복사.</li>
-              <li><strong>향후 로드맵 1단계 (프라이버시 고도화)</strong>: 브라우저 내 On-Device OCR(WebGPU) 사전 블러 마스킹으로 사진 업로드 시에도 서버 전송 전 개인정보 원천 차단.</li>
-              <li><strong>향후 로드맵 2단계 (공공데이터 연동)</strong>: 인터넷등기소 등기부등본 API 연동 (선순위 근저당권·압류 조회 및 전세가율 안전도 자동 산출).</li>
-              <li><strong>향후 로드맵 3단계 (플랫폼 확장)</strong>: 청년 부동산 직거래 플랫폼(당근 부동산, 피터팬 등) 크롬 확장 프로그램 연계.</li>
-            </ul>
-          </div>
-          <div class="evidence-box">
-            <strong>🔍 팩트 검증 소스 (Ground Truth):</strong><br>
-            • server/pdf-report.ts (pdf-lib 기반 정식 2페이지 A4 PDF 감정서 실시간 렌더링)<br>
-            • src/components/EmailReportModal.tsx (앱 내장 2페이지 A4 PDF 미리보기 및 다운로드·이메일 전송)
+            <h3 style="margin-top:0; color: var(--primary);">📊 시장 경쟁 비교 매트릭스</h3>
+            <table style="font-size: 11.5px; margin-bottom: 12px;">
+              <thead>
+                <tr style="background: #f1f5f9;">
+                  <th style="padding: 6px 8px;">비교 항목</th>
+                  <th style="padding: 6px 8px;">기존 프롭테크<br>(내집스캔·세이프홈즈)</th>
+                  <th style="padding: 6px 8px;">기존 B2B 리걸테크<br>(BHSN 앨리비 등)</th>
+                  <th style="padding: 6px 8px; background: #e0e7ff; color: var(--primary);">온율 (溫律)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="padding: 5px 8px; font-weight: 700;">분석 대상</td>
+                  <td style="padding: 5px 8px;">등기부·시세 (물건 위주)</td>
+                  <td style="padding: 5px 8px;">기업 계약서 (NDA, 용역)</td>
+                  <td style="padding: 5px 8px; font-weight: 700; color: var(--primary);">실제 특약 문구 + 자필 OCR</td>
+                </tr>
+                <tr>
+                  <td style="padding: 5px 8px; font-weight: 700;">타깃 고객</td>
+                  <td style="padding: 5px 8px;">전세 예정자 (사전 조사)</td>
+                  <td style="padding: 5px 8px;">대기업 법무팀, 변호사</td>
+                  <td style="padding: 5px 8px; font-weight: 700; color: var(--primary);">사회초년생, 1인가구 임차인</td>
+                </tr>
+                <tr>
+                  <td style="padding: 5px 8px; font-weight: 700;">판정 기준</td>
+                  <td style="padding: 5px 8px;">보증보험 가입 요건</td>
+                  <td style="padding: 5px 8px;">기업 리스크, 계약자유</td>
+                  <td style="padding: 5px 8px; font-weight: 700; color: var(--primary);">주택임대차보호법 제10조 강행규정</td>
+                </tr>
+                <tr>
+                  <td style="padding: 5px 8px; font-weight: 700;">협상 지원</td>
+                  <td style="padding: 5px 8px;">주의 안내문 제시</td>
+                  <td style="padding: 5px 8px;">법률 수정안(Redline)</td>
+                  <td style="padding: 5px 8px; font-weight: 700; color: var(--primary);">정중한 카톡·문자 초안 즉시 생성</td>
+                </tr>
+                <tr>
+                  <td style="padding: 5px 8px; font-weight: 700;">리포트 발급</td>
+                  <td style="padding: 5px 8px;">단순 웹 화면 조회</td>
+                  <td style="padding: 5px 8px;">기업 ERP 저장</td>
+                  <td style="padding: 5px 8px; font-weight: 700; color: var(--primary);">공식 2P A4 PDF & Gmail 발송</td>
+                </tr>
+              </tbody>
+            </table>
+            <h4 style="margin: 6px 0 4px; font-size: 12.5px; color: var(--text-primary);">🎯 온율의 4대 차별점:</h4>
+            <p style="font-size: 11.5px; margin-bottom: 0; line-height: 1.45;">
+              ① <strong>계약 10분 전 핀포인트 분석</strong> (강행규정 위반 무효 조항 즉시 적출)<br>
+              ② <strong>감정싸움 없는 협상 멘트 제공</strong> (임대인·중개사 전송용 정중한 카톡 초안)<br>
+              ③ <strong>헬스장·PT 위약금까지 확장</strong> (소비자원 피해구제 1위 분야 원스톱 지원)<br>
+              ④ <strong>공식 2P A4 PDF 감정서 & 메일 전송</strong> (도장 찍기 전 지참하는 공신력 리포트)
+            </p>
           </div>
         </div>
-        <div class="screenshot-card">
-          <img src="assets/04_pdf_report.png" alt="공식 A4 PDF 리포트 스크린샷">
-          <span class="screenshot-caption">▲ 발행된 공식 2페이지 A4 감정 리포트 PDF (원문 스캔 하이라이트 내장, 실물 캡처)</span>
+        <div class="card-box" style="padding: 14px 18px; display: flex; flex-direction: column; justify-content: space-between;">
+          <div class="screenshot-card" style="margin-bottom: 10px;">
+            <img src="assets/04_pdf_report.png" alt="공식 A4 PDF 리포트 스크린샷" style="max-height: 220px; object-fit: contain;">
+            <span class="screenshot-caption">▲ 발행된 공식 2페이지 A4 감정 리포트 PDF (원문 스캔 하이라이트 내장, 실물 캡처)</span>
+          </div>
+          <div>
+            <h3 style="margin-top:0; font-size: 13px; color: var(--primary);">🚀 향후 확장 로드맵</h3>
+            <ul style="font-size: 11.5px; margin-bottom: 8px; padding-left: 14px;">
+              <li><strong>1단계 (프라이버시)</strong>: 브라우저 On-Device OCR 사전 마스킹으로 서버 전송 전 개인정보 원천 차단.</li>
+              <li><strong>2단계 (공공데이터)</strong>: 인터넷등기소 API 연동 (등기부등본 근저당·압류 실시간 조회 결합).</li>
+              <li><strong>3단계 (플랫폼 확장)</strong>: 청년 부동산 직거래 플랫폼(당근 부동산, 피터팬) 크롬 확장 프로그램 연동.</li>
+            </ul>
+            <div class="evidence-box" style="font-size: 11px; padding: 6px 10px;">
+              <strong>🔍 팩트 검증 소스 (Ground Truth):</strong><br>
+              • server/pdf.ts (정식 2페이지 A4 PDF 감정서 렌더링) | public/gmail-inbox.html (Gmail 연동)
+            </div>
+          </div>
         </div>
       </div>
     </div>

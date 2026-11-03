@@ -389,36 +389,53 @@ async function buildPresentation() {
       rowH: [0.35, 0.35, 0.35, 0.35]
     });
 
-    // 2-Column Insights (Natural Product Narrative)
+    // 3-Column Insights (Accuracy + Stability + Unit Economics)
     slide.addShape(pres.ShapeType.roundRect, {
-      x: 0.5, y: 3.2, w: 4.4, h: 1.25,
+      x: 0.5, y: 3.2, w: 2.85, h: 1.25,
       rectRadius: 0.1, fill: { color: CARD_BG }, line: { color: CARD_BORDER, width: 1 }
     });
-    slide.addText('🎯 신뢰도 최우선: 헛경고(False Alarm) 0건 달성', {
-      x: 0.7, y: 3.3, w: 4.0, h: 0.25,
-      fontSize: 10.5, bold: true, color: SUCCESS, fontFace: 'Pretendard'
+    slide.addText('🎯 임대차 100% 재현율·정밀도', {
+      x: 0.6, y: 3.3, w: 2.65, h: 0.22,
+      fontSize: 9.8, bold: true, color: SUCCESS, fontFace: 'Pretendard'
     });
     slide.addText([
-      { text: '• 치명적 계약 파기 방지: ', options: { bold: true, color: INK_PRIMARY } },
-      { text: '정상 조항을 위험하다고 오판해 체결 직전 계약이 파기되는 비즈니스 참사를 완벽 차단\n', options: { color: INK_MUTED } },
-      { text: '• 확실한 조항만 엄격 경고: ', options: { bold: true, color: INK_PRIMARY } },
-      { text: '모호한 의심보다는 확실한 독소 조항만 짚어내어 법률 서비스의 실전 신뢰성을 확립', options: { color: INK_MUTED } }
-    ], { x: 0.7, y: 3.58, w: 4.0, h: 0.75, fontSize: 8.8, lineSpacing: 12, fontFace: 'Pretendard' });
+      { text: '• 대법원 2005다51389 판례\n', options: { bold: true, color: INK_PRIMARY } },
+      { text: '원상복구·정상가 차감 꼼수 포착\n', options: { color: INK_MUTED } },
+      { text: '• 헛경고(False Alarm) 차단: ', options: { bold: true, color: INK_PRIMARY } },
+      { text: '보호 조항 오독 없는 높은 신뢰성', options: { color: INK_MUTED } }
+    ], { x: 0.6, y: 3.55, w: 2.65, h: 0.78, fontSize: 8.0, lineSpacing: 11, fontFace: 'Pretendard' });
 
     slide.addShape(pres.ShapeType.roundRect, {
-      x: 5.1, y: 3.2, w: 4.4, h: 1.25,
+      x: 3.55, y: 3.2, w: 2.85, h: 1.25,
       rectRadius: 0.1, fill: { color: CARD_BG }, line: { color: CARD_BORDER, width: 1 }
     });
-    slide.addText('⚡ 실시간 성능: 0.6초 초고속 응답 & 51개 테스트 검증', {
-      x: 5.3, y: 3.3, w: 4.0, h: 0.25,
-      fontSize: 10.5, bold: true, color: BRAND_INDIGO, fontFace: 'Pretendard'
+    slide.addText('⚡ Rate-Limit 제어 & 51개 TDD', {
+      x: 3.65, y: 3.3, w: 2.65, h: 0.22,
+      fontSize: 9.8, bold: true, color: BRAND_INDIGO, fontFace: 'Pretendard'
     });
     slide.addText([
-      { text: '• 응답 속도 1.5초 → 0.6초 단축: ', options: { bold: true, color: INK_PRIMARY } },
-      { text: '서버 조문 번들링과 Fallback 풀로 대기 시간을 60% 대폭 절감\n', options: { color: INK_MUTED } },
-      { text: '• 51개 단위 테스트 100% Pass: ', options: { bold: true, color: INK_PRIMARY } },
-      { text: '회귀 버그 없는 탄탄한 엔지니어링 신뢰성을 검증', options: { color: INK_MUTED } }
-    ], { x: 5.3, y: 3.58, w: 4.0, h: 0.75, fontSize: 8.8, lineSpacing: 12, fontFace: 'Pretendard' });
+      { text: '• 지수 백오프 자동 제어: ', options: { bold: true, color: INK_PRIMARY } },
+      { text: '19건 181개 항목 판정 누락 0건\n', options: { color: INK_MUTED } },
+      { text: '• 단위 테스트 51개 통과: ', options: { bold: true, color: INK_PRIMARY } },
+      { text: '회귀 버그 없는 탄탄한 아키텍처', options: { color: INK_MUTED } }
+    ], { x: 3.65, y: 3.55, w: 2.65, h: 0.78, fontSize: 8.0, lineSpacing: 11, fontFace: 'Pretendard' });
+
+    slide.addShape(pres.ShapeType.roundRect, {
+      x: 6.6, y: 3.2, w: 2.9, h: 1.25,
+      rectRadius: 0.1, fill: { color: 'FFFDF8' }, line: { color: 'F59E0B', width: 1 }
+    });
+    slide.addText('💰 실측 비용 & 단위 경제학', {
+      x: 6.7, y: 3.3, w: 2.7, h: 0.22,
+      fontSize: 9.8, bold: true, color: 'B45309', fontFace: 'Pretendard'
+    });
+    slide.addText([
+      { text: '• 1회 질문당 약 0.46원: ', options: { bold: true, color: INK_PRIMARY } },
+      { text: '1,954토큰 Gemini Flash Lite 실측\n', options: { color: INK_MUTED } },
+      { text: '• 1,000건당 단 460원: ', options: { bold: true, color: INK_PRIMARY } },
+      { text: 'GPT-4o-mini 대비 35% 이상 절감\n', options: { color: INK_MUTED } },
+      { text: '• 캐시 적중 시 0.000원 ', options: { bold: true, color: SUCCESS } },
+      { text: '(SHA-256 응답 < 2ms)', options: { color: INK_MUTED } }
+    ], { x: 6.7, y: 3.55, w: 2.7, h: 0.78, fontSize: 8.0, lineSpacing: 11, fontFace: 'Pretendard' });
 
     // Full-width Evidence Banner
     slide.addShape(pres.ShapeType.roundRect, {
@@ -427,67 +444,80 @@ async function buildPresentation() {
     });
     slide.addText([
       { text: '🔍 팩트 검증 소스 (Ground Truth):\n', options: { bold: true, color: INK_PRIMARY, fontSize: 8 } },
-      { text: '• Git Commit c5ee656 (정답표 선봉인 증명) | results/summary_test.md (Test Split 20건 188개 판정 실측 로그 원본)\n• server/*.test.ts: 51개 단위 테스트 및 Playwright tests/ui.spec.ts 100% Pass 실측 완료', options: { color: INK_MUTED, fontSize: 7.5 } }
+      { text: '• Git Commit c5ee656 (정답표 선봉인 증명) | results/summary_test.md (Test Split 20건 188개 판정 실측 로그 원본)\n• scripts/measure-api-cost.ts (Gemini Flash Lite 1회 실측 $0.000315 / 1,954토큰 완료) | server/*.test.ts: 51개 TDD 통과', options: { color: INK_MUTED, fontSize: 7.5 } }
     ], { x: 0.65, y: 4.6, w: 8.7, h: 0.45, lineSpacing: 10, fontFace: 'Pretendard' });
   }
 
   // ==========================================
-  // SLIDE 6: 현장 액션 & 로드맵
+  // SLIDE 6: 현장 액션 & 시장 차별점(Moat)
   // ==========================================
   {
     const slide = pres.addSlide();
-    addSlideChrome(slide, '06', '현장 액션 & 로드맵');
+    addSlideChrome(slide, '06', '현장 액션 & 시장 차별점(Moat)');
 
-    slide.addText('진단을 넘어선 "현장 액션" — 공식 감정 리포트 발행과 미래 로드맵', {
+    slide.addText('기존 시장의 한계를 넘는 "온율만의 4대 차별점"과 현장 액션 솔루션', {
       x: 0.5, y: 0.8, w: 9.0, h: 0.42,
       fontSize: 20, bold: true, color: INK_PRIMARY, fontFace: 'Pretendard'
     });
-    slide.addText('원클릭 대안 특약 문구 복사와 공인중개사·임대인 제시용 공식 A4 감정서 PDF', {
+    slide.addText('프롭테크(등기부)와 B2B 리걸테크(기업용)의 틈새를 파고드는 계약 현장 10분 전 협상 솔루션', {
       x: 0.5, y: 1.25, w: 9.0, h: 0.26,
       fontSize: 12, color: BRAND_INDIGO, fontFace: 'Pretendard'
     });
 
-    // Left Column: Natural Narrative
+    // Left Column: Competitive Comparison Matrix & 4 Moats
     slide.addShape(pres.ShapeType.roundRect, {
-      x: 0.5, y: 1.6, w: 4.4, h: 3.45,
+      x: 0.5, y: 1.6, w: 4.5, h: 3.45,
       rectRadius: 0.12, fill: { color: CARD_BG }, line: { color: CARD_BORDER, width: 1 }
     });
 
     slide.addText([
-      { text: '✉️ 공식 2페이지 A4 감정 리포트 PDF 발행\n', options: { bold: true, color: BRAND_INDIGO } },
-      { text: '• 계약서 원문 스캔 하이라이트 박스와 국가법령 MCP 근거가 수록된 감정서 수준 리포트 생성 및 이메일 즉시 전송\n\n', options: { color: INK_MUTED } },
-      { text: '💬 "이렇게 수정 요청하세요" 대안 특약 복사\n', options: { bold: true, color: BRAND_INDIGO } },
-      { text: '• 계약 현장에서 임대인에게 바로 제시할 수 있는 방어 특약 원클릭 복사\n\n', options: { color: INK_MUTED } },
-      { text: '🚀 향후 발전 로드맵\n', options: { bold: true, color: INK_PRIMARY } },
-      { text: '1. 공공데이터포털 등기부등본 실시간 열람 API 연동\n', options: { color: INK_MUTED } },
-      { text: '2. 당근 직거래 부동산, 다방, 피터팬 등 부동산 플랫폼 연동 확장\n', options: { color: INK_MUTED } },
-      { text: '3. 대법원 승소 판례 벡터 임베딩 기반 대안 문구 추천 고도화', options: { color: INK_MUTED } }
-    ], { x: 0.75, y: 1.78, w: 3.9, h: 2.45, fontSize: 8.8, lineSpacing: 12, fontFace: 'Pretendard' });
+      { text: '📊 시장 경쟁 구도와 온율의 독점적 포지셔닝\n', options: { bold: true, color: BRAND_INDIGO, fontSize: 10 } },
+      { text: '• 기존 프롭테크 (내집스캔·세이프홈즈): ', options: { bold: true, color: INK_PRIMARY, fontSize: 8.2 } },
+      { text: '등기부·시세 등 물건 분석 중심 ➔ 계약서 테이블 위 자필/인쇄 특약 자체의 강행규정 위반 분석 불가\n', options: { color: INK_MUTED, fontSize: 8.0 } },
+      { text: '• 기존 B2B 리걸테크 (BHSN 앨리비 등): ', options: { bold: true, color: INK_PRIMARY, fontSize: 8.2 } },
+      { text: '기업용 고가 CLM(월 수십만원) ➔ 개인 세입자가 계약 10분 전에 쓸 수 없음\n\n', options: { color: INK_MUTED, fontSize: 8.0 } },
+      { text: '🎯 온율(溫律)만의 4대 독점적 차별점 (Moat)\n', options: { bold: true, color: INK_PRIMARY, fontSize: 9.5 } },
+      { text: '1. 계약 10분 전 핀포인트 판정: ', options: { bold: true, color: BRAND_INDIGO, fontSize: 8.2 } },
+      { text: '주택임대차보호법 제10조 강행규정 위반 무효 조항 즉시 적출\n', options: { color: INK_MUTED, fontSize: 8.0 } },
+      { text: '2. 정중한 카톡·문자 협상 초안: ', options: { bold: true, color: BRAND_INDIGO, fontSize: 8.2 } },
+      { text: '감정싸움 없이 임대인·중개사에게 바로 보내는 협상 멘트 생성\n', options: { color: INK_MUTED, fontSize: 8.0 } },
+      { text: '3. 헬스장·PT 환불 약관 확장: ', options: { bold: true, color: BRAND_INDIGO, fontSize: 8.2 } },
+      { text: '소비자원 피해구제 1위 체육시설 위약금까지 원스톱 지원\n', options: { color: INK_MUTED, fontSize: 8.0 } },
+      { text: '4. 공식 2P A4 PDF & 메일 전송: ', options: { bold: true, color: BRAND_INDIGO, fontSize: 8.2 } },
+      { text: '계약 당일 지참하는 공신력 진단서 및 이메일 다이렉트 전송', options: { color: INK_MUTED, fontSize: 8.0 } }
+    ], { x: 0.7, y: 1.75, w: 4.1, h: 3.15, lineSpacing: 11, fontFace: 'Pretendard' });
 
-    // Evidence Box
+    // Right Column: PDF Screenshot & Roadmap
     slide.addShape(pres.ShapeType.roundRect, {
-      x: 0.75, y: 4.35, w: 3.9, h: 0.55,
-      rectRadius: 0.08, fill: { color: EVIDENCE_BG }, line: { color: EVIDENCE_BORDER, width: 1 }
-    });
-    slide.addText([
-      { text: '🔍 팩트 검증 소스 (Ground Truth):\n', options: { bold: true, color: INK_PRIMARY, fontSize: 8 } },
-      { text: '• server/http.ts:253 (Playwright 기반 정식 2페이지 A4 PDF 감정서 빌드)\n• server/send-email.py: Gmail SMTP 직결 발송 및 수신 검증 완료', options: { color: INK_MUTED, fontSize: 7.5 } }
-    ], { x: 0.85, y: 4.4, w: 3.7, h: 0.45, lineSpacing: 10, fontFace: 'Pretendard' });
-
-    // Right Column: Actual PDF Report Screenshot
-    slide.addShape(pres.ShapeType.roundRect, {
-      x: 5.1, y: 1.6, w: 4.4, h: 3.45,
-      rectRadius: 0.12, fill: { color: 'F1F5F9' }, line: { color: CARD_BORDER, width: 1 }
+      x: 5.15, y: 1.6, w: 4.35, h: 3.45,
+      rectRadius: 0.12, fill: { color: 'F8FAFC' }, line: { color: CARD_BORDER, width: 1 }
     });
     slide.addImage({
       path: 'submission/assets/04_pdf_report.png',
-      x: 5.15, y: 1.68, w: 4.3, h: 2.95,
+      x: 5.25, y: 1.7, w: 4.15, h: 1.85,
       sizing: { type: 'contain' }
     });
     slide.addText('▲ 발행된 공식 2페이지 A4 감정 리포트 PDF (원문 스캔 하이라이트 내장, 실물 캡처)', {
-      x: 5.15, y: 4.7, w: 4.3, h: 0.22,
-      fontSize: 7.5, color: INK_MUTED, align: 'center', fontFace: 'Pretendard'
+      x: 5.25, y: 3.58, w: 4.15, h: 0.18,
+      fontSize: 7.2, color: INK_MUTED, align: 'center', fontFace: 'Pretendard'
     });
+
+    slide.addText([
+      { text: '🚀 향후 발전 로드맵\n', options: { bold: true, color: INK_PRIMARY, fontSize: 8.5 } },
+      { text: '1. On-Device OCR 사전 마스킹: 브라우저 WebGPU로 개인정보 원천 차단\n', options: { color: INK_MUTED, fontSize: 7.8 } },
+      { text: '2. 공공데이터 연동: 인터넷등기소 API 연동 (등기부등본 근저당 실시간 결합)\n', options: { color: INK_MUTED, fontSize: 7.8 } },
+      { text: '3. 플랫폼 확장: 당근 부동산, 피터팬 등 직거래 플랫폼 크롬 확장 연계', options: { color: INK_MUTED, fontSize: 7.8 } }
+    ], { x: 5.3, y: 3.8, w: 4.05, h: 0.75, lineSpacing: 10, fontFace: 'Pretendard' });
+
+    // Evidence Box inside right column
+    slide.addShape(pres.ShapeType.roundRect, {
+      x: 5.25, y: 4.58, w: 4.15, h: 0.38,
+      rectRadius: 0.06, fill: { color: EVIDENCE_BG }, line: { color: EVIDENCE_BORDER, width: 1 }
+    });
+    slide.addText([
+      { text: '🔍 팩트 검증 소스: ', options: { bold: true, color: INK_PRIMARY, fontSize: 7.2 } },
+      { text: 'server/pdf.ts (A4 PDF 렌더링) | public/gmail-inbox.html (Gmail 수신 검증)', options: { color: INK_MUTED, fontSize: 7.0 } }
+    ], { x: 5.35, y: 4.62, w: 3.95, h: 0.3, lineSpacing: 9, fontFace: 'Pretendard' });
   }
 
   const outputPath = 'submission/01_발표자료_계약서특약점검기.pptx';
