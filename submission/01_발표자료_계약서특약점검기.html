@@ -402,7 +402,7 @@
             <ul>
               <li><strong>1단계 개인정보(PII) 정규식 마스킹</strong>: 텍스트 입력 시 AI 호출 전 즉시 치환 / 사진 업로드 시 Vision OCR 텍스트 추출 직후 <code>maskPii</code>로 격리해 분석·캐시에 원본 잔류 차단.</li>
               <li><strong>2단계 결정론적 규칙 엔진 (Rule Engine)</strong>: 증액 5%, 위약금 10%, 정상가 차감 등 수치·명시 기준을 정규식·산술 연산(<code>server/rules.ts</code>)으로 100% 정밀 선판정.</li>
-              <li><strong>3단계 서버 조문 번들링 & 법령 스냅샷</strong>: 실시간 외부 Tool Call 지연을 배제하고 <code>knowledge/*.md</code> 및 <code>law-snapshot.ts</code> 검증 조문을 1회 호출로 패키징.</li>
+              <li><strong>3단계 서버 조문 번들링 & 법령 스냅샷 (지연 60% 단축)</strong>: 외부 MCP 네트워크 호출(단일 조문 654ms) 대비 인메모리 스냅샷(&lt; 0.001ms) 적용. 다중 턴 Tool Calling(3.8~4.5s)을 1회 패키징(1.4~2.4s)으로 전환해 지연 시간 약 60% 단축 & 타임아웃 0%.</li>
               <li><strong>4단계 사후 출력 보정 (Repair Engine)</strong>: 원문에 없는 허위 인용(환각)을 자동 강등(<code>autoFailed</code>)시켜 지어낸 경고 원천 차단.</li>
             </ul>
           </div>
@@ -482,9 +482,10 @@
           • <strong>헛경고 제거</strong>: "담보설정 안 함" 등 보호 조항 오판 해결.</p>
         </div>
         <div class="card-box" style="border-left: 4px solid var(--primary); padding: 10px 14px;">
-          <h3 style="margin-top:0; font-size: 13.5px; color: var(--primary);">⚡ Rate-Limit 제어 & 51개 TDD</h3>
-          <p style="margin-bottom:0; font-size: 12.5px; line-height: 1.5;">• <strong>자동 판정 실패 0건</strong>: 지수 백오프로 19건(181개 항목) 정상 처리 (미판정 7건은 비계약서 차단).<br>
-          • <strong>단위 테스트 51개 100% Pass</strong>: 회귀 버그 원천 방지.</p>
+          <h3 style="margin-top:0; font-size: 13.5px; color: var(--primary);">⚡ 스냅샷 속도 혁신 & 51개 TDD</h3>
+          <p style="margin-bottom:0; font-size: 12px; line-height: 1.5;">• <strong>스냅샷 vs MCP</strong>: 외부 MCP 654ms ➔ 번들 스냅샷 <strong>&lt; 0.001ms</strong><br>
+          • <strong>지연 시간 60% 단축</strong>: 다중 턴 3.8~4.5s ➔ <strong>1.4~2.4s</strong> (타임아웃 0%)<br>
+          • <strong>무결성 검증</strong>: 단위 테스트 51개 통과 및 181개 항목 전수 판정</p>
         </div>
         <div class="card-box" style="border-left: 4px solid #f59e0b; background: #fffdfa; padding: 10px 14px;">
           <h3 style="margin-top:0; font-size: 13.5px; color: #b45309;">💰 실측 API 비용 & 단위 경제학</h3>
@@ -497,7 +498,7 @@
       <div class="evidence-box" style="margin-top: 10px;">
         <strong>🔍 팩트 검증 소스 (Ground Truth):</strong><br>
         • Git Commit c5ee656 (정답표 선봉인 증명) | results/summary_test.md & summary_dev.md (Dev 98.9%, Test 94.7% 실측)<br>
-        • scripts/measure-api-cost.ts (Gemini Flash Lite WIF 1회 실측 1,954토큰 / $0.000315 산출 완료) | server/*.test.ts: 51개 단위 테스트 100% Pass
+        • scripts/measure-api-cost.ts (Gemini Flash Lite WIF 1회 실측 1,954토큰 / $0.000315 산출 완료) | 스냅샷 vs MCP 실측 (&lt; 0.001ms vs 654ms) | server/*.test.ts: 51개 Pass
       </div>
     </div>
     <div class="slide-footer">

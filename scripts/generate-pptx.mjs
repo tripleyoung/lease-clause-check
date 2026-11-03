@@ -296,8 +296,8 @@ async function buildPresentation() {
       { text: '• AI 호출 전 주민번호·계좌·전화·동호수 자동 치환 (외부 유출 0%)\n\n', options: { color: INK_MUTED } },
       { text: '⚙️ 2단계: 결정론적 규칙 엔진 (Rule Engine)\n', options: { bold: true, color: INK_PRIMARY } },
       { text: '• 증액 5%, 위약금 10% 등 숫자 계산을 모델에게 맡기지 않고 규칙 엔진 계산\n\n', options: { color: INK_MUTED } },
-      { text: '📦 3단계: 서버 조문 번들링 (Tool Call 배제)\n', options: { bold: true, color: INK_PRIMARY } },
-      { text: '• 다중 턴 도구 호출 지연 및 Vercel 60초 타임아웃 해소. 1회 호출 패키징으로 응답 속도 60% 단축 (0.6초)\n\n', options: { color: INK_MUTED } },
+      { text: '📦 3단계: 서버 조문 번들링 (스냅샷 vs MCP)\n', options: { bold: true, color: INK_PRIMARY } },
+      { text: '• 외부 법령 MCP(654ms) 대비 인메모리 스냅샷(< 0.001ms) 적용. 다중 턴(3.8~4.5s) ➔ 1회 패키징(1.4~2.4s)으로 60% 단축 & 타임아웃 0%\n\n', options: { color: INK_MUTED } },
       { text: '🔧 4단계: 사후 출력 보정 (Repair Engine)\n', options: { bold: true, color: INK_PRIMARY } },
       { text: '• 원문에 없는 허위 인용(환각) 자동 강등 & 누락 항목 자동 실패 처리', options: { color: INK_MUTED } }
     ], { x: 0.75, y: 1.78, w: 3.9, h: 2.45, fontSize: 8.8, lineSpacing: 12, fontFace: 'Pretendard' });
@@ -409,16 +409,18 @@ async function buildPresentation() {
       x: 3.55, y: 3.2, w: 2.85, h: 1.25,
       rectRadius: 0.1, fill: { color: CARD_BG }, line: { color: CARD_BORDER, width: 1 }
     });
-    slide.addText('⚡ Rate-Limit 제어 & 51개 TDD', {
+    slide.addText('⚡ 스냅샷 속도 혁신 & 51개 TDD', {
       x: 3.65, y: 3.3, w: 2.65, h: 0.22,
       fontSize: 9.8, bold: true, color: BRAND_INDIGO, fontFace: 'Pretendard'
     });
     slide.addText([
-      { text: '• 지수 백오프 자동 제어: ', options: { bold: true, color: INK_PRIMARY } },
-      { text: '19건 181개 항목 판정 누락 0건\n', options: { color: INK_MUTED } },
-      { text: '• 단위 테스트 51개 통과: ', options: { bold: true, color: INK_PRIMARY } },
-      { text: '회귀 버그 없는 탄탄한 아키텍처', options: { color: INK_MUTED } }
-    ], { x: 3.65, y: 3.55, w: 2.65, h: 0.78, fontSize: 8.0, lineSpacing: 11, fontFace: 'Pretendard' });
+      { text: '• 스냅샷 vs MCP 실측: ', options: { bold: true, color: INK_PRIMARY } },
+      { text: '654ms ➔ < 0.001ms (즉시 반환)\n', options: { color: INK_MUTED } },
+      { text: '• 지연 시간 60% 단축: ', options: { bold: true, color: INK_PRIMARY } },
+      { text: '다중 턴 3.8s ➔ 1.4s (오류 0%)\n', options: { color: INK_MUTED } },
+      { text: '• 51개 TDD 전원 통과: ', options: { bold: true, color: INK_PRIMARY } },
+      { text: '회귀 방지 및 181개 전수 채점', options: { color: INK_MUTED } }
+    ], { x: 3.65, y: 3.55, w: 2.65, h: 0.78, fontSize: 7.8, lineSpacing: 10.5, fontFace: 'Pretendard' });
 
     slide.addShape(pres.ShapeType.roundRect, {
       x: 6.6, y: 3.2, w: 2.9, h: 1.25,
@@ -444,7 +446,7 @@ async function buildPresentation() {
     });
     slide.addText([
       { text: '🔍 팩트 검증 소스 (Ground Truth):\n', options: { bold: true, color: INK_PRIMARY, fontSize: 8 } },
-      { text: '• Git Commit c5ee656 (정답표 선봉인 증명) | results/summary_test.md (Test Split 20건 188개 판정 실측 로그 원본)\n• scripts/measure-api-cost.ts (Gemini Flash Lite 1회 실측 $0.000315 / 1,954토큰 완료) | server/*.test.ts: 51개 TDD 통과', options: { color: INK_MUTED, fontSize: 7.5 } }
+      { text: '• Git Commit c5ee656 (정답표 선봉인 증명) | results/summary_test.md (Test Split 20건 188개 판정 실측 로그 원본)\n• scripts/measure-api-cost.ts (Gemini Flash Lite 1회 실측 $0.000315 / 1,954토큰 완료) | 스냅샷 vs MCP 실측 (< 0.001ms vs 654ms) | server/*.test.ts: 51개 TDD 통과', options: { color: INK_MUTED, fontSize: 7.5 } }
     ], { x: 0.65, y: 4.6, w: 8.7, h: 0.45, lineSpacing: 10, fontFace: 'Pretendard' });
   }
 
